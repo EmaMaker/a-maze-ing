@@ -1,2 +1,3 @@
 # a-maze-ing
-A Maze-solving game with randomly generated games. This branch is for the Processing Desktop version
+A Maze-solving game with randomly generated games.
+This branch runs on the Homebrew channel for the the Nintendo Wii
