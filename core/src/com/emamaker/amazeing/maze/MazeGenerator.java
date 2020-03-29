@@ -112,7 +112,7 @@ public class MazeGenerator {
 	}
 	
 	//Setup end point in a random location. At a distance of EP_DIST from every player
-	void setupEndPoint(){
+	public void setupEndPoint(){
 	    //Randomly spawns all the players
 	    //For a spawn location to be valid, it has to be free from both walls and players
 		int x = 0, y = 0;
@@ -125,6 +125,7 @@ public class MazeGenerator {
 		WINX = x;
 		WINZ = y;
 		todraw[x][y] = 2;
+		main.world.worldManager.setCell(WINX, 0, WINZ, CellId.ID_WOOD);
 	}
 
 	public void prepareShow() {
@@ -159,14 +160,14 @@ public class MazeGenerator {
 			}
 		}
 
-		setupEndPoint();
+		//setupEndPoint();
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
 				if (todraw[i][j] == 1)
 					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
-				else if (todraw[i][j] == 2)
-					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
+//				if (todraw[i][j] == 2)
+//					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
 			}
 		}
 	}

@@ -23,7 +23,6 @@ public class AMazeIng extends Game {
 	public GameManager gameManager;
 	public InputMultiplexer multiplexer = new InputMultiplexer();
 
-
 	@Override
 	public void create() {
 		//Bullet init for physics

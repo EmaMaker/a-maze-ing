@@ -8,7 +8,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.MazeGenerator;
-import com.emamaker.amazeing.maze.MazeSettings;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
@@ -35,8 +35,8 @@ public class GameManager {
 
 	public void update() {
 		if (gameStarted) {
-			main.world.cam.position.set(mazeGen.w / 2, VoxelSettings.chunkSize * 1.25f, mazeGen.h / 2);
-			main.world.cam.lookAt(mazeGen.w / 2, 0, mazeGen.h / 2);
+			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX+MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2);
+			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
 			main.world.cam.update();
 			main.world.render();
 
@@ -61,6 +61,7 @@ public class GameManager {
 
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
 	public void generateMaze(Set<MazePlayer> pl) {
+		main.setScreen(null);
 		anyoneWon = false;
 
 		// Only add new players and dispose the old ones
@@ -96,13 +97,14 @@ public class GameManager {
 
 		// Set camera
 		main.world.cam.lookAt(mazeGen.w / 2, 0, mazeGen.h / 2);
-		main.world.cam.rotate(Vector3.X, 135);
+		main.world.cam.rotate(Vector3.X, 15);
 		main.world.cam.update();
 
 		// Init the player with relative movement keys
 //		players.add(generateNewPlayer(Keys.W, Keys.S, Keys.A, Keys.D));
 //		players.add(generateNewPlayer(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT));
 		spreadPlayers();
+		mazeGen.setupEndPoint();
 		gameStarted = true;
 
 	}

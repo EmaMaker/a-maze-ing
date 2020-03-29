@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.ui.UIManager;
 
@@ -26,13 +27,16 @@ public class PlayerChooseScreen implements Screen {
 	UIManager uiManager;
 	Stage stage;
 	Table table;
-	
-	Label[] labels = new Label[8];
+
+	Label[] labels;
 	int currentLabel = 0;
 	HashMap<MazePlayer, Label> players = new HashMap<MazePlayer, Label>();
 	
+	Screen thisScreen;
+
 	public PlayerChooseScreen(UIManager uiManager_) {
 		uiManager = uiManager_;
+		show();
 //
 //		stage = new Stage(new ScreenViewport());
 //
@@ -88,27 +92,44 @@ public class PlayerChooseScreen implements Screen {
 //        tableContainer.setActor(table);
 //        stage.addActor(tableContainer);
 
-	    float sw = Gdx.graphics.getWidth();
-	    float sh = Gdx.graphics.getHeight();
+//	    float sw = Gdx.graphics.getWidth();
+//	    float sh = Gdx.graphics.getHeight();
+
+//		Table buttonTable = new Table();
+//
+//		table.add(buttonTable).colspan(3);
+//		buttonTable.pad(16);
+//		buttonTable.add(backBtn).width(80);
+//		buttonTable.add(playBtn).width(80);
+//
+//		tableContainer.setActor(table);
+//		stage.addActor(tableContainer);
+
+	}
+
+	@Override
+	public void show() {
+		thisScreen = this;
 		
+		labels = new Label[MazeSettings.MAXPLAYERS];
 		stage = new Stage(new ScreenViewport());
 		Container<Table> tableContainer = new Container<Table>();
 		Table table = new Table();
 
 		float cw = stage.getWidth();
 		float ch = stage.getHeight();
-		
+
 		tableContainer.setSize(cw, ch);
 		tableContainer.setPosition(0, 0);
-		
+
 		Label instLab = new Label("Use WASD, ARROWS, or button on controller to join the match", uiManager.skin);
 		TextButton backBtn = new TextButton("Back", uiManager.skin);
 		TextButton setBtn = new TextButton("Settings", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
 		TextButton playBtn = new TextButton("Play", uiManager.skin);
-		
-		//Labels to know if players joined
-		for(int i = 0; i < labels.length; i++) {
+
+		// Labels to know if players joined
+		for (int i = 0; i < labels.length; i++) {
 			labels[i] = new Label("Not joined yet", uiManager.skin);
 		}
 
@@ -125,7 +146,7 @@ public class PlayerChooseScreen implements Screen {
 		playBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				if(!players.isEmpty()) {
+				if (!players.isEmpty()) {
 					hide();
 					uiManager.main.gameManager.generateMaze(players.keySet());
 				}
@@ -136,7 +157,8 @@ public class PlayerChooseScreen implements Screen {
 		setBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear settings screen (TODO)");
+				uiManager.setScreen.setPrevScreen(thisScreen);
+				uiManager.main.setScreen(uiManager.setScreen);
 				return true;
 			}
 		});
@@ -148,92 +170,82 @@ public class PlayerChooseScreen implements Screen {
 				return true;
 			}
 		});
-		
+
 		Table firstRowTable = new Table();
-		
-		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw*0.005f);
-		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw*0.25f);
-		firstRowTable.add(setBtn).height(50).fillX().expandX().space(cw*0.005f);
-		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw*0.005f);
+
+		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
+		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw * 0.25f);
+		firstRowTable.add(setBtn).height(50).fillX().expandX().space(cw * 0.005f);
+		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.setOrigin(Align.center | Align.top);
 		table.row().colspan(4);
 
 		table.add(firstRowTable);
 
-		for(int i = 0; i < labels.length; i++) {
-			if(i % 4 == 0) table.row().expandY().fillY();
-			table.add( labels[i] ).space(1);
+		for (int i = 0; i < labels.length; i++) {
+			if (i % 4 == 0)
+				table.row().expandY().fillY();
+			table.add(labels[i]).space(1);
 		}
 		table.row().colspan(4);
-		table.add(playBtn).fillX().width(cw*0.06f);
-		
-		
+		table.add(playBtn).fillX().width(cw * 0.06f);
+
 		tableContainer.setActor(table);
 		stage.addActor(tableContainer);
-		
-//		Table buttonTable = new Table();
-//
-//		table.add(buttonTable).colspan(3);
-//		buttonTable.pad(16);
-//		buttonTable.add(backBtn).width(80);
-//		buttonTable.add(playBtn).width(80);
-//
-//		tableContainer.setActor(table);
-//		stage.addActor(tableContainer);
 
-	}
-
-	@Override
-	public void show() {
 		uiManager.main.multiplexer.addProcessor(stage);
 	}
 
 	@Override
 	public void hide() {
-		uiManager.main.multiplexer.removeProcessor(stage);		
+		uiManager.main.multiplexer.removeProcessor(stage);
 	}
 
 	MazePlayer p;
+
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		stage.act();
 		stage.draw();
-		
-		if(!uiManager.main.gameManager.gameStarted) {
-			//Consantly search for new players to be added
-			//First search for keyboard players (WASD and ARROWS)
-			if(Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A) || Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D)) {
-				p = getPlayerWithKeys(Keys.W, Keys.S, Keys.A, Keys.D);
-				if(p == null) p = new MazePlayer(uiManager.main, Keys.W, Keys.S, Keys.A, Keys.D);
+
+		// Consantly search for new players to be added
+		// First search for keyboard players (WASD and ARROWS)
+		if (Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A)
+				|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D)) {
+			p = getPlayerWithKeys(Keys.W, Keys.S, Keys.A, Keys.D);
+			if (p == null)
+				p = new MazePlayer(uiManager.main, Keys.W, Keys.S, Keys.A, Keys.D);
+			togglePlayer(p);
+		}
+		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
+				|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT)) {
+			p = getPlayerWithKeys(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+			if (p == null)
+				p = new MazePlayer(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+			togglePlayer(p);
+		}
+		for (Controller c : Controllers.getControllers()) {
+			if (c.getButton(Xbox.Y)) {
+				p = getPlayerWithCtrl(c);
+				if (p == null)
+					p = new MazePlayer(uiManager.main, c);
 				togglePlayer(p);
-			}
-			if(Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT) || Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT)) {
-				p = getPlayerWithKeys(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
-				if(p == null) p = new MazePlayer(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
-				togglePlayer(p);
-			}
-			for(Controller c : Controllers.getControllers()) {
-				if(c.getButton(Xbox.Y)){
-					p = getPlayerWithCtrl(c);
-					if(p == null) p = new MazePlayer(uiManager.main, c);
-					togglePlayer(p);
-				}
 			}
 		}
 	}
-	
+
 	public void togglePlayer(MazePlayer p) {
 		try {
-			if(alreadyAddedPlayer(p)) {
+			if (alreadyAddedPlayer(p)) {
 				players.get(p).setText("Not Joined Yet");
 				players.remove(p);
-			}else {
+			} else {
 				players.put(p, labels[players.size()]);
 				players.get(p).setText("Player Read");
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println("All players already joined");
 		}
 	}
@@ -241,15 +253,16 @@ public class PlayerChooseScreen implements Screen {
 	public boolean alreadyAddedPlayerWithKeys(int... keys) {
 		return getPlayerWithKeys(keys) != null;
 	}
-	
+
 	public boolean alreadyAddedPlayer(MazePlayer p) {
 		return players.containsKey(p);
 	}
-	
+
 	public MazePlayer getPlayerWithKeys(int... keys) {
-		for(MazePlayer p : players.keySet()) {
-			for(int k : keys) {
-				if(p.kup == k || p.kdown == k || p.ksx == k || p.kdx == k) return p;
+		for (MazePlayer p : players.keySet()) {
+			for (int k : keys) {
+				if (p.kup == k || p.kdown == k || p.ksx == k || p.kdx == k)
+					return p;
 			}
 		}
 		return null;
@@ -258,10 +271,11 @@ public class PlayerChooseScreen implements Screen {
 	public boolean alreadyAddedPlayerWithCtrl(Controller ctrl) {
 		return getPlayerWithCtrl(ctrl) != null;
 	}
-	
+
 	public MazePlayer getPlayerWithCtrl(Controller ctrl) {
-		for(MazePlayer p : players.keySet()) {
-			if(p.ctrl == ctrl) return p;
+		for (MazePlayer p : players.keySet()) {
+			if (p.ctrl == ctrl)
+				return p;
 		}
 		return null;
 	}
@@ -285,8 +299,7 @@ public class PlayerChooseScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		stage.dispose();
 	}
 
 }

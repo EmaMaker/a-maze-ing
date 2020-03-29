@@ -25,7 +25,7 @@ public class TitleScreen implements Screen {
 		Table table = new Table();
 
 		VerticalGroup mainScreenGroup = new VerticalGroup().space(5).pad(5).fill();
-		TextButton setBut = new TextButton("Customize Game Settings (TODO)", uiManager.skin);
+		TextButton setBut = new TextButton("Customize Game Settings", uiManager.skin);
 		mainScreenGroup.addActor(setBut);
 		TextButton servBut = new TextButton("Start Server and play online with friends (TODO)", uiManager.skin);
 		mainScreenGroup.addActor(servBut);
@@ -62,10 +62,10 @@ public class TitleScreen implements Screen {
 				return true;
 			}
 		});
-		servBut.addListener(new InputListener() {
+		setBut.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear settings screen (TODO)");
+		    	uiManager.main.setScreen(uiManager.setScreen);
 				return true;
 			}
 		});

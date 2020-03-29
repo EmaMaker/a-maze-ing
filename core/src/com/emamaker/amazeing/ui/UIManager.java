@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.ui.screens.PlayerChooseScreen;
+import com.emamaker.amazeing.ui.screens.SettingsScreen;
 import com.emamaker.amazeing.ui.screens.TitleScreen;
 
 public class UIManager {
@@ -14,6 +15,7 @@ public class UIManager {
 	float delta;
 	public TitleScreen titleScreen;
 	public PlayerChooseScreen playersScreen;
+	public SettingsScreen setScreen;
 	
 	public UIManager(Game main_) {
 		main = (AMazeIng)main_;
@@ -23,6 +25,7 @@ public class UIManager {
 		//Load all the screens after loading the skin
 		titleScreen = new TitleScreen(this);
 		playersScreen = new PlayerChooseScreen(this);
+		setScreen = new SettingsScreen(this);
 		main.setScreen(titleScreen);
 	}
 	
