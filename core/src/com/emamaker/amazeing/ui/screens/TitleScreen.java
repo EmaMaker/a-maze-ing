@@ -27,8 +27,10 @@ public class TitleScreen implements Screen {
 		VerticalGroup mainScreenGroup = new VerticalGroup().space(5).pad(5).fill();
 		TextButton setBut = new TextButton("Customize Game Settings", uiManager.skin);
 		mainScreenGroup.addActor(setBut);
-		TextButton servBut = new TextButton("Start Server and play online with friends (TODO)", uiManager.skin);
-		mainScreenGroup.addActor(servBut);
+		TextButton makeSrvBtn = new TextButton("Start Server and play online (WIP)", uiManager.skin);
+		mainScreenGroup.addActor(makeSrvBtn);
+		TextButton joinSrvBtn = new TextButton("Join Server and play online (WIP)", uiManager.skin);
+		mainScreenGroup.addActor(joinSrvBtn);
 		TextButton localBut = new TextButton("Start a game on the local machine", uiManager.skin);
 		mainScreenGroup.addActor(localBut);
 		TextButton quitBut = new TextButton("Quit game", uiManager.skin);
@@ -42,7 +44,6 @@ public class TitleScreen implements Screen {
 		    @Override
 		    public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 		    	hide();
-//		    	uiManager.main.gameManager.generateMaze();
 		    	uiManager.main.setScreen(uiManager.playersScreen);
 		    	return true;
 		    }
@@ -55,16 +56,26 @@ public class TitleScreen implements Screen {
 		        return true;
 		    }
 		});
-		servBut.addListener(new InputListener() {
+		makeSrvBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear server joining and setup screen (TODO)");
+				hide();
+				uiManager.main.setScreen(uiManager.srvLaunchScreen);
+				return true;
+			}
+		});
+		joinSrvBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.main.setScreen(uiManager.srvJoinScreen);
 				return true;
 			}
 		});
 		setBut.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
 		    	uiManager.main.setScreen(uiManager.setScreen);
 				return true;
 			}
@@ -72,7 +83,8 @@ public class TitleScreen implements Screen {
 		
 		//Add actors to the group
 		mainScreenGroup.addActor(setBut);
-		mainScreenGroup.addActor(servBut);
+		mainScreenGroup.addActor(makeSrvBtn);
+		mainScreenGroup.addActor(joinSrvBtn);
 		mainScreenGroup.addActor(localBut);
 		mainScreenGroup.addActor(quitBut);
 	}

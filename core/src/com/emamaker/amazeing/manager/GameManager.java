@@ -51,10 +51,7 @@ public class GameManager {
 				}
 			}
 
-			if (anyoneWon) {
-//				destroyPlayers();
-				main.setScreen(main.uiManager.playersScreen);
-			}
+			if (anyoneWon)  main.setScreen(main.uiManager.playersScreen);
 			main.world.modelBatch.end();
 		}
 	}
@@ -95,14 +92,6 @@ public class GameManager {
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
 
-		// Set camera
-		main.world.cam.lookAt(mazeGen.w / 2, 0, mazeGen.h / 2);
-		main.world.cam.rotate(Vector3.X, 15);
-		main.world.cam.update();
-
-		// Init the player with relative movement keys
-//		players.add(generateNewPlayer(Keys.W, Keys.S, Keys.A, Keys.D));
-//		players.add(generateNewPlayer(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT));
 		spreadPlayers();
 		mazeGen.setupEndPoint();
 		gameStarted = true;
