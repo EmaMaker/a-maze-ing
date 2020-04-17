@@ -108,7 +108,7 @@ public class MazeGenerator {
 				currentCell.current = true;
 			}
 		}
-		prepareShow();
+		prepareShow(todraw);
 	}
 	
 	//Setup end point in a random location. At a distance of EP_DIST from every player
@@ -128,7 +128,7 @@ public class MazeGenerator {
 		main.world.worldManager.setCell(WINX, 0, WINZ, CellId.ID_WOOD);
 	}
 
-	public void prepareShow() {
+	public void prepareShow(int[][] todraw_) {
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
 				todraw[i][j] = 1;
@@ -143,20 +143,20 @@ public class MazeGenerator {
 				int y = 2 * j + 1;
 
 				// current cell
-				todraw[x][y] = 0;
+				todraw_[x][y] = 0;
 
 				// up wall
 				if (!cellsGrid[i][j].walls[0])
-					todraw[x][y - 1] = 0;
+					todraw_[x][y - 1] = 0;
 				// down wall
 				if (!cellsGrid[i][j].walls[2])
-					todraw[x][y + 1] = 0;
+					todraw_[x][y + 1] = 0;
 				// left wall
 				if (!cellsGrid[i][j].walls[3])
-					todraw[x - 1][y] = 0;
+					todraw_[x - 1][y] = 0;
 				// right all
 				if (!cellsGrid[i][j].walls[1])
-					todraw[x + 1][y] = 0;
+					todraw_[x + 1][y] = 0;
 			}
 		}
 
@@ -164,7 +164,7 @@ public class MazeGenerator {
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
-				if (todraw[i][j] == 1)
+				if (todraw_[i][j] == 1)
 					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
 //				if (todraw[i][j] == 2)
 //					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);

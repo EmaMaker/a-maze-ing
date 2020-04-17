@@ -5,28 +5,32 @@ import java.util.Random;
 import java.util.Set;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
-import com.emamaker.voxelengine.utils.VoxelSettings;
 
 public class GameManager {
+	
+	/*Local manager for local games and server host in multiplayer games*/
 
 	public MazeGenerator mazeGen;
 	public boolean gameStarted = false;
 	Random rand = new Random();
+	public GameServer server;
+	public GameClient client;
 	AMazeIng main;
+	
 
 	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
 	public GameManager(Game main_) {
 		main = (AMazeIng) main_;
 		gameStarted = false;
-
+		server = new GameServer(main);
+		client = new GameClient(main);
 		// Maze Generation
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
 	}
@@ -41,13 +45,15 @@ public class GameManager {
 			main.world.render();
 
 			main.world.modelBatch.begin(main.world.cam);
-			for (MazePlayer p : players) {
-				p.render(main.world.modelBatch, main.world.environment);
-				anyoneWon = false;
-				if (checkWin(p)) {
-					anyoneWon = true;
-					gameStarted = false;
-					break;
+			if(players != null) {
+				for (MazePlayer p : players) {
+					p.render(main.world.modelBatch, main.world.environment);
+					anyoneWon = false;
+					if (checkWin(p)) {
+						anyoneWon = true;
+						gameStarted = false;
+						break;
+					}
 				}
 			}
 
@@ -63,21 +69,23 @@ public class GameManager {
 
 		// Only add new players and dispose the old ones
 		//Check if actually there are players to be deleted
-		for (MazePlayer p : players)
-			if (!pl.contains(p))
-				toDelete.add(p);
-		
-		//Check if new players have to be added
-		for (MazePlayer p : pl)
-			if (!players.contains(p))
-				players.add(p);
-		
-		//Fianlly delete players. A separated step is needed to remove the risk of a ConcurrentModificationException
-		for(MazePlayer p : toDelete) {
-			p.dispose();
-			players.remove(p);
+		if(pl != null) {
+			for (MazePlayer p : players)
+				if (!pl.contains(p))
+					toDelete.add(p);
+			
+			//Check if new players have to be added
+			for (MazePlayer p : pl)
+				if (!players.contains(p))
+					players.add(p);
+			
+			//Fianlly delete players. A separated step is needed to remove the risk of a ConcurrentModificationException
+			for(MazePlayer p : toDelete) {
+				p.dispose();
+				players.remove(p);
+			}
+			toDelete.clear();
 		}
-		toDelete.clear();
 //		destroyPlayers();
 //		players.addAll(p);
 
@@ -169,6 +177,8 @@ public class GameManager {
 	}
 
 	public void dispose() {
+		client.stop();
+		server.stop();
 		for (MazePlayer p : players)
 			p.dispose();
 	}
