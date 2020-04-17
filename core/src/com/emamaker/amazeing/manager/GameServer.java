@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.Protocol;
@@ -18,7 +17,7 @@ import com.emamaker.amazeing.AMazeIng;
 public class GameServer {
 
 	volatile boolean serverRunning = false;
-	String nextMessage = "oa";
+	volatile String nextMessage = "";
 
 	public ServerSocket serverSocket = null;
 	public int port;
@@ -58,18 +57,32 @@ public class GameServer {
 					} catch (GdxRuntimeException se) {
 						// System.out.println("No new clients connected in the last 100 milliseconds");
 					}
-					for (Socket s : clientSockets) {
-						System.out.println(s);
-						// Receive messages from the server
-						try {
-							BufferedReader buffer = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-							// Read to the next newline (\n) and display that text on labelMessage
-							System.out.println("Server received message From: " + s + "!\n" + buffer.readLine());
-						} catch (IOException e) {
-//							e.printStackTrace();
+					for (Socket s : clientSockets) {
+						if (s.isConnected()) {
+							// Receive messages from the client
+							try {
+								if (s.getInputStream().available() > 0) {
+									BufferedReader buffer = new BufferedReader(
+											new InputStreamReader(s.getInputStream()));
+
+									// Read to the next newline (\n) and display that text on labelMessage
+									System.out
+											.println("Server received message From: " + s + "!\n" + buffer.readLine());
+								}
+							} catch (IOException e) {
+							}
+							// Send messages to the client
+							if (!nextMessage.equals(""))
+								try {
+									// write our entered message to the stream
+									s.getOutputStream().write((nextMessage + "\n").getBytes());
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
 						}
 					}
+					nextMessage = "";
 				}
 			}
 
@@ -77,15 +90,17 @@ public class GameServer {
 		serverThread.start();
 	}
 
+	public void sendMessagetoClients(String s) {
+		nextMessage += (s + "\n");
+	}
+
+	// Once the server has started accepting connections from other players, the
+	// host should decide when to start the gmae
+	// A proper ui should be added, but for now we can just start the game without
+	// showing any players and just show the map across all the clients
 	public void startGame() {
-		// Once the server has started accepting connections from other players, the
-		// host should decide when to start the gmae
-		// A proper ui should be added, but for now we can just start the game without
-		// showing any players and just show the map across all the clients
-		// To spread the map we can just encode in a string the todraw[][] array in
-		// MazeGenerator, in future run-lenght encoding should be considered
-		main.gameManager.generateMaze(null);
-		nextMessage = "Map" + Arrays.deepToString(main.gameManager.mazeGen.todraw);
+		main.gameManager.generateMaze();
+		sendMessagetoClients("Map" + main.gameManager.mazeGen.runLenghtEncode());
 	}
 
 	public void stop() {

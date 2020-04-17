@@ -13,8 +13,8 @@ import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
 
 public class GameManager {
-	
-	/*Local manager for local games and server host in multiplayer games*/
+
+	/* Local manager for local games and server host in multiplayer games */
 
 	public MazeGenerator mazeGen;
 	public boolean gameStarted = false;
@@ -22,7 +22,6 @@ public class GameManager {
 	public GameServer server;
 	public GameClient client;
 	AMazeIng main;
-	
 
 	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
@@ -39,13 +38,14 @@ public class GameManager {
 
 	public void update() {
 		if (gameStarted) {
-			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX+MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2);
+			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
+					mazeGen.h / 2);
 			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
 			main.world.cam.update();
 			main.world.render();
 
 			main.world.modelBatch.begin(main.world.cam);
-			if(players != null) {
+			if (players != null) {
 				for (MazePlayer p : players) {
 					p.render(main.world.modelBatch, main.world.environment);
 					anyoneWon = false;
@@ -57,13 +57,14 @@ public class GameManager {
 				}
 			}
 
-			if (anyoneWon)  main.setScreen(main.uiManager.playersScreen);
+			if (anyoneWon)
+				main.setScreen(main.uiManager.playersScreen);
 			main.world.modelBatch.end();
 		}
 	}
 
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
-	public void generateMaze(Set<MazePlayer> pl) {
+	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 		anyoneWon = false;
 
@@ -99,11 +100,16 @@ public class GameManager {
 
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
-
+		
 		spreadPlayers();
 		mazeGen.setupEndPoint();
+		
+		if(todraw != null) {
+		mazeGen.show(todraw);
+		}
+		
+		
 		gameStarted = true;
-
 	}
 
 	public void spreadPlayers() {
@@ -176,6 +182,18 @@ public class GameManager {
 		return false;
 	}
 
+	public void generateMaze() {
+		generateMaze(null, null);
+	}
+
+	public void generateMaze(int todraw[][]) {
+		generateMaze(null, todraw);
+	}
+	public void generateMaze(Set<MazePlayer> pl) {
+		generateMaze(pl, null);
+	}
+
+	
 	public void dispose() {
 		client.stop();
 		server.stop();

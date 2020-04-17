@@ -1,6 +1,7 @@
 package com.emamaker.amazeing.maze;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import com.emamaker.amazeing.AMazeIng;
@@ -30,26 +31,21 @@ public class MazeGenerator {
 	}
 
 	public void setMazeSize(int w_, int h_) {
-		w = w_+(1-w%2);
-		h = h_+(1-h%2);
-		W = (w-1) / 2;
-		H = (h-1) / 2;
-//		W = w_;
-//		H = h_;
-//
-//		w = 2 * W + 1;
-//		h = 2 * H + 1;
-		
-		/*
-		 * w-1 = 2*W
-		 * W = w-1)
-		 */
-		
+		w = w_ + (1 - w % 2);
+		h = h_ + (1 - h % 2);
+		W = (w - 1) / 2;
+		H = (h - 1) / 2;
+
 		cellsGrid = new Cell[W][H];
 		todraw = new int[w][h];
 		System.out.println(W + "*" + H + " --- " + w + "*" + h);
 	}
 
+	/*
+	 * Implementation of a recursive backtracker to generated the maze. Mazes
+	 * generated in this way can always be solved.
+	 * https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
+	 */
 	public void generateMaze() {
 		// init cells
 		for (int i = 0; i < W; i++) {
@@ -108,27 +104,98 @@ public class MazeGenerator {
 				currentCell.current = true;
 			}
 		}
-		prepareShow(todraw);
+		prepareShow();
 	}
-	
-	//Setup end point in a random location. At a distance of EP_DIST from every player
-	public void setupEndPoint(){
-	    //Randomly spawns all the players
-	    //For a spawn location to be valid, it has to be free from both walls and players
+
+	/*
+	 * Setup end point in a random location. At a distance of EP_DIST from every
+	 * player
+	 */
+	public void setupEndPoint() {
+		// Randomly spawns all the players
+		// For a spawn location to be valid, it has to be free from both walls and
+		// players
 		int x = 0, y = 0;
-	    
+
 		do {
 			x = (Math.abs(rand.nextInt()) % (w));
-		    y = (Math.abs(rand.nextInt()) % (h));
-	    //while there's a wall in current location pick new location
-		}while(main.gameManager.areTherePlayersNearby(x, y, EP_DIST) || occupiedSpot(x, y));
+			y = (Math.abs(rand.nextInt()) % (h));
+			// while there's a wall in current location pick new location
+		} while (main.gameManager.areTherePlayersNearby(x, y, EP_DIST) || occupiedSpot(x, y));
 		WINX = x;
 		WINZ = y;
 		todraw[x][y] = 2;
 		main.world.worldManager.setCell(WINX, 0, WINZ, CellId.ID_WOOD);
 	}
 
-	public void prepareShow(int[][] todraw_) {
+	/*
+	 * Run-lenght encodes ( https://en.wikipedia.org/wiki/Run-length_encoding) the
+	 * maze todraw configuration, so it can be easily passed to server clients. This
+	 * should be done once the game is been set up and the end point has been
+	 * placed. We'll normally use a number for the count of equal blocks next to
+	 * each other We'll use letters instead for the todraw[][] numbers to represent
+	 * the different block, starting from A (Ascii 65) and adding the todraw[x][y]
+	 * index to the ascii value of A.
+	 * To even simplify decoding, the count number is encoded in a letter too, starting from 
+	 * a (Ascii 97), so that every count takes up just to characters.
+	 * 
+	 */
+	public String runLenghtEncode() {
+		// todraw[x][y], where row number is x and the index of the block in that row is
+		// y
+		int currentBlock = 0;
+		int count = 0;
+		String s = "";
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				if(todraw[i][j] != currentBlock || j == h-1) {
+					s+=String.valueOf((char)(97+count))+String.valueOf((char)(65+currentBlock));
+					count = 1;
+					currentBlock = todraw[i][j];
+				}else {
+					count++;
+				}
+			}
+			
+			s += "-";
+		}
+
+		return s;
+	}
+
+	/*
+	 * Run length decodes the maze received from the server.
+	 * We know that the block types start from A (Ascii 65), so we can simply subtract 65
+	 * We know that the block count start from a (Ascii 97), so we can simply subtract 97
+	 * from the current index and get the block type, repeated for how many times the count number says
+	 */
+	public int[][] runLenghtDecode(String s) {
+		int[][] todraw = null;
+		int count, type, totalcount = 0;
+		
+		//Split the various rows
+		String[] rows = s.split("-");
+		System.out.println(Arrays.deepToString(rows));
+		//Mazes are always squares
+		todraw = new int[rows.length][rows.length];
+		
+		for(int i = 0; i < rows.length; i++) {
+			totalcount = 0;
+			for(int j = 0; j < rows[i].length(); j+=2) {
+				count = ((int) (rows[i].charAt(j))) - 97;
+				type = ((int) (rows[i].charAt(j+1))) - 65;
+				
+				for(int k = totalcount; k < totalcount+count; k++) {
+					todraw[i][k] = type;
+				}
+				totalcount += count;
+			}
+		}
+		
+		return todraw;
+	}
+
+	public void prepareShow() {
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
 				todraw[i][j] = 1;
@@ -143,31 +210,38 @@ public class MazeGenerator {
 				int y = 2 * j + 1;
 
 				// current cell
-				todraw_[x][y] = 0;
+				todraw[x][y] = 0;
 
 				// up wall
 				if (!cellsGrid[i][j].walls[0])
-					todraw_[x][y - 1] = 0;
+					todraw[x][y - 1] = 0;
 				// down wall
 				if (!cellsGrid[i][j].walls[2])
-					todraw_[x][y + 1] = 0;
+					todraw[x][y + 1] = 0;
 				// left wall
 				if (!cellsGrid[i][j].walls[3])
-					todraw_[x - 1][y] = 0;
+					todraw[x - 1][y] = 0;
 				// right all
 				if (!cellsGrid[i][j].walls[1])
-					todraw_[x + 1][y] = 0;
+					todraw[x + 1][y] = 0;
 			}
 		}
 
-		//setupEndPoint();
+		show(todraw);
+	}
+	
+	public void show(int[][] todraw_) {
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
+				todraw[i][j] = todraw_[i][j];
+				main.world.worldManager.setCell(i, 1, j, CellId.ID_AIR);
+				
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
-				if (todraw_[i][j] == 1)
+				
+				if (todraw[i][j] == 1)
 					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
-//				if (todraw[i][j] == 2)
-//					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
+				if (todraw[i][j] == 2)
+					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
 			}
 		}
 	}
@@ -181,11 +255,11 @@ public class MazeGenerator {
 		}
 		return true;
 	}
-	
+
 	int cellAt(int x, int y) {
 		return todraw[x][y];
 	}
-	
+
 	public boolean occupiedSpot(int x, int y) {
 		return cellAt(x, y) != 0;
 	}

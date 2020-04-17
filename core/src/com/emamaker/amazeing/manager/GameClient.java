@@ -1,6 +1,8 @@
 package com.emamaker.amazeing.manager;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.Protocol;
@@ -11,7 +13,9 @@ import com.emamaker.amazeing.AMazeIng;
 public class GameClient {
 
 	volatile boolean clientRunning = false;
+	volatile String nextMessage = "";
 	public Socket socket;
+	String s = "", s1 = "";
 	public String addr;
 	public int port;
 	Thread clientThread;
@@ -30,31 +34,51 @@ public class GameClient {
 			public void run() {
 				clientRunning = true;
 				while (clientRunning) {
-					/*
-					 * https://www.gamefromscratch.com/post/2014/03/11/LibGDX-Tutorial-10-Basic-
-					 * networking.aspx
-					 */
 					if (socket == null) {
 						SocketHints socketHints = new SocketHints();
 						socketHints.connectTimeout = 0;
 						socket = Gdx.net.newClientSocket(Protocol.TCP, addr, port, socketHints);
 						System.out.println("Connected to server!");
+						sendMessagetoClients("AO");
 					} else {
 						if (socket.isConnected()) {
-							// Send messages to the server:
+							// Receive messages from the server
 							try {
-								// write our entered message to the stream
-								socket.getOutputStream().write("AO\n".getBytes());
+								if (socket.getInputStream().available() > 0) {
+									BufferedReader buffer = new BufferedReader(
+											new InputStreamReader(socket.getInputStream()));
+
+									// Read to the next newline (\n) and display that text on labelMessage
+									s = buffer.readLine().toString();
+									System.out.println("Received message from server: " + socket + "!\n" + s);
+									if(s.startsWith("Map")) {
+										s1 = s.replace("Map", "");
+										main.gameManager.generateMaze(main.gameManager.mazeGen.runLenghtDecode(s1));
+										//System.out.println(s1);
+										
+									}
+								}
 							} catch (IOException e) {
-								e.printStackTrace();
 							}
+							// Send messages to the client
+							if (!nextMessage.equals(""))
+								try {
+									// write our entered message to the stream
+									socket.getOutputStream().write((nextMessage + "\n").getBytes());
+								} catch (IOException e) {
+//									e.printStackTrace();
+								}
 						}
+						nextMessage = "";
 					}
 				}
 			}
 		});
 		clientThread.start();
+	}
 
+	public void sendMessagetoClients(String s) {
+		nextMessage += (s + "\n");
 	}
 
 	public void stop() {
