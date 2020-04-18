@@ -14,14 +14,16 @@ import com.emamaker.voxelengine.player.Player;
 
 public class GameManager {
 
-	/* Local manager for local games and server host in multiplayer games */
-
+	AMazeIng main;
 	public MazeGenerator mazeGen;
-	public boolean gameStarted = false;
-	Random rand = new Random();
+	
+	/* Local manager for local games and server host in multiplayer games */
 	public GameServer server;
 	public GameClient client;
-	AMazeIng main;
+	
+	public boolean gameStarted = false;
+	public boolean showGame = true;
+	Random rand = new Random();
 
 	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
@@ -45,12 +47,12 @@ public class GameManager {
 					mazeGen.h / 2);
 			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
 			main.world.cam.update();
-			main.world.render();
+			if(showGame) main.world.render();
 
 			main.world.modelBatch.begin(main.world.cam);
 			if (players != null) {
 				for (MazePlayer p : players) {
-					p.render(main.world.modelBatch, main.world.environment);
+					if(showGame) p.render(main.world.modelBatch, main.world.environment);
 					anyoneWon = false;
 					if (checkWin(p)) {
 						anyoneWon = true;
@@ -183,6 +185,14 @@ public class GameManager {
 		}
 
 		return false;
+	}
+	
+	public boolean getShowGame() {
+		return showGame;
+	}
+	
+	public void setShowGame(boolean g) {
+		showGame = g;
 	}
 
 	public void generateMaze() {

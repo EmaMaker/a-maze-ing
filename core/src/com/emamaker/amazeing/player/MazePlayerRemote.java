@@ -1,15 +1,9 @@
 package com.emamaker.amazeing.player;
 
 import java.util.Random;
+import java.util.UUID;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.net.Socket;
 import com.emamaker.amazeing.AMazeIng;
 
 public class MazePlayerRemote extends MazePlayer{
@@ -18,26 +12,15 @@ public class MazePlayerRemote extends MazePlayer{
 	
 	static Random rand = new Random();
 
-	// MazePlayer model building stuff
-	public Model mazePlayerModel;
-	public ModelInstance instance;
-	ModelBuilder modelBuilder = new ModelBuilder();
-	MeshPartBuilder meshBuilder;
-	static int meshAttr = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
-	public Controller ctrl;
-
-	// Physics using LibGDX's bullet wrapper
-	public int kup, kdown, ksx, kdx;
-	float startx, starty, startz;
 	String name;
 	AMazeIng main;
-	Socket socket;
+	UUID uuid;
 	
 	boolean disposing = false;
 
-	public MazePlayerRemote(Game main_, Socket s) {
+	public MazePlayerRemote(Game main_, UUID u) {
 		super(main_);
-		socket = s;
+		uuid = u;
 	}
 	
 	public void updateRemoteTransform(String s) {
@@ -62,11 +45,4 @@ public class MazePlayerRemote extends MazePlayer{
 	public void update() {
 	}
 	
-	@Override
-	public void dispose() {
-		disposing = true;
-		mazePlayerModel.dispose();
-		disposing = false;
-	}
-
 }

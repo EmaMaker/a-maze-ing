@@ -5,10 +5,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Net.Protocol;
 import com.badlogic.gdx.net.ServerSocket;
 import com.badlogic.gdx.net.ServerSocketHints;
@@ -17,6 +21,7 @@ import com.badlogic.gdx.net.SocketHints;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 
 public class GameServer {
@@ -26,9 +31,11 @@ public class GameServer {
 	volatile boolean serverRunning = false;
 	volatile String nextMessage = "";
 	volatile String rMsg;
-
+	
 	public ServerSocket serverSocket = null;
 	public int port;
+	UUID uuid ;
+	
 	Socket s;
 	Thread serverThread;
 
@@ -54,6 +61,7 @@ public class GameServer {
 
 	public GameServer(AMazeIng main_) {
 		main = main_;
+		uuid = UUID.randomUUID();
 	}
 
 	public void startServer(int port_) {
@@ -84,67 +92,67 @@ public class GameServer {
 //						System.out.println("No new clients connected in the last 1000 milliseconds");
 					}
 
-					System.out.println(Arrays.toString(tmpPlayers.keySet().toArray()));
-					System.out.println(Arrays.toString(remotePlayers.keySet().toArray()));
-					if(!main.gameManager.gameStarted) {
-					for (Socket s : tmpPlayers.keySet()) {
-						if (s.isConnected()) {
-							rMsg = receiveMessageFromSocket(s);
-							System.out.println(rMsg);
-							if (rMsg.equals("AO")) {
-								// Step 0
-								if (tmpPlayers.get(s).step == 0) {
-									// We're at the right step, send uuid to client
-									sendMessageToSocket(s, "UUID" + tmpPlayers.get(s).uuid.toString());
-								} else {
-									// Wrong step
-									System.out.println("Client already connected, ignoring request");
+//					System.out.println(Arrays.toString(tmpPlayers.keySet().toArray()));
+//					System.out.println(Arrays.toString(remotePlayers.keySet().toArray()));
+					if (!main.gameManager.gameStarted) {
+						for (Socket s : tmpPlayers.keySet()) {
+							if (s.isConnected()) {
+								rMsg = receiveMessageFromSocket(s);
+								System.out.println(rMsg);
+								if (rMsg.equals("AO")) {
+									// Step 0
+									if (tmpPlayers.get(s).step == 0) {
+										// We're at the right step, send uuid to client
+										sendMessageToSocket(s, "UUID" + tmpPlayers.get(s).uuid.toString());
+									} else {
+										// Wrong step
+										System.out.println("Client already connected, ignoring request");
+									}
+									// If receiving multiple AOs, just start back from this point
+									tmpPlayers.get(s).step = 1;
+								} else if (rMsg.equals("AO2")) {
+									if (tmpPlayers.get(s).step == 1) {
+										System.out.println("Client " + s + " accepted uuid");
+										sendMessageToSocket(s, "AO3");
+										tmpPlayers.get(s).step = 2;
+									}
+								} else if (rMsg.equals("AO4")) {
+									if (tmpPlayers.get(s).step == 2) {
+										// Player can now be added to the remote player list, but this has to be done
+										// inside the main thread, and this bit of code is executed outside, so pass it
+										// to another function for use
+										newPlayers.add(s);
+									}
 								}
-								// If receiving multiple AOs, just start back from this point
-								tmpPlayers.get(s).step = 1;
+							} else {
+								// Cliented timed out, remove it from the list :(
+								tmpPlayers.remove(s);
 							}
-							if (rMsg.equals("AO2")) {
-								if (tmpPlayers.get(s).step == 1) {
-									System.out.println("Client " + s + " accepted uuid");
-									sendMessageToSocket(s, "AO3");
-									tmpPlayers.get(s).step = 2;
-								}
-							}
-							if (rMsg.equals("AO4")) {
-								if (tmpPlayers.get(s).step == 2) {
-									// Player can now be added to the remote player list, but this has to be done
-									// inside the main thread, and this bit of code is executed outside, so pass it
-									// to another function for use
-									newPlayers.add(s);
-								}
-							}
-						} else {
-							// Cliented timed out, remove it from the list :(
-							tmpPlayers.remove(s);
 						}
 					}
-					}
 
-					for (Socket s : tmpPlayers.keySet()) {
-
+					nextMessage = "";
+					if (!messages.isEmpty())
+						nextMessage = messages.remove();
+					for (Socket s : remotePlayers.keySet()) {
 						if (s.isConnected()) {
-							
+							if (!nextMessage.equals("")) {
+								sendMessageToSocket(s, nextMessage);
+							}
+
 						} else {
 							// Cliented timed out, remove it from the list :(
 							remotePlayers.remove(s);
 						}
-						
 					}
-
 				}
 			}
 
 		});
 		serverThread.start();
-	}
-
-	public void sendMessagetoClients(String s) {
-		nextMessage += (s + "\n");
+		
+		//Also start client to play on the local machine
+		main.gameManager.client.start("localhost", port);
 	}
 
 	// Update must be called from Main thread and used for applications on main
@@ -152,7 +160,8 @@ public class GameServer {
 	public void update() {
 		// Spawn new players if needed
 		for (Socket s : newPlayers) {
-			remotePlayers.put(s, new FullPlayerEntry(s, tmpPlayers.get(s).uuid, new MazePlayerRemote(main, s)));
+			remotePlayers.put(s,
+					new FullPlayerEntry(s, tmpPlayers.get(s).uuid, new MazePlayerRemote(main, tmpPlayers.get(s).uuid)));
 			System.out.println("Accepted new player: " + s.toString() + " " + tmpPlayers.get(s).uuid.toString());
 			tmpPlayers.remove(s);
 		}
@@ -164,12 +173,25 @@ public class GameServer {
 	// A proper ui should be added, but for now we can just start the game without
 	// showing any players and just show the map across all the clients
 	public void startGame() {
-//		ArrayList<MazePlayer> players = new ArrayList<>();
-//		for(MazePlayer p : remotePlayers.values() ) players.add(p);
-//		players.add(new MazePlayerLocal(main, Keys.W, Keys.S, Keys.A, Keys.D));
-//		System.out.println(Arrays.toString(players.toArray()));
-//		main.gameManager.generateMaze(new HashSet<MazePlayer>(players));
-//		sendMessagetoClients("Map" + main.gameManager.mazeGen.runLenghtEncode());
+		update();
+		ArrayList<MazePlayer> players = new ArrayList<>();
+		for (FullPlayerEntry p : remotePlayers.values())
+			players.add(p.player);
+		sendMessagetoClients("Players" + buildUUIDList());
+		
+		main.gameManager.generateMaze(new HashSet<MazePlayer>(players));
+		main.gameManager.setShowGame(false);
+
+		sendMessagetoClients("Map" + main.gameManager.mazeGen.runLenghtEncode());
+	}
+
+	public String buildUUIDList() {
+		String s = uuid.toString() + "!";
+		for (FullPlayerEntry p : remotePlayers.values()) {
+			s += p.uuid.toString() + "!";
+		}
+		System.out.println(s);
+		return s;
 	}
 
 	public void stop() {
@@ -178,6 +200,13 @@ public class GameServer {
 			serverSocket = null;
 		}
 		serverRunning = false;
+	}
+
+	Queue<String> messages = new LinkedList<>();
+
+	public void sendMessagetoClients(String s) {
+		messages.add(s + "\n");
+		System.out.println("Sending message to clients: " + nextMessage);
 	}
 
 	void sendMessageToSocket(Socket s, String msg) {

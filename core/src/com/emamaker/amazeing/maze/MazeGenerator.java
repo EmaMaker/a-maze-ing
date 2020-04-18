@@ -178,6 +178,7 @@ public class MazeGenerator {
 		System.out.println(Arrays.deepToString(rows));
 		//Mazes are always squares
 		todraw = new int[rows.length][rows.length];
+		setMazeSize(rows.length, rows.length);
 		
 		for(int i = 0; i < rows.length; i++) {
 			totalcount = 0;

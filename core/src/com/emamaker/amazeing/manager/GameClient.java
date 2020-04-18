@@ -3,13 +3,20 @@ package com.emamaker.amazeing.manager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Net.Protocol;
 import com.badlogic.gdx.net.Socket;
 import com.badlogic.gdx.net.SocketHints;
 import com.emamaker.amazeing.AMazeIng;
+import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.MazePlayerLocal;
+import com.emamaker.amazeing.player.MazePlayerRemote;
 
 public class GameClient {
 
@@ -22,10 +29,17 @@ public class GameClient {
 	public Socket socket;
 
 	volatile String nextMessage = "";
-	String s = "", s1 = "", rMsg = "";
+	String map = "", s1 = "", rMsg = "", playerList = "";
 
 	UUID uuid;
 	int connectionStep;
+
+	BufferedReader buffer;
+
+	// Hashtable of remote players present in the match. This will be used to update
+	// other players' transform when server reports about it
+	Hashtable<UUID, MazePlayerRemote> remotePlayers = new Hashtable<>();
+	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
 	public GameClient(AMazeIng main_) {
 		main = main_;
@@ -44,17 +58,17 @@ public class GameClient {
 						SocketHints socketHints = new SocketHints();
 						socketHints.connectTimeout = 10000;
 						socket = Gdx.net.newClientSocket(Protocol.TCP, addr, port, socketHints);
-
+						buffer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 						sendMessageToSocket(socket, "AO");
 						connectionStep = 0;
 					} else {
 						if (socket.isConnected()) {
-							rMsg = receiveMessageFromSocket(socket);
+							rMsg = receiveMessageFromSocket();
 
 							if (rMsg.startsWith("UUID")) {
 								// UUID received from server, go on
-								//it doesn't matter if this already happened, just start again
-								//No new UUID will be generated
+								// it doesn't matter if this already happened, just start again
+								// No new UUID will be generated
 								s1 = rMsg.replace("UUID", "");
 								uuid = UUID.fromString(s1);
 								connectionStep = 1;
@@ -68,7 +82,10 @@ public class GameClient {
 									System.out.println("Connected with server!");
 								}
 							}
-
+							if (rMsg.startsWith("Players"))
+								playerList = rMsg.replace("Players", "");
+							if (rMsg.startsWith("Map"))
+								map = rMsg.replace("Map", "");
 						}
 					}
 				}
@@ -80,6 +97,29 @@ public class GameClient {
 	// Update must be called from Main thread and used for applications on main
 	// thread
 	public void update() {
+		if (!playerList.equals("")) {
+			// Build up player list
+			String[] uuids = playerList.split("!");
+			for (String s : uuids) {
+//				System.out.println(s);
+				if (!s.equals(uuid.toString()))
+					remotePlayers.put(UUID.fromString(s), new MazePlayerRemote(main, UUID.fromString(s)));
+			}
+			playerList = "";
+		}
+		if (!map.equals("")) {
+			// Build up map
+			for (UUID u : remotePlayers.keySet()) {
+				if (!u.equals(uuid))
+					players.add(remotePlayers.get(u));
+			}
+			players.add(new MazePlayerLocal(main, Keys.W, Keys.S, Keys.A, Keys.D));
+
+			main.gameManager.generateMaze(new HashSet<MazePlayer>(players),
+					main.gameManager.mazeGen.runLenghtDecode(map));
+			main.gameManager.setShowGame(true);
+			map = "";
+		}
 	}
 
 	public void sendMessagetoServer(String s) {
@@ -103,15 +143,14 @@ public class GameClient {
 
 	String tmprs;
 
-	String receiveMessageFromSocket(Socket s) {
-		if (s != null && s.isConnected())
+	String receiveMessageFromSocket() {
+		if (socket != null && socket.isConnected())
 			// Receive messages from the client
 			try {
-				if (s.getInputStream().available() > 0) {
-					BufferedReader buffer = new BufferedReader(new InputStreamReader(s.getInputStream()));
+				if (socket.getInputStream().available() > 0) {
 					// Read to the next newline (\n) and display that text on labelMessage
 					tmprs = buffer.readLine();
-					System.out.println("Client received message From: " + s + "!\n" + tmprs);
+					System.out.println("Client received message! " + tmprs);
 					return tmprs;
 				}
 			} catch (IOException e) {
