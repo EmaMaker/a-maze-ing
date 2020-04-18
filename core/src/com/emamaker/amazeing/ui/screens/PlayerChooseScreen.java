@@ -6,8 +6,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.controllers.mappings.Xbox;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -20,6 +18,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class PlayerChooseScreen implements Screen {
@@ -31,7 +30,7 @@ public class PlayerChooseScreen implements Screen {
 	Label[] labels;
 	int currentLabel = 0;
 	HashMap<MazePlayer, Label> players = new HashMap<MazePlayer, Label>();
-	
+
 	Screen thisScreen;
 
 	public PlayerChooseScreen(UIManager uiManager_) {
@@ -110,7 +109,7 @@ public class PlayerChooseScreen implements Screen {
 	@Override
 	public void show() {
 		thisScreen = this;
-		
+
 		labels = new Label[MazeSettings.MAXPLAYERS];
 		stage = new Stage(new ScreenViewport());
 		Container<Table> tableContainer = new Container<Table>();
@@ -201,7 +200,7 @@ public class PlayerChooseScreen implements Screen {
 		uiManager.main.multiplexer.removeProcessor(stage);
 	}
 
-	MazePlayer p;
+	MazePlayerLocal p;
 
 	@Override
 	public void render(float delta) {
@@ -216,27 +215,27 @@ public class PlayerChooseScreen implements Screen {
 				|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D)) {
 			p = getPlayerWithKeys(Keys.W, Keys.S, Keys.A, Keys.D);
 			if (p == null)
-				p = new MazePlayer(uiManager.main, Keys.W, Keys.S, Keys.A, Keys.D);
+				p = new MazePlayerLocal(uiManager.main, Keys.W, Keys.S, Keys.A, Keys.D);
 			togglePlayer(p);
 		}
 		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
 				|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT)) {
 			p = getPlayerWithKeys(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
 			if (p == null)
-				p = new MazePlayer(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+				p = new MazePlayerLocal(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
 			togglePlayer(p);
 		}
-		for (Controller c : Controllers.getControllers()) {
-			if (c.getButton(Xbox.Y)) {
-				p = getPlayerWithCtrl(c);
-				if (p == null)
-					p = new MazePlayer(uiManager.main, c);
-				togglePlayer(p);
-			}
-		}
+//		for (Controller c : Controllers.getControllers()) {
+//			if (c.getButton(Xbox.Y)) {
+//				p = getPlayerWithCtrl(c);
+//				if (p == null)
+//					p = new MazePlayerLocal(uiManager.main, c);
+//				togglePlayer(p);
+//			}
+//		}
 	}
 
-	public void togglePlayer(MazePlayer p) {
+	public void togglePlayer(MazePlayerLocal p) {
 		try {
 			if (alreadyAddedPlayer(p)) {
 				players.get(p).setText("Not Joined Yet");
@@ -254,15 +253,17 @@ public class PlayerChooseScreen implements Screen {
 		return getPlayerWithKeys(keys) != null;
 	}
 
-	public boolean alreadyAddedPlayer(MazePlayer p) {
+	public boolean alreadyAddedPlayer(MazePlayerLocal p) {
 		return players.containsKey(p);
 	}
 
-	public MazePlayer getPlayerWithKeys(int... keys) {
+	public MazePlayerLocal getPlayerWithKeys(int... keys) {
 		for (MazePlayer p : players.keySet()) {
+			if(p instanceof MazePlayerLocal) {
 			for (int k : keys) {
-				if (p.kup == k || p.kdown == k || p.ksx == k || p.kdx == k)
-					return p;
+				if (((MazePlayerLocal)p).kup == k || ((MazePlayerLocal)p).kdown == k || ((MazePlayerLocal)p).ksx == k || ((MazePlayerLocal)p).kdx == k)
+					return (MazePlayerLocal)p;
+			}
 			}
 		}
 		return null;
@@ -272,10 +273,12 @@ public class PlayerChooseScreen implements Screen {
 		return getPlayerWithCtrl(ctrl) != null;
 	}
 
-	public MazePlayer getPlayerWithCtrl(Controller ctrl) {
+	public MazePlayerLocal getPlayerWithCtrl(Controller ctrl) {
 		for (MazePlayer p : players.keySet()) {
-			if (p.ctrl == ctrl)
-				return p;
+			if (p instanceof MazePlayerLocal) {
+				if (((MazePlayerLocal)p).ctrl == ctrl)
+					return (MazePlayerLocal) p;
+			}
 		}
 		return null;
 	}

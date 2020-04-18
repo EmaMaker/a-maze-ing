@@ -37,6 +37,9 @@ public class GameManager {
 	boolean anyoneWon = false;
 
 	public void update() {
+		server.update();
+		client.update();
+		
 		if (gameStarted) {
 			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
 					mazeGen.h / 2);
@@ -189,6 +192,7 @@ public class GameManager {
 	public void generateMaze(int todraw[][]) {
 		generateMaze(null, todraw);
 	}
+	
 	public void generateMaze(Set<MazePlayer> pl) {
 		generateMaze(pl, null);
 	}

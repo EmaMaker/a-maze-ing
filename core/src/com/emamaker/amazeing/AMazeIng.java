@@ -46,13 +46,13 @@ public class AMazeIng extends Game {
 	}
 	
 	public void setupGUI() {
-		uiManager = new UIManager(this);
 		System.out.println("Setup UI Manager");
+		uiManager = new UIManager(this);
 	}
 	
 	public void setupGameManager() {
-		gameManager = new GameManager(this);
 		System.out.println("Setup Game Manager");
+		gameManager = new GameManager(this);
 	}
 
 	float delta;
