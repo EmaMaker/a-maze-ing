@@ -16,48 +16,50 @@ public class GameManager {
 
 	AMazeIng main;
 	public MazeGenerator mazeGen;
-	
-	/* Local manager for local games and server host in multiplayer games */
-	public GameServer server;
-	public GameClient client;
-	
+
 	public boolean gameStarted = false;
 	public boolean showGame = true;
 	Random rand = new Random();
 
-	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
+	GameType type = GameType.LOCAL;
 
-	public GameManager(Game main_) {
+	public ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
+
+	public GameManager(Game main_, GameType t) {
 		main = (AMazeIng) main_;
 		gameStarted = false;
-		server = new GameServer(main);
-		client = new GameClient(main);
 		// Maze Generation
+
+		type = t;
+		setShowGame(type != GameType.SERVER);
+		
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
 	}
 
 	boolean anyoneWon = false;
 
 	public void update() {
-		server.update();
-		client.update();
-		
 		if (gameStarted) {
 			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
 					mazeGen.h / 2);
 			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
 			main.world.cam.update();
-			if(showGame) main.world.render();
+			if (getShowGame())
+				main.world.render();
 
 			main.world.modelBatch.begin(main.world.cam);
 			if (players != null) {
 				for (MazePlayer p : players) {
-					if(showGame) p.render(main.world.modelBatch, main.world.environment);
+					if (getShowGame())
+						p.render(main.world.modelBatch, main.world.environment);
+
 					anyoneWon = false;
-					if (checkWin(p)) {
-						anyoneWon = true;
-						gameStarted = false;
-						break;
+					if(type != GameType.CLIENT) {
+						if (checkWin(p)) {
+							anyoneWon = true;
+							gameStarted = false;
+							break;
+						}
 					}
 				}
 			}
@@ -69,24 +71,27 @@ public class GameManager {
 	}
 
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 		anyoneWon = false;
 
+		gameStarted = true;
 		// Only add new players and dispose the old ones
-		//Check if actually there are players to be deleted
-		if(pl != null) {
+		// Check if actually there are players to be deleted
+		if (pl != null) {
 			for (MazePlayer p : players)
 				if (!pl.contains(p))
 					toDelete.add(p);
-			
-			//Check if new players have to be added
+
+			// Check if new players have to be added
 			for (MazePlayer p : pl)
 				if (!players.contains(p))
 					players.add(p);
-			
-			//Fianlly delete players. A separated step is needed to remove the risk of a ConcurrentModificationException
-			for(MazePlayer p : toDelete) {
+
+			// Fianlly delete players. A separated step is needed to remove the risk of a
+			// ConcurrentModificationException
+			for (MazePlayer p : toDelete) {
 				p.dispose();
 				players.remove(p);
 			}
@@ -105,16 +110,16 @@ public class GameManager {
 
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
-		
-		spreadPlayers();
-		mazeGen.setupEndPoint();
-		
-		if(todraw != null) {
-		mazeGen.show(todraw);
+
+		if (type != GameType.CLIENT) {
+			spreadPlayers();
+			mazeGen.setupEndPoint();
 		}
-		
-		
-		gameStarted = true;
+
+		if (todraw != null && showGame == true) {
+			mazeGen.show(todraw);
+		}
+
 	}
 
 	public void spreadPlayers() {
@@ -123,9 +128,8 @@ public class GameManager {
 			do {
 				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
 				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-//				 System.out.println(thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x,
-//				 z) + " --- " + x + ", " + z);
-				// while there's a wall in current location pick new location
+				 System.out.println(thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x,
+				 z) + " --- " + x + ", " + z);
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPlaying();
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
@@ -142,9 +146,6 @@ public class GameManager {
 		do {
 			x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
 			z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-			// System.out.println(thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x,
-			// z) + " --- " + x + ", " + z);
-			// while there's a wall in current location pick new location
 		} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 		if (name.equalsIgnoreCase(""))
 			return new Player(kup, kdown, ksx, kdx, x + 0.5f, 4f, z + 0.5f);
@@ -152,11 +153,6 @@ public class GameManager {
 			return new Player(kup, kdown, ksx, kdx, x + 0.5f, 4f, z + 0.5f, name);
 	}
 
-//	public void destroyPlayers() {
-//		for (MazePlayer p : players)
-//			p.dispose();
-//		players.clear();
-//	}
 
 	public boolean checkWin(MazePlayer p) {
 		if ((int) p.getPos().x == mazeGen.WINX && (int) p.getPos().z == mazeGen.WINZ) {
@@ -186,12 +182,12 @@ public class GameManager {
 
 		return false;
 	}
-	
-	public boolean getShowGame() {
+
+	boolean getShowGame() {
 		return showGame;
 	}
-	
-	public void setShowGame(boolean g) {
+
+	void setShowGame(boolean g) {
 		showGame = g;
 	}
 
@@ -202,17 +198,13 @@ public class GameManager {
 	public void generateMaze(int todraw[][]) {
 		generateMaze(null, todraw);
 	}
-	
+
 	public void generateMaze(Set<MazePlayer> pl) {
 		generateMaze(pl, null);
 	}
 
-	
 	public void dispose() {
-		client.stop();
-		server.stop();
 		for (MazePlayer p : players)
 			p.dispose();
 	}
-
 }

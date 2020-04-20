@@ -6,9 +6,11 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.FPSLogger;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.emamaker.amazeing.manager.GameManager;
+import com.emamaker.amazeing.manager.GameType;
+import com.emamaker.amazeing.manager.network.GameClient;
+import com.emamaker.amazeing.manager.network.GameServer;
 import com.emamaker.amazeing.ui.UIManager;
 import com.emamaker.voxelengine.VoxelWorld;
 
@@ -17,61 +19,75 @@ public class AMazeIng extends Game {
 	public VoxelWorld world = new VoxelWorld();
 	FPSLogger fps = new FPSLogger();
 	boolean generated = false;
-	boolean gui=false;
+	boolean gui = false;
 	Random rand = new Random();
 
 	public UIManager uiManager;
 	public GameManager gameManager;
 	public InputMultiplexer multiplexer = new InputMultiplexer();
 
+	/* Local manager for local games and server host in multiplayer games */
+	public GameServer server;
+	public GameClient client;
+
 	@Override
 	public void create() {
-		//Bullet init for physics
+		// Bullet init for physics
 		Bullet.init();
-		
-		//Set windowed resolution
+
+		// Set windowed resolution
 		Gdx.graphics.setWindowedMode(1280, 720);
-		
-		//Voxel engine init. Call everything after this
+
+		// Voxel engine init. Call everything after this
 		world.init(this);
 		world.worldManager.generateChunks = false;
 		world.worldManager.updateChunks = true;
-		
-		//Disable VoxelEngines's integrated camera input processor
+
+		// Disable VoxelEngines's integrated camera input processor
 		Gdx.input.setInputProcessor(multiplexer);
-		
+
 		generated = false;
 		setupGUI();
 		setupGameManager();
 	}
-	
+
 	public void setupGUI() {
 		System.out.println("Setup UI Manager");
 		uiManager = new UIManager(this);
 	}
-	
+
 	public void setupGameManager() {
-		System.out.println("Setup Game Manager");
-		gameManager = new GameManager(this);
+		System.out.println("Setup Game Managers");
+		gameManager = new GameManager(this, GameType.LOCAL);
+
+		server = new GameServer(this);
+		client = new GameClient(this);
 	}
 
 	float delta;
+
 	@Override
 	public void render() {
 		super.render();
-		if(gameManager != null) gameManager.update();
+		server.update();
+		client.update();
+		if (gameManager != null)
+			gameManager.update();
 	}
 
 	@Override
 	public void dispose() {
 		world.dispose();
 		gameManager.dispose();
+		client.stop();
+		server.stop();
 	}
 
 	@Override
 	public void resize(int width, int height) {
 		world.resize(width, height);
-		this.getScreen().resize(width, height);
+		if (this.getScreen() != null)
+			this.getScreen().resize(width, height);
 	}
 
 	@Override
@@ -83,5 +99,5 @@ public class AMazeIng extends Game {
 	public void resume() {
 		world.resume();
 	}
-	
+
 }

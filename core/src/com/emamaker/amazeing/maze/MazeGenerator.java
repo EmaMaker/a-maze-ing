@@ -31,8 +31,8 @@ public class MazeGenerator {
 	}
 
 	public void setMazeSize(int w_, int h_) {
-		w = w_ + (1 - w % 2);
-		h = h_ + (1 - h % 2);
+		w = w_;
+		h = h_;
 		W = (w - 1) / 2;
 		H = (h - 1) / 2;
 
@@ -170,15 +170,16 @@ public class MazeGenerator {
 	 * from the current index and get the block type, repeated for how many times the count number says
 	 */
 	public int[][] runLenghtDecode(String s) {
-		int[][] todraw = null;
+		int[][] todraw_ = null;
 		int count, type, totalcount = 0;
 		
 		//Split the various rows
 		String[] rows = s.split("-");
 		System.out.println(Arrays.deepToString(rows));
 		//Mazes are always squares
-		todraw = new int[rows.length][rows.length];
 		setMazeSize(rows.length, rows.length);
+		//Temporarely patch to the calculation errors in setMazeSize
+		todraw_=new int[rows.length][rows.length];
 		
 		for(int i = 0; i < rows.length; i++) {
 			totalcount = 0;
@@ -187,13 +188,13 @@ public class MazeGenerator {
 				type = ((int) (rows[i].charAt(j+1))) - 65;
 				
 				for(int k = totalcount; k < totalcount+count; k++) {
-					todraw[i][k] = type;
+					todraw_[i][k] = type;
 				}
 				totalcount += count;
 			}
 		}
-		
-		return todraw;
+		show(todraw_);
+		return todraw_;
 	}
 
 	public void prepareShow() {

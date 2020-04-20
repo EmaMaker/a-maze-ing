@@ -46,7 +46,7 @@ public class ServerLaunchScreen implements Screen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				uiManager.main.gameManager.server.stop();
+				uiManager.main.server.stop();
 				uiManager.main.setScreen(uiManager.titleScreen);
 				return true;
 			}
@@ -61,14 +61,14 @@ public class ServerLaunchScreen implements Screen {
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				uiManager.main.gameManager.server.startServer(Integer.valueOf(srvPort.getText()));
+				uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()));
 				return true;
 			}
 		});
 		gameBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				uiManager.main.gameManager.server.startGame();
+				uiManager.main.server.startGame();
 				return true;
 			}
 		});

@@ -46,7 +46,7 @@ public class MazePlayerLocal extends MazePlayer {
 
 	public MazePlayerLocal(Game main_, int up_, int down_, int sx_, int dx_, float startx, float starty, float startz,
 			String name) {
-		super(main_, name);
+		super(main_, name, true);
 		this.kup = up_;
 		this.kdown = down_;
 		this.ksx = sx_;
@@ -72,7 +72,7 @@ public class MazePlayerLocal extends MazePlayer {
 	}
 
 	public MazePlayerLocal(Game main_, Controller ctrl_, float startx, float starty, float startz, String name) {
-		super(main_);
+		super(main_, true);
 		this.ctrl = ctrl_;
 
 		this.startx = startx;
@@ -129,28 +129,29 @@ public class MazePlayerLocal extends MazePlayer {
 		// And fetch the new transformation of the character (this will make the model
 		// be rendered correctly)
 		ghostObject.getWorldTransform(characterTransform);
-
-		if (main.gameManager.client.socket != null && main.gameManager.client.socket.isConnected()) {
-			main.gameManager.client.sendMessagetoServer(characterTransform.toString());
-		}
 	}
 
 	@Override
 	public void update() {
 		inputs();
+		main.client.updateLocalPlayer(this);
 	}
 
 	@Override
 	public void setPos(Vector3 v) {
-		if (!disposing)
-			this.setPos(v.x, v.y, v.z);
-
+		this.setPos(v.x, v.y, v.z);
 	}
 
 	@Override
 	public void setPos(float x, float y, float z) {
+		if (!disposing)
+			setTransform(x, y, z, 0, 0, 0, 0);
+	}
+
+	@Override
+	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
 		if (!disposing) {
-			characterTransform.set(x, y, z, 0, 0, 0, 0);
+			characterTransform.set(x, y, z, i, j, k, l);
 			ghostObject.setWorldTransform(characterTransform);
 		}
 	}

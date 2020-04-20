@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.voxelengine.physics.GameObject;
@@ -32,25 +33,37 @@ public abstract class MazePlayer {
 	public GameObject obj;
 	String name;
 	boolean disposing = false;
+	boolean playing = false;
+	boolean show = true;
 
-	MazePlayer(Game main_) {
-		this(main_, String.valueOf((char) (65 + rand.nextInt(26))));
+	Vector3 pos = new Vector3();
+	Quaternion rot = new Quaternion();
+
+	MazePlayer(Game main_, boolean s) {
+		this(main_, String.valueOf((char) (65 + rand.nextInt(26))), s);
 		disposing = false;
+		playing = false;
 	}
 
-	MazePlayer(Game main_, String name) {
+	MazePlayer(Game main_, String name, boolean s) {
 		main = (AMazeIng) main_;
-
+		show = s;
 		setName(name);
-		buildModel();
+		if (show)
+			buildModel();
 	}
 
 	public Vector3 getPos() {
-		return instance.transform.getTranslation(new Vector3());
+		return pos;
+	}
+
+	public Quaternion getRotation() {
+		return rot;
 	}
 
 	public void setPlaying() {
 		disposing = false;
+		playing = true;
 	}
 
 	public void setPos(Vector3 v) {
@@ -64,8 +77,11 @@ public abstract class MazePlayer {
 	}
 
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposing)
-			instance.transform.set(x, y, z, i, j, k, l);
+		if (!disposing ) {
+			pos.set(x, y, z);
+			rot.set(i, j, k, l);
+			if(show) instance.transform.set(x, y, z, i, j, k, l);
+		}
 	}
 
 	public void setName(String name_) {
@@ -77,9 +93,10 @@ public abstract class MazePlayer {
 	}
 
 	public void render(ModelBatch b, Environment e) {
-		if (!disposing) {
+		if (!disposing && playing) {
 			update();
-			b.render(instance, e);
+			if (show)
+				b.render(instance, e);
 		}
 	}
 
@@ -96,6 +113,11 @@ public abstract class MazePlayer {
 	}
 
 	public void dispose() {
+		playing =false;
+	}
+	
+	public boolean isPlaying() {
+		return playing;
 	}
 
 }

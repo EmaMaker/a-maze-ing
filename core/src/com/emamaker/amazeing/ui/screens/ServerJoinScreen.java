@@ -46,7 +46,7 @@ public class ServerJoinScreen implements Screen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				uiManager.main.gameManager.client.stop();
+				uiManager.main.client.stop();
 				uiManager.main.setScreen(uiManager.titleScreen);
 				return true;
 			}
@@ -62,11 +62,11 @@ public class ServerJoinScreen implements Screen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				try {
-				uiManager.main.gameManager.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText()));
-				}catch(Exception e) {
+					uiManager.main.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText()));
+				} catch (Exception e) {
 					System.out.println("Please input a valid ip address and port");
 				}
-				
+
 				return true;
 			}
 		});
