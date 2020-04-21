@@ -139,6 +139,10 @@ public class GameServer {
 			server.bind(port);
 			server.start();
 			System.out.println("Server registered and running on port " + port);
+			
+			//Also launch the client to have a player play on host
+			main.client.start("localhost", port);
+			System.out.println("Local client ready to play!");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

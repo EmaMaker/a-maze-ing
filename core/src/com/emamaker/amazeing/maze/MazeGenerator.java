@@ -31,10 +31,10 @@ public class MazeGenerator {
 	}
 
 	public void setMazeSize(int w_, int h_) {
-		w = w_;
-		h = h_;
-		W = (w - 1) / 2;
-		H = (h - 1) / 2;
+		w = w_ - 1;
+		h = h_ - 1;
+		W = w / 2;
+		H = h / 2;
 
 		cellsGrid = new Cell[W][H];
 		todraw = new int[w][h];
@@ -135,65 +135,70 @@ public class MazeGenerator {
 	 * placed. We'll normally use a number for the count of equal blocks next to
 	 * each other We'll use letters instead for the todraw[][] numbers to represent
 	 * the different block, starting from A (Ascii 65) and adding the todraw[x][y]
-	 * index to the ascii value of A.
-	 * To even simplify decoding, the count number is encoded in a letter too, starting from 
-	 * a (Ascii 97), so that every count takes up just to characters.
+	 * index to the ascii value of A. To even simplify decoding, the count number is
+	 * encoded in a letter too, starting from a (Ascii 97), so that every count
+	 * takes up just to characters.
 	 * 
 	 */
 	public String runLenghtEncode() {
 		// todraw[x][y], where row number is x and the index of the block in that row is
 		// y
-		int currentBlock = 0;
 		int count = 0;
 		String s = "";
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
-				if(todraw[i][j] != currentBlock || j == h-1) {
-					s+=String.valueOf((char)(97+count))+String.valueOf((char)(65+currentBlock));
-					count = 1;
-					currentBlock = todraw[i][j];
-				}else {
+				// https://www.geeksforgeeks.org/run-length-encoding/
+				count = 1;
+				while (j < h - 1 && todraw[i][j] == todraw[i][j + 1]) {
 					count++;
+					j++;
 				}
+				s += String.valueOf((char)(count + 97));
+				s += String.valueOf((char)(todraw[i][j] + 65));
+//				System.out.println("Got block " + todraw[i][j] + " for " + count + "times");
 			}
-			
+//			System.out.println("Going next column");
 			s += "-";
 		}
-
+		System.out.println(s);
 		return s;
 	}
 
 	/*
-	 * Run length decodes the maze received from the server.
-	 * We know that the block types start from A (Ascii 65), so we can simply subtract 65
-	 * We know that the block count start from a (Ascii 97), so we can simply subtract 97
-	 * from the current index and get the block type, repeated for how many times the count number says
+	 * Run length decodes the maze received from the server. We know that the block
+	 * types start from A (Ascii 65), so we can simply subtract 65 We know that the
+	 * block count start from a (Ascii 97), so we can simply subtract 97 from the
+	 * current index and get the block type, repeated for how many times the count
+	 * number says
 	 */
 	public int[][] runLenghtDecode(String s) {
 		int[][] todraw_ = null;
-		int count, type, totalcount = 0;
-		
-		//Split the various rows
+		int count, type, totalcount = 0, width = 0;
+
+		// Split the various rows
 		String[] rows = s.split("-");
 		System.out.println(Arrays.deepToString(rows));
-		//Mazes are always squares
-		setMazeSize(rows.length, rows.length);
-		//Temporarely patch to the calculation errors in setMazeSize
-		todraw_=new int[rows.length][rows.length];
-		
-		for(int i = 0; i < rows.length; i++) {
+
+		count = ((int) (rows[0].charAt(0))) - 97;
+		width += count;
+
+		// Mazes are always squares
+		setMazeSize(width + 1, rows.length + 1);
+		// Temporarely patch to the calculation errors in setMazeSize
+		todraw_ = new int[w][h];
+
+		for (int i = 0; i < width; i++) {
 			totalcount = 0;
-			for(int j = 0; j < rows[i].length(); j+=2) {
+			for (int j = 0; j < rows[i].length(); j += 2) {
 				count = ((int) (rows[i].charAt(j))) - 97;
-				type = ((int) (rows[i].charAt(j+1))) - 65;
-				
-				for(int k = totalcount; k < totalcount+count; k++) {
+				type = ((int) (rows[i].charAt(j + 1))) - 65;
+
+				for (int k = totalcount; k < totalcount + count; k++) {
 					todraw_[i][k] = type;
 				}
 				totalcount += count;
 			}
 		}
-		show(todraw_);
 		return todraw_;
 	}
 
@@ -231,15 +236,15 @@ public class MazeGenerator {
 
 		show(todraw);
 	}
-	
+
 	public void show(int[][] todraw_) {
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				todraw[i][j] = todraw_[i][j];
 				main.world.worldManager.setCell(i, 1, j, CellId.ID_AIR);
-				
+
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
-				
+
 				if (todraw[i][j] == 1)
 					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
 				if (todraw[i][j] == 2)
@@ -259,7 +264,10 @@ public class MazeGenerator {
 	}
 
 	int cellAt(int x, int y) {
-		return todraw[x][y];
+		if (x < w && y < h)
+			return todraw[x][y];
+		else
+			return 1;
 	}
 
 	public boolean occupiedSpot(int x, int y) {

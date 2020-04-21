@@ -42,7 +42,7 @@ public class GameClient {
 	Hashtable<String, MazePlayerRemote> remotePlayers = new Hashtable<>();
 //	Hashtable<String, MazePlayerLocal> localPlayers = new Hashtable<>();
 	MazePlayerLocal player;
-	
+
 	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
 	volatile HashSet<String> toAdd = new HashSet<>();
@@ -97,10 +97,10 @@ public class GameClient {
 				} else if (object instanceof NetworkCommon.UpdatePlayerTransformServer) {
 					NetworkCommon.UpdatePlayerTransformServer s = (NetworkCommon.UpdatePlayerTransformServer) object;
 					System.out.println("Received a forced position update for self!");
-					if(s.uuid.equals(uuid)) {
+					if (s.uuid.equals(uuid)) {
 						player.setPlaying();
 						player.setTransform(s.tx, s.ty, s.tz, s.rx, s.ry, s.rz, s.rw);
-					}else {
+					} else {
 						remotePlayers.get(s.uuid).setPlaying();
 						remotePlayers.get(s.uuid).setTransform(s.tx, s.ty, s.tz, s.rx, s.ry, s.rz, s.rw);
 					}
@@ -108,7 +108,8 @@ public class GameClient {
 					UpdatePlayerTransform msg = (UpdatePlayerTransform) object;
 					if (!msg.uuid.equals(uuid)) {
 						remotePlayers.get(msg.uuid).setPlaying();
-						remotePlayers.get(msg.uuid).setTransform(msg.tx, msg.ty, msg.tz, msg.rx, msg.ry, msg.rz, msg.rw);
+						remotePlayers.get(msg.uuid).setTransform(msg.tx, msg.ty, msg.tz, msg.rx, msg.ry, msg.rz,
+								msg.rw);
 						System.out.println("R: " + msg.tx + ", " + msg.ty + ", " + msg.tz);
 						System.out.println("Updating remote player with uuid " + msg.uuid.toString());
 					}
@@ -174,11 +175,14 @@ public class GameClient {
 //						players.add(p);
 
 				players.add(player);
-				
-				main.getScreen().hide();
-				main.setScreen(null);
 
-				for(MazePlayer p : players) p.setPlaying();
+				if (main.getScreen() != null) {
+					main.getScreen().hide();
+					main.setScreen(null);
+				}
+
+				for (MazePlayer p : players)
+					p.setPlaying();
 				System.out.println(Arrays.toString(players.toArray()));
 
 				gameManager.generateMaze(new HashSet<MazePlayer>(players));
@@ -186,7 +190,7 @@ public class GameClient {
 			}
 			if (!map.equals("")) {
 				System.out.println("Setting map");
-				gameManager.mazeGen.runLenghtDecode(map);
+				gameManager.mazeGen.show(gameManager.mazeGen.runLenghtDecode(map));
 				map = "";
 			}
 			if (gameManager != null)

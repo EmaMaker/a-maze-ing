@@ -102,14 +102,19 @@ public class MazePlayerLocal extends MazePlayer {
 		((btDiscreteDynamicsWorld) (main.world.dynamicsWorld)).addAction(characterController);
 	}
 
+	boolean pressed = false;
+
 	public void inputs() {
+		pressed = false;
 		// If the left or right key is pressed, rotate the character and update its
 		// physics update accordingly.
 		if (Gdx.input.isKeyPressed(ksx)) {
+			pressed = true;
 			characterTransform.rotate(0, 1, 0, 2.5f);
 			ghostObject.setWorldTransform(characterTransform);
 		}
 		if (Gdx.input.isKeyPressed(kdx)) {
+			pressed = true;
 			characterTransform.rotate(0, 1, 0, -2.5f);
 			ghostObject.setWorldTransform(characterTransform);
 		}
@@ -118,10 +123,14 @@ public class MazePlayerLocal extends MazePlayer {
 		// Set the walking direction accordingly (either forward or backward)
 		walkDirection.set(0, 0, 0);
 
-		if (Gdx.input.isKeyPressed(kup))
+		if (Gdx.input.isKeyPressed(kup)) {
+			pressed = true;
 			walkDirection.add(characterDirection);
-		if (Gdx.input.isKeyPressed(kdown))
+		}
+		if (Gdx.input.isKeyPressed(kdown)) {
+			pressed = false;
 			walkDirection.add(-characterDirection.x, -characterDirection.y, -characterDirection.z);
+		}
 		walkDirection.scl(3f * Gdx.graphics.getDeltaTime());
 		// And update the character controller
 		characterController.setWalkDirection(walkDirection);
@@ -129,12 +138,14 @@ public class MazePlayerLocal extends MazePlayer {
 		// And fetch the new transformation of the character (this will make the model
 		// be rendered correctly)
 		ghostObject.getWorldTransform(characterTransform);
+
+		if (pressed)
+			main.client.updateLocalPlayer(this);
 	}
 
 	@Override
 	public void update() {
 		inputs();
-		main.client.updateLocalPlayer(this);
 	}
 
 	@Override

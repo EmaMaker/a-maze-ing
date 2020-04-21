@@ -37,41 +37,7 @@ public class GameManager {
 	}
 
 	boolean anyoneWon = false;
-
-	public void update() {
-		if (gameStarted) {
-			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
-					mazeGen.h / 2);
-			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
-			main.world.cam.update();
-			if (getShowGame())
-				main.world.render();
-
-			main.world.modelBatch.begin(main.world.cam);
-			if (players != null) {
-				for (MazePlayer p : players) {
-					if (getShowGame())
-						p.render(main.world.modelBatch, main.world.environment);
-
-					anyoneWon = false;
-					if(type != GameType.CLIENT) {
-						if (checkWin(p)) {
-							anyoneWon = true;
-							gameStarted = false;
-							break;
-						}
-					}
-				}
-			}
-
-			if (anyoneWon)
-				main.setScreen(main.uiManager.playersScreen);
-			main.world.modelBatch.end();
-		}
-	}
-
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
-
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 		anyoneWon = false;
@@ -110,6 +76,7 @@ public class GameManager {
 
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
+		mazeGen.runLenghtEncode();
 
 		if (type != GameType.CLIENT) {
 			spreadPlayers();
@@ -119,8 +86,40 @@ public class GameManager {
 		if (todraw != null && showGame == true) {
 			mazeGen.show(todraw);
 		}
-
 	}
+
+	public void update() {
+		if (gameStarted) {
+			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
+					mazeGen.h / 2);
+			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
+			main.world.cam.update();
+			if (getShowGame())
+				main.world.render();
+
+			main.world.modelBatch.begin(main.world.cam);
+			if (players != null) {
+				for (MazePlayer p : players) {
+					if (getShowGame())
+						p.render(main.world.modelBatch, main.world.environment);
+
+					anyoneWon = false;
+					if(type != GameType.CLIENT) {
+						if (checkWin(p)) {
+							anyoneWon = true;
+							gameStarted = false;
+							break;
+						}
+					}
+				}
+			}
+
+			if (anyoneWon)
+				main.setScreen(main.uiManager.playersScreen);
+			main.world.modelBatch.end();
+		}
+	}
+
 
 	public void spreadPlayers() {
 		for (MazePlayer p : players) {
