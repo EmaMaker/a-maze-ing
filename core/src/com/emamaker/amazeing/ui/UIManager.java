@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.ui.screens.PlayerChooseScreen;
+import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.amazeing.ui.screens.ServerJoinScreen;
 import com.emamaker.amazeing.ui.screens.ServerLaunchScreen;
 import com.emamaker.amazeing.ui.screens.SettingsScreen;
@@ -20,6 +21,7 @@ public class UIManager {
 	public SettingsScreen setScreen;
 	public ServerJoinScreen srvJoinScreen;
 	public ServerLaunchScreen srvLaunchScreen;
+	public PreGameScreen preGameScreen;
 	
 	public UIManager(Game main_) {
 		main = (AMazeIng)main_;
@@ -32,6 +34,7 @@ public class UIManager {
 		setScreen = new SettingsScreen(this);
 		srvJoinScreen = new ServerJoinScreen(this);
 		srvLaunchScreen = new ServerLaunchScreen(this);
+		preGameScreen = new PreGameScreen(this);
 		
 		main.setScreen(titleScreen);
 	}

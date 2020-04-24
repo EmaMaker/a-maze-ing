@@ -2,7 +2,6 @@ package com.emamaker.amazeing.manager.network;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -13,6 +12,7 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
@@ -35,6 +35,7 @@ public class GameClient {
 	public int port;
 
 	boolean startGame = false;
+	boolean showPreGame = false;
 	String map = "";
 
 	// Hashtable of remote players present in the match. This will be used to update
@@ -42,13 +43,12 @@ public class GameClient {
 	Hashtable<String, MazePlayerRemote> remotePlayers = new Hashtable<>();
 //	Hashtable<String, MazePlayerLocal> localPlayers = new Hashtable<>();
 	MazePlayerLocal player;
-
-	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
+	public ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
 	volatile HashSet<String> toAdd = new HashSet<>();
 	volatile HashSet<String> toRemove = new HashSet<>();
 
-	GameManager gameManager;
+	public GameManager gameManager;
 	Client client;
 	// UUID is represented using a string, for kryonet ease of use
 	String uuid = "";
@@ -80,6 +80,11 @@ public class GameClient {
 					uuid = ((LoginAO2) object).uuid;
 					client.sendTCP(object);
 					System.out.println("Received UUID " + uuid.toString() + " from server, giving confirmation!");
+
+					// When we receive the connection accept from the server, we can show the
+					// pre-game screen listing the players' names, setting this flag to let the main
+					// thread to it
+					showPreGame = true;
 				} else if (object instanceof AddNewPlayer) {
 					AddNewPlayer msg = (AddNewPlayer) object;
 					if ((!msg.uuid.equals(uuid))) {
@@ -110,8 +115,8 @@ public class GameClient {
 						remotePlayers.get(msg.uuid).setPlaying();
 						remotePlayers.get(msg.uuid).setTransform(msg.tx, msg.ty, msg.tz, msg.rx, msg.ry, msg.rz,
 								msg.rw);
-						System.out.println("R: " + msg.tx + ", " + msg.ty + ", " + msg.tz);
-						System.out.println("Updating remote player with uuid " + msg.uuid.toString());
+//						System.out.println("R: " + msg.tx + ", " + msg.ty + ", " + msg.tz);
+//						System.out.println("Updating remote player with uuid " + msg.uuid.toString());
 					}
 				} else if (object instanceof UpdateMap) {
 					map = ((UpdateMap) object).map;
@@ -120,6 +125,13 @@ public class GameClient {
 					startGame = true;
 					map = ((StartGame) object).map;
 					System.out.println("Starting the online game!");
+				} else if (object instanceof EndGame) {
+					System.out.println("EndGame Received!");
+					if (gameManager != null) {
+						gameManager.gameStarted = false;
+						gameManager.anyoneWon = true;
+						showPreGame = true;
+					}
 				}
 			}
 
@@ -164,17 +176,29 @@ public class GameClient {
 
 			}
 
+			for (MazePlayerRemote p : remotePlayers.values())
+				if (!players.contains(p))
+					players.add(p);
+
+//			for (MazePlayerLocal p : localPlayers.values())
+//				if (!players.contains(p))
+//					players.add(p);
+			if (!players.contains(player))
+				players.add(player);
+
+			if (showPreGame) {
+				// We are taking care of specifying what type of game we are running. Server is
+				// the server is running in the same instance, client if not
+				// In this way server host is shown the start game button.
+				if (!main.server.isRunning())
+					main.uiManager.preGameScreen.setGameType(GameType.CLIENT);
+				main.setScreen(main.uiManager.preGameScreen);
+				System.out.println("Game ended!");
+				showPreGame = false;
+			}
+
 			if (startGame) {
 				gameManager = new GameManager(main, GameType.CLIENT);
-				for (MazePlayerRemote p : remotePlayers.values())
-					if (!players.contains(p))
-						players.add(p);
-
-//				for (MazePlayerLocal p : localPlayers.values())
-//					if (!players.contains(p))
-//						players.add(p);
-
-				players.add(player);
 
 				if (main.getScreen() != null) {
 					main.getScreen().hide();
@@ -183,7 +207,6 @@ public class GameClient {
 
 				for (MazePlayer p : players)
 					p.setPlaying();
-				System.out.println(Arrays.toString(players.toArray()));
 
 				gameManager.generateMaze(new HashSet<MazePlayer>(players));
 				startGame = false;
@@ -214,6 +237,10 @@ public class GameClient {
 
 			client.sendTCP(pu);
 		}
+	}
+
+	public boolean isRunning() {
+		return clientRunning;
 	}
 
 	public void stop() {

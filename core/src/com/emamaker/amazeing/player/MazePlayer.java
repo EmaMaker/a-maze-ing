@@ -31,7 +31,7 @@ public abstract class MazePlayer {
 	MeshPartBuilder meshBuilder;
 	static int meshAttr = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
 	public GameObject obj;
-	String name;
+	String name = "";
 	boolean disposing = false;
 	boolean playing = false;
 	boolean show = true;
@@ -100,6 +100,7 @@ public abstract class MazePlayer {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void buildModel() {
 		modelBuilder.begin();
 		Node n = modelBuilder.node();

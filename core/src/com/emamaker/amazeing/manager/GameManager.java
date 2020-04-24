@@ -19,6 +19,8 @@ public class GameManager {
 
 	public boolean gameStarted = false;
 	public boolean showGame = true;
+	public boolean anyoneWon = false;
+
 	Random rand = new Random();
 
 	GameType type = GameType.LOCAL;
@@ -32,12 +34,12 @@ public class GameManager {
 
 		type = t;
 		setShowGame(type != GameType.SERVER);
-		
+
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
 	}
 
-	boolean anyoneWon = false;
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 		anyoneWon = false;
@@ -89,7 +91,7 @@ public class GameManager {
 	}
 
 	public void update() {
-		if (gameStarted) {
+		if (gameStarted && !anyoneWon) {
 			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
 					mazeGen.h / 2);
 			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
@@ -104,7 +106,7 @@ public class GameManager {
 						p.render(main.world.modelBatch, main.world.environment);
 
 					anyoneWon = false;
-					if(type != GameType.CLIENT) {
+					if (type != GameType.CLIENT) {
 						if (checkWin(p)) {
 							anyoneWon = true;
 							gameStarted = false;
@@ -114,12 +116,18 @@ public class GameManager {
 				}
 			}
 
-			if (anyoneWon)
-				main.setScreen(main.uiManager.playersScreen);
+			if (anyoneWon) {
+				System.out.println("Game Finished! " + type);
+				if (type == GameType.LOCAL) {
+					main.setScreen(main.uiManager.playersScreen);
+				}else if(type == GameType.SERVER) {
+					main.uiManager.preGameScreen.setGameType(GameType.SERVER);
+					main.setScreen(main.uiManager.preGameScreen);
+				}
+			}
 			main.world.modelBatch.end();
 		}
 	}
-
 
 	public void spreadPlayers() {
 		for (MazePlayer p : players) {
@@ -127,8 +135,8 @@ public class GameManager {
 			do {
 				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
 				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-				 System.out.println(thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x,
-				 z) + " --- " + x + ", " + z);
+				System.out.println(
+						thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x, z) + " --- " + x + ", " + z);
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPlaying();
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
@@ -151,7 +159,6 @@ public class GameManager {
 		else
 			return new Player(kup, kdown, ksx, kdx, x + 0.5f, 4f, z + 0.5f, name);
 	}
-
 
 	public boolean checkWin(MazePlayer p) {
 		if ((int) p.getPos().x == mazeGen.WINX && (int) p.getPos().z == mazeGen.WINZ) {

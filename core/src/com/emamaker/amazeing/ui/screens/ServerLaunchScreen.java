@@ -13,17 +13,20 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerLaunchScreen implements Screen {
 
 	Stage stage;
 	UIManager uiManager;
+	Screen thisScreen;
 	
 	public ServerLaunchScreen(UIManager uiManager_) {
 
 		uiManager = uiManager_;
-
+		thisScreen = this;
+		
 		stage = new Stage(new ScreenViewport());
 		Container<Table> tableContainer = new Container<Table>();
 		Table table = new Table();
@@ -34,12 +37,13 @@ public class ServerLaunchScreen implements Screen {
 		tableContainer.setSize(cw, ch);
 		tableContainer.setPosition(0, 0);
 
-		Label instLab = new Label("Enter the port the server should start on", uiManager.skin);
-		TextButton backBtn = new TextButton("Main menu and quit server", uiManager.skin);
+		Label instLab = new Label("Enter the port the server must start on", uiManager.skin);
+		TextButton backBtn = new TextButton("<", uiManager.skin);
 		TextButton connectBtn = new TextButton("Launch the server!", uiManager.skin);
-		TextButton gameBtn = new TextButton("Launch the game!", uiManager.skin);
+		TextButton setBtn = new TextButton("Settings", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		final TextArea srvPort = new TextArea("9999", uiManager.skin);
+		Label srvPortL = new Label("Port: ", uiManager.skin);
+		final TextArea srvPort = new TextArea("", uiManager.skin);
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -58,6 +62,15 @@ public class ServerLaunchScreen implements Screen {
 				return true;
 			}
 		});
+		setBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.setScreen.prevScreen = thisScreen;
+				uiManager.main.setScreen(uiManager.setScreen);
+				return true;
+			}
+		});
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -65,32 +78,24 @@ public class ServerLaunchScreen implements Screen {
 				return true;
 			}
 		});
-		gameBtn.addListener(new InputListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				uiManager.main.server.startGame();
-				return true;
-			}
-		});
-
+		
 		Table firstRowTable = new Table();
 		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw * 0.25f);
+		firstRowTable.add(setBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.setOrigin(Align.center | Align.top);
 
 		table.row().colspan(4);
 		table.add(firstRowTable);
 
-		table.row().colspan(4);
-		table.add(srvPort).fillX().expandX();
+		table.row().colspan(2);
+		table.add(srvPortL).expandX();
+		table.add(srvPort).expandX();
 
 		table.row().colspan(4);
 		table.add(connectBtn).fillX().expandX();
 
-		table.row().colspan(4);
-		table.add(gameBtn).fillX().expandX();
-		
 		tableContainer.setActor(table);
 		stage.addActor(tableContainer);
 	}

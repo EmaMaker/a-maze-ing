@@ -40,7 +40,7 @@ public class SettingsScreen implements Screen{
 		tableContainer.setPosition(0, 0);
 		
 		Label instLab = new Label("Here you can customize game settings!", uiManager.skin);
-		TextButton backBtn = new TextButton("Back", uiManager.skin);
+		TextButton backBtn = new TextButton("<", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
 		
 

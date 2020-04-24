@@ -11,11 +11,14 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.ConnectionRefused;
+import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 import com.esotericsoftware.kryonet.Connection;
@@ -27,15 +30,16 @@ public class GameServer {
 	public AMazeIng main;
 
 	volatile boolean serverRunning = false;
+	boolean endGameCalled = false;
 	public int port;
 	UUID uuid;
 
-	GameManager gameManager;
+	public GameManager gameManager;
 	Server server;
 
 	// Hashtable of remote players present in the match. This will be used to update
 	// other players' transform when server reports about it
-	Hashtable<String, MazePlayerRemote> remotePlayers = new Hashtable<>();
+	public Hashtable<String, MazePlayerRemote> remotePlayers = new Hashtable<>();
 
 	public GameServer(AMazeIng main_) {
 		main = main_;
@@ -80,18 +84,27 @@ public class GameServer {
 						// Ignore is there's no uuid or it's different from the login message one
 						if (connection.uuid == null || !connection.uuid.equals(((LoginAO2) object).uuid))
 							return;
-						// Otherwise add a new player and notify all clients about it
-						remotePlayers.put(((LoginAO2) object).uuid,
-								new MazePlayerRemote(main, ((LoginAO2) object).uuid, false));
-						AddNewPlayer response = new AddNewPlayer();
-						response.uuid = ((LoginAO2) object).uuid;
 
-						System.out.println("Client with UUID " + response.uuid + " is connected and ready to play :)");
-						server.sendToAllTCP(response);
+						// If there's still space left for players to join
+						if (remotePlayers.values().size() < MazeSettings.MAXPLAYERS) {
+							// Otherwise add a new player and notify all clients about it
+							remotePlayers.put(((LoginAO2) object).uuid,
+									new MazePlayerRemote(main, ((LoginAO2) object).uuid, false));
+							
+							AddNewPlayer response = new AddNewPlayer();
+							response.uuid = ((LoginAO2) object).uuid;
 
-						for (String s : remotePlayers.keySet()) {
-							response.uuid = s;
-							c.sendTCP(response);
+							System.out.println(
+									"Client with UUID " + response.uuid + " is connected and ready to play :)");
+							server.sendToAllTCP(response);
+
+							for (String s : remotePlayers.keySet()) {
+								response.uuid = s;
+								c.sendTCP(response);
+							}
+						} else {
+							// Send connection refused
+							c.sendTCP(new ConnectionRefused());
 						}
 
 					} else if (object instanceof RemovePlayer) {
@@ -139,9 +152,14 @@ public class GameServer {
 			server.bind(port);
 			server.start();
 			System.out.println("Server registered and running on port " + port);
-			
-			//Also launch the client to have a player play on host
+
+			// Also launch the client to have a player play on host
 			main.client.start("localhost", port);
+
+			// If the server and the client have been started successfully, we can show the
+			// joining screen
+			main.uiManager.preGameScreen.setGameType(GameType.SERVER);
+			main.setScreen(main.uiManager.preGameScreen);
 			System.out.println("Local client ready to play!");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -154,6 +172,10 @@ public class GameServer {
 		if (serverRunning) {
 			if (gameManager != null) {
 				gameManager.update();
+				if (gameManager.anyoneWon && !endGameCalled) {
+					server.sendToAllTCP(new EndGame());
+					endGameCalled = true;
+				}
 			}
 		}
 	}
@@ -168,6 +190,8 @@ public class GameServer {
 			// Start game stuff
 			this.gameManager = new GameManager(main, GameType.SERVER);
 			this.gameManager.generateMaze(new HashSet<MazePlayer>(remotePlayers.values()));
+			endGameCalled = false;
+			
 			StartGame request = new StartGame();
 			request.map = this.gameManager.mazeGen.runLenghtEncode();
 			server.sendToAllTCP(request);
@@ -175,6 +199,11 @@ public class GameServer {
 			if (gameManager.gameStarted)
 				for (String p : remotePlayers.keySet())
 					updatePlayer(p, remotePlayers.get(p), true);
+
+			if (main.getScreen() != null) {
+				main.setScreen(null);
+				main.getScreen().hide();
+			}
 		} else {
 			System.out.println("Server not started yet, game cannot start");
 		}
@@ -221,6 +250,10 @@ public class GameServer {
 			server.stop();
 			serverRunning = false;
 		}
+	}
+
+	public boolean isRunning() {
+		return serverRunning;
 	}
 }
 

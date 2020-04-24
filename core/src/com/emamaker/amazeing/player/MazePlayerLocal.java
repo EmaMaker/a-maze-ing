@@ -139,13 +139,22 @@ public class MazePlayerLocal extends MazePlayer {
 		// be rendered correctly)
 		ghostObject.getWorldTransform(characterTransform);
 
-		if (pressed)
+		if (pressed) {
+			System.out.println("Player in: " + getPos());
 			main.client.updateLocalPlayer(this);
+		}
 	}
 
 	@Override
 	public void update() {
 		inputs();
+	}
+	@Override
+	public Vector3 getPos() {
+		if (!disposing) {
+			return ghostObject.getWorldTransform().getTranslation(new Vector3());
+		}
+		return null;
 	}
 
 	@Override

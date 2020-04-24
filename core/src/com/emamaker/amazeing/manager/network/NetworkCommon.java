@@ -11,12 +11,14 @@ public class NetworkCommon {
 		Kryo kryo = endPoint.getKryo();
 		kryo.register(LoginAO.class);
 		kryo.register(LoginAO2.class);
+		kryo.register(ConnectionRefused.class);
 		kryo.register(LoginUUID.class);
 		kryo.register(AddNewPlayer.class);
 		kryo.register(RemovePlayer.class);
 		kryo.register(UpdatePlayerTransform.class);
 		kryo.register(UpdatePlayerTransformServer.class);
 		kryo.register(StartGame.class);
+		kryo.register(EndGame.class);
 		kryo.register(UpdateMap.class);
 	}
 
@@ -24,6 +26,9 @@ public class NetworkCommon {
 	static public class LoginAO {
 	}
 	static public class LoginAO2 {
+		String uuid;
+	}
+	static public class ConnectionRefused {
 		String uuid;
 	}
 	static public class LoginUUID {
@@ -45,13 +50,17 @@ public class NetworkCommon {
 		String uuid;
 		float tx, ty, tz, rx, ry, rz, rw;
 	}
-	
+
 	static public class StartGame{
 		//Use this to notify clients of a newly started game
 		//A Run-lenght-encoded representation of the map can be appended, this can be avoided but it's not recommended
 		String map;
 	}
+	static public class EndGame{
+		//Use this to notify clients when a game ends
+	}
 	static public class UpdateMap{
+		//Use this to notify clients of a modification of the map
 		//Run-lenght-encoded representation of the map
 		String map;
 	}

@@ -129,7 +129,7 @@ public class PlayerChooseScreen implements Screen {
 
 		// Labels to know if players joined
 		for (int i = 0; i < labels.length; i++) {
-			labels[i] = new Label("Not joined yet", uiManager.skin);
+			labels[i] = new Label("-- empty slot --", uiManager.skin);
 		}
 
 		// Add actions to the buttons

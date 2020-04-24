@@ -38,8 +38,10 @@ public class ServerJoinScreen implements Screen {
 		TextButton backBtn = new TextButton("Main menu", uiManager.skin);
 		TextButton connectBtn = new TextButton("Connect to the server!", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		final TextArea srvIp = new TextArea("localhost", uiManager.skin);
-		final TextArea srvPort = new TextArea("9999", uiManager.skin);
+		Label srvIpL = new Label("Server IP: ", uiManager.skin);
+		final TextArea srvIp = new TextArea("", uiManager.skin);
+		Label srvPortL = new Label("Server Port: ", uiManager.skin);
+		final TextArea srvPort = new TextArea("", uiManager.skin);
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -80,9 +82,11 @@ public class ServerJoinScreen implements Screen {
 		table.row().colspan(4);
 		table.add(firstRowTable);
 
-		table.row().colspan(4);
-		table.add(srvIp).fillX().expandX();
-		table.row().colspan(4);
+		table.row().colspan(2);
+		table.add(srvIpL).expandX();
+		table.add(srvIp).expandX();
+		table.row().colspan(2);
+		table.add(srvPortL).fillX().expandX();
 		table.add(srvPort).fillX().expandX();
 
 		table.row().colspan(4);

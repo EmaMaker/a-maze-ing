@@ -112,9 +112,7 @@ public class MazeGenerator {
 	 * player
 	 */
 	public void setupEndPoint() {
-		// Randomly spawns all the players
-		// For a spawn location to be valid, it has to be free from both walls and
-		// players
+		// Randomly places the end point
 		int x = 0, y = 0;
 
 		do {
@@ -125,7 +123,7 @@ public class MazeGenerator {
 		WINX = x;
 		WINZ = y;
 		todraw[x][y] = 2;
-		main.world.worldManager.setCell(WINX, 0, WINZ, CellId.ID_WOOD);
+		show(todraw);
 	}
 
 	/*
@@ -245,10 +243,15 @@ public class MazeGenerator {
 
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
 
-				if (todraw[i][j] == 1)
-					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
-				if (todraw[i][j] == 2)
+//				if (todraw[i][j] == 1)
+//					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
+				if (todraw[i][j] == 2) {
+					WINX = i;
+					WINZ = j;
+					
+					System.out.println("Win position in: " + i + ", " + j);
 					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
+				}
 			}
 		}
 	}
