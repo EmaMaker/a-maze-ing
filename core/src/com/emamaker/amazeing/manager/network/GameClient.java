@@ -136,9 +136,8 @@ public class GameClient {
 			}
 
 			public void disconnected(Connection connection) {
-				for (MazePlayerRemote p : remotePlayers.values()) {
-					p.dispose();
-				}
+				toRemove.addAll(remotePlayers.keySet());
+				toRemove.add(uuid);
 			}
 		});
 
@@ -168,8 +167,10 @@ public class GameClient {
 				}
 				toAdd.clear();
 				for (String s : toRemove) {
-					remotePlayers.get(s).dispose();
-					remotePlayers.remove(s);
+					if (remotePlayers.get(s) != null) {
+						remotePlayers.get(s).dispose();
+						remotePlayers.remove(s);
+					}else if(s.equals(uuid)) player.dispose();
 				}
 				toRemove.clear();
 			} catch (Exception e) {
@@ -245,6 +246,20 @@ public class GameClient {
 
 	public void stop() {
 		if (clientRunning) {
+			RemovePlayer request = new RemovePlayer();
+			request.uuid = uuid;
+			client.sendTCP(request);
+
+			for (MazePlayer p : remotePlayers.values())
+				if (!p.isDisposed())
+					p.dispose();
+			for (MazePlayer p : players)
+				if (!p.isDisposed())
+					p.dispose();
+
+			remotePlayers.clear();
+			players.clear();
+
 			client.stop();
 			clientRunning = false;
 		}

@@ -38,7 +38,7 @@ public class GameManager {
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
 	}
 
-	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+//	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
 
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
@@ -48,25 +48,31 @@ public class GameManager {
 		// Only add new players and dispose the old ones
 		// Check if actually there are players to be deleted
 		if (pl != null) {
-			for (MazePlayer p : players)
-				if (!pl.contains(p))
-					toDelete.add(p);
 
-			// Check if new players have to be added
-			for (MazePlayer p : pl)
-				if (!players.contains(p))
-					players.add(p);
-
-			// Fianlly delete players. A separated step is needed to remove the risk of a
-			// ConcurrentModificationException
-			for (MazePlayer p : toDelete) {
-				p.dispose();
-				players.remove(p);
-			}
-			toDelete.clear();
+//			destroyPlayers();
+//			players.addAll(p);
+			for(MazePlayer p : players)
+				if(!p.isDisposed())
+					p.dispose();
+			players.clear();
+			players.addAll(pl);
+//			for (MazePlayer p : players)
+//				if (!pl.contains(p))
+//					toDelete.add(p);
+//
+//			// Check if new players have to be added
+//			for (MazePlayer p : pl)
+//				if (!players.contains(p))
+//					players.add(p);
+//
+//			// Fianlly delete players. A separated step is needed to remove the risk of a
+//			// ConcurrentModificationException
+//			for (MazePlayer p : toDelete) {
+//				p.dispose();
+//				players.remove(p);
+//			}
+//			toDelete.clear();
 		}
-//		destroyPlayers();
-//		players.addAll(p);
 
 		for (int i = 0; i < MazeSettings.MAZEX; i++) {
 			for (int j = 0; j < 2; j++) {
@@ -102,7 +108,7 @@ public class GameManager {
 			main.world.modelBatch.begin(main.world.cam);
 			if (players != null) {
 				for (MazePlayer p : players) {
-					if (getShowGame())
+					if (getShowGame() && !p.isDisposed())
 						p.render(main.world.modelBatch, main.world.environment);
 
 					anyoneWon = false;
@@ -120,7 +126,7 @@ public class GameManager {
 				System.out.println("Game Finished! " + type);
 				if (type == GameType.LOCAL) {
 					main.setScreen(main.uiManager.playersScreen);
-				}else if(type == GameType.SERVER) {
+				} else if (type == GameType.SERVER) {
 					main.uiManager.preGameScreen.setGameType(GameType.SERVER);
 					main.setScreen(main.uiManager.preGameScreen);
 				}
@@ -211,6 +217,8 @@ public class GameManager {
 
 	public void dispose() {
 		for (MazePlayer p : players)
-			p.dispose();
+			if (!p.isDisposed())
+				p.dispose();
+		players.clear();
 	}
 }

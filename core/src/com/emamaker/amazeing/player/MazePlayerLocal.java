@@ -149,6 +149,7 @@ public class MazePlayerLocal extends MazePlayer {
 	public void update() {
 		inputs();
 	}
+
 	@Override
 	public Vector3 getPos() {
 		if (!disposing) {
@@ -178,13 +179,13 @@ public class MazePlayerLocal extends MazePlayer {
 
 	@Override
 	public void dispose() {
+		super.dispose();
 		disposing = true;
 		main.world.dynamicsWorld.removeAction(characterController);
 		main.world.dynamicsWorld.removeCollisionObject(ghostObject);
 		characterController.dispose();
 		ghostObject.dispose();
 		ghostShape.dispose();
-		mazePlayerModel.dispose();
 		disposing = false;
 	}
 

@@ -1,7 +1,5 @@
 package com.emamaker.amazeing.ui.screens;
 
-import java.util.Arrays;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -27,6 +25,7 @@ public class PreGameScreen implements Screen {
 
 	Label[] labels;
 	MazePlayer[] players, tmp;
+	int nPlayers, nPlayersOld;
 
 	// GameType we are runnig. assuming server for default. If client, the StartGame
 	// button shouldn't appear
@@ -44,7 +43,9 @@ public class PreGameScreen implements Screen {
 
 		labels = new Label[MazeSettings.MAXPLAYERS];
 		players = new MazePlayer[MazeSettings.MAXPLAYERS];
-		tmp = new MazePlayer[MazeSettings.MAXPLAYERS];
+//		tmp = new MazePlayer[MazeSettings.MAXPLAYERS];
+		nPlayers = 0;
+		nPlayersOld = 0;
 
 		stage = new Stage(new ScreenViewport());
 		Container<Table> tableContainer = new Container<Table>();
@@ -62,8 +63,9 @@ public class PreGameScreen implements Screen {
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
 		TextButton playBtn = new TextButton("Start the match!", uiManager.skin);
 
-		if(type == GameType.CLIENT) instLab.setText("Waiting for server to start the game...");
-		
+		if (type == GameType.CLIENT)
+			instLab.setText("Waiting for server to start the game...");
+
 		// Labels to know if players joined
 		for (int i = 0; i < labels.length; i++) {
 			labels[i] = new Label("-- empty slot --", uiManager.skin);
@@ -74,7 +76,13 @@ public class PreGameScreen implements Screen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				uiManager.main.setScreen(type == GameType.SERVER ? uiManager.srvLaunchScreen : uiManager.srvJoinScreen);
+				if (type == GameType.SERVER) {
+					uiManager.main.server.stop();
+					uiManager.main.setScreen(uiManager.srvLaunchScreen);
+				} else if (type == GameType.CLIENT) {
+					uiManager.main.client.stop();
+					uiManager.main.setScreen(uiManager.srvJoinScreen);
+				}
 				return true;
 			}
 		});
@@ -150,18 +158,20 @@ public class PreGameScreen implements Screen {
 
 		// Constantly update player labels, comparing with the remote players present on
 		// server
-		tmp = type == GameType.SERVER
-				? Arrays.copyOf(uiManager.main.server.remotePlayers.values().toArray(),
-						uiManager.main.server.remotePlayers.values().size(), MazePlayer[].class)
-				: Arrays.copyOf(uiManager.main.client.players.toArray(), uiManager.main.client.players.size(),
-						MazePlayer[].class);
-		if (!(Arrays.equals(players, tmp))) {
+		nPlayers = type == GameType.SERVER ? uiManager.main.server.remotePlayers.values().size()
+				: uiManager.main.client.players.size();
+//		tmp = type == GameType.SERVER
+//				? Arrays.copyOf(uiManager.main.server.remotePlayers.values().toArray(),
+//						uiManager.main.server.remotePlayers.values().size(), MazePlayer[].class)
+//				: Arrays.copyOf(uiManager.main.client.players.toArray(), uiManager.main.client.players.size(),
+//						MazePlayer[].class);
+		if (nPlayers != nPlayersOld) {
 			// Update Labels
-			for (int i = 0; i < tmp.length; i++) {
-				players[i] = tmp[i];
-				labels[i].setText(players[i].getName());
+			for (int i = 0; i < labels.length; i++) {
+				labels[i].setText(i < nPlayers ? "-- Player Ready! --" : "-- empty slot --" );
 			}
 		}
+		nPlayersOld = nPlayers;
 	}
 
 	public void setGameType(GameType t) {

@@ -243,8 +243,8 @@ public class MazeGenerator {
 
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
 
-//				if (todraw[i][j] == 1)
-//					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
+				if (todraw[i][j] == 1)
+					main.world.worldManager.setCell(i, 1, j, CellId.ID_LEAVES);
 				if (todraw[i][j] == 2) {
 					WINX = i;
 					WINZ = j;

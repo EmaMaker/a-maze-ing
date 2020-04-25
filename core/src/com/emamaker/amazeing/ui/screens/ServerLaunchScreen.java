@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerLaunchScreen implements Screen {

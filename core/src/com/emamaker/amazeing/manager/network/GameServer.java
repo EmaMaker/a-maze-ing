@@ -80,6 +80,7 @@ public class GameServer {
 						response.uuid = connection.uuid;
 						System.out.println("Server received connection request! Giving client UUID " + connection.uuid);
 						c.sendTCP(response);
+
 					} else if (object instanceof LoginAO2) {
 						// Ignore is there's no uuid or it's different from the login message one
 						if (connection.uuid == null || !connection.uuid.equals(((LoginAO2) object).uuid))
@@ -90,7 +91,7 @@ public class GameServer {
 							// Otherwise add a new player and notify all clients about it
 							remotePlayers.put(((LoginAO2) object).uuid,
 									new MazePlayerRemote(main, ((LoginAO2) object).uuid, false));
-							
+
 							AddNewPlayer response = new AddNewPlayer();
 							response.uuid = ((LoginAO2) object).uuid;
 
@@ -112,7 +113,9 @@ public class GameServer {
 						if (connection.uuid == null || !connection.uuid.equals(((RemovePlayer) object).uuid))
 							return;
 						// Otherwise remove the player and notify all clients about it
-						remotePlayers.get(((RemovePlayer) object).uuid).dispose();
+						if (remotePlayers.get(((RemovePlayer) object).uuid) != null) {
+							remotePlayers.get(((RemovePlayer) object).uuid).dispose();
+						}
 						remotePlayers.remove(((RemovePlayer) object).uuid);
 
 						System.out.println("Client with UUID " + connection.uuid + " is leaving the server :(");
@@ -139,9 +142,10 @@ public class GameServer {
 				public void disconnected(Connection c) {
 					ConnectionPlayer connection = (ConnectionPlayer) c;
 					if (connection.uuid != null) {
-						remotePlayers.get(connection.uuid).dispose();
+						if (remotePlayers.get(connection.uuid) != null) {
+							remotePlayers.get(connection.uuid).dispose();
+						}
 						remotePlayers.remove(connection.uuid);
-
 						RemovePlayer remove = new RemovePlayer();
 						remove.uuid = connection.uuid;
 						server.sendToAllTCP(remove);
@@ -191,7 +195,7 @@ public class GameServer {
 			this.gameManager = new GameManager(main, GameType.SERVER);
 			this.gameManager.generateMaze(new HashSet<MazePlayer>(remotePlayers.values()));
 			endGameCalled = false;
-			
+
 			StartGame request = new StartGame();
 			request.map = this.gameManager.mazeGen.runLenghtEncode();
 			server.sendToAllTCP(request);
@@ -245,8 +249,11 @@ public class GameServer {
 
 	public void stop() {
 		for (MazePlayerRemote p : remotePlayers.values())
-			p.dispose();
+			if (!p.isDisposed())
+				p.dispose();
+		remotePlayers.clear();
 		if (serverRunning) {
+			main.client.stop();
 			server.stop();
 			serverRunning = false;
 		}

@@ -15,10 +15,11 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.voxelengine.physics.GameObject;
 
-public abstract class MazePlayer {
+public abstract class MazePlayer implements Disposable {
 
 	AMazeIng main;
 
@@ -33,6 +34,7 @@ public abstract class MazePlayer {
 	public GameObject obj;
 	String name = "";
 	boolean disposing = false;
+	boolean disposed = false;
 	boolean playing = false;
 	boolean show = true;
 
@@ -42,6 +44,7 @@ public abstract class MazePlayer {
 	MazePlayer(Game main_, boolean s) {
 		this(main_, String.valueOf((char) (65 + rand.nextInt(26))), s);
 		disposing = false;
+		disposed = false;
 		playing = false;
 	}
 
@@ -77,10 +80,11 @@ public abstract class MazePlayer {
 	}
 
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposing ) {
+		if (!disposing) {
 			pos.set(x, y, z);
 			rot.set(i, j, k, l);
-			if(show) instance.transform.set(x, y, z, i, j, k, l);
+			if (show)
+				instance.transform.set(x, y, z, i, j, k, l);
 		}
 	}
 
@@ -113,10 +117,22 @@ public abstract class MazePlayer {
 	public void update() {
 	}
 
+	@Override
 	public void dispose() {
-		playing =false;
+		playing = false;
+		if (!disposed) {
+			disposing = true;
+			if (show)
+				mazePlayerModel.dispose();
+			disposing = false;
+		}
+		disposed = true;
 	}
 	
+	public boolean isDisposed() {
+		return disposed;
+	}
+
 	public boolean isPlaying() {
 		return playing;
 	}
