@@ -100,6 +100,7 @@ public class PreGameScreen implements Screen {
 			setBtn.addListener(new InputListener() {
 				@Override
 				public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+					hide();
 					uiManager.setScreen.setPrevScreen(thisScreen);
 					uiManager.main.setScreen(uiManager.setScreen);
 					return true;

@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -42,7 +43,21 @@ public class SettingsScreen implements Screen{
 		Label instLab = new Label("Here you can customize game settings!", uiManager.skin);
 		TextButton backBtn = new TextButton("<", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		
+
+		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		/* HELP DIALOG */
+		helpDlg.text("Here you can customize can settings:\n"
+				+ "Maze Size: changes the size of the maze. Mazes are always squares. This affects both local and online games.\n"
+				+ "Max. Players: changes the max number of players that can join the game. This affects both local and online games.");
+		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlg.button(helpDlgOkBtn);
+		helpDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				helpDlg.hide();
+				return true;
+			}
+		});
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -57,10 +72,12 @@ public class SettingsScreen implements Screen{
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear help dialog (TODO)");
+				helpDlg.show(stage);
 				return true;
 			}
 		});
+		
+		
 		
 		
 		

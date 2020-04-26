@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
@@ -39,9 +40,37 @@ public class ServerJoinScreen implements Screen {
 		TextButton connectBtn = new TextButton("Connect to the server!", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
 		Label srvIpL = new Label("Server IP: ", uiManager.skin);
-		final TextArea srvIp = new TextArea("", uiManager.skin);
 		Label srvPortL = new Label("Server Port: ", uiManager.skin);
+		final TextArea srvIp = new TextArea("", uiManager.skin);
 		final TextArea srvPort = new TextArea("", uiManager.skin);
+
+		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		/* HELP DIALOG */
+		helpDlg.text("Here you can connect to a server to play with your friends over the network.\n"
+				+ "The server host should provide you with address and port info to connect to the server");
+		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlg.button(helpDlgOkBtn);
+		helpDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				helpDlg.hide();
+				return true;
+			}
+		});
+
+		final Dialog failDlg = new Dialog("Server start-up failed", uiManager.skin);
+		/* HELP DIALOG */
+		failDlg.text("Connection to the server failed. Check your internet connection and address/port combination.\n"
+				+ "Or Pheraps there's no server running there?");
+		TextButton failDlgOkBtn = new TextButton("OK", uiManager.skin);
+		failDlg.button(failDlgOkBtn);
+		failDlg.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				failDlg.hide();
+				return true;
+			}
+		});
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -56,19 +85,15 @@ public class ServerJoinScreen implements Screen {
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear help dialog (TODO)");
+				helpDlg.show(stage);
 				return true;
 			}
 		});
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				try {
-					uiManager.main.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText()));
-				} catch (Exception e) {
-					System.out.println("Please input a valid ip address and port");
-				}
-
+				if (!uiManager.main.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText())))
+					failDlg.show(stage);
 				return true;
 			}
 		});

@@ -46,7 +46,8 @@ public class GameServer {
 		uuid = UUID.randomUUID();
 	}
 
-	public void startServer(int port_) {
+	//Returns true if the server started successfully
+	public boolean startServer(int port_) {
 		port = port_;
 		serverRunning = true;
 		try {
@@ -157,17 +158,18 @@ public class GameServer {
 			server.start();
 			System.out.println("Server registered and running on port " + port);
 
-			// Also launch the client to have a player play on host
-			main.client.start("localhost", port);
-
-			// If the server and the client have been started successfully, we can show the
-			// joining screen
-			main.uiManager.preGameScreen.setGameType(GameType.SERVER);
-			main.setScreen(main.uiManager.preGameScreen);
-			System.out.println("Local client ready to play!");
+			// Also launch the client to have a player play on host. We return the result of starting, so server doesn't start if local client has problems 
+			if (main.client.start("localhost", port))
+					return true;
+			else {
+				server.stop();
+				return false;
+			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return false;
 	}
 
 	// Update must be called from Main thread and used for applications on main
@@ -205,8 +207,8 @@ public class GameServer {
 					updatePlayer(p, remotePlayers.get(p), true);
 
 			if (main.getScreen() != null) {
-				main.setScreen(null);
 				main.getScreen().hide();
+				main.setScreen(null);
 			}
 		} else {
 			System.out.println("Server not started yet, game cannot start");

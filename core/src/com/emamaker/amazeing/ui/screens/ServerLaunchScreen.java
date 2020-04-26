@@ -7,12 +7,14 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerLaunchScreen implements Screen {
@@ -44,6 +46,35 @@ public class ServerLaunchScreen implements Screen {
 		Label srvPortL = new Label("Port: ", uiManager.skin);
 		final TextArea srvPort = new TextArea("", uiManager.skin);
 
+		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		/* HELP DIALOG */
+		helpDlg.text("Here you can start a server to play with your friends over the network.\n"
+				+ "Choose a network port to start the server on and start the server.\n"
+				+ "In the next screen you will be given the address and port other players have to connect to play on this server.\n"
+				+ "The port must not being used by another program at the same time, or the server start-up will fail");
+		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlg.button(helpDlgOkBtn);
+		helpDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				helpDlg.hide();
+				return true;
+			}
+		});
+		
+		final Dialog failDlg = new Dialog("Server start-up failed", uiManager.skin);
+		/* HELP DIALOG */
+		failDlg.text("Server start-up failed. Pheraps the port is already being used?");
+		TextButton failDlgOkBtn = new TextButton("OK", uiManager.skin);
+		failDlg.button(failDlgOkBtn);
+		failDlg.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				failDlg.hide();
+				return true;
+			}
+		});
+
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
 			@Override
@@ -57,7 +88,7 @@ public class ServerLaunchScreen implements Screen {
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear help dialog (TODO)");
+				helpDlg.show(stage);
 				return true;
 			}
 		});
@@ -73,7 +104,15 @@ public class ServerLaunchScreen implements Screen {
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()));
+				if(uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()))) {
+					// If the server and the client have been started successfully, we can show the
+					// joining screen
+					uiManager.preGameScreen.setGameType(GameType.SERVER);
+					uiManager.main.setScreen(uiManager.preGameScreen);
+				}else {
+					//Show the dialog to say there's was something wrong
+					failDlg.show(stage);
+				}
 				return true;
 			}
 		});

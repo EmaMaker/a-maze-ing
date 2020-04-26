@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -122,15 +123,28 @@ public class PlayerChooseScreen implements Screen {
 		tableContainer.setPosition(0, 0);
 
 		Label instLab = new Label("Use WASD, ARROWS, or button on controller to join the match", uiManager.skin);
-		TextButton backBtn = new TextButton("Back", uiManager.skin);
+		TextButton backBtn = new TextButton("<", uiManager.skin);
 		TextButton setBtn = new TextButton("Settings", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		TextButton playBtn = new TextButton("Play", uiManager.skin);
+		TextButton playBtn = new TextButton("Play!", uiManager.skin);
 
-		// Labels to know if players joined
-		for (int i = 0; i < labels.length; i++) {
-			labels[i] = new Label("-- empty slot --", uiManager.skin);
-		}
+		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		/* HELP DIALOG */
+		helpDlg.text("Here you can start a singleplayer or multiplayer game on the local machine:\n"
+				+ "For keyboard players, pressing W,A,S,D or the directional arrows will toggle two different players.\n"
+				+ "Pressing a button on a controller will toggle a player.\n"
+				+ "You can edit game settings from the \"Settings\" menu or use the \"<\" button to go back to the main menu\n"
+				+ "Press the \"Play!\" button to start the game with the players that have currently joined.\n"
+				+ "Once a game is finished you will go back to this menu");
+		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlg.button(helpDlgOkBtn);
+		helpDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				helpDlg.hide();
+				return true;
+			}
+		});
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -141,7 +155,6 @@ public class PlayerChooseScreen implements Screen {
 				return true;
 			}
 		});
-		// Add actions to the buttons
 		playBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -152,24 +165,30 @@ public class PlayerChooseScreen implements Screen {
 				return true;
 			}
 		});
-		// Add actions to the buttons
 		setBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
 				uiManager.setScreen.setPrevScreen(thisScreen);
 				uiManager.main.setScreen(uiManager.setScreen);
 				return true;
 			}
 		});
-		// Add actions to the buttons
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear help dialog (TODO)");
+				helpDlg.show(stage);
 				return true;
 			}
 		});
 
+		// Labels to know if players joined
+		for (int i = 0; i < labels.length; i++) {
+			labels[i] = new Label("-- empty slot --", uiManager.skin);
+		}
+		
+		
+		/* BUILD UP TABLE */
 		Table firstRowTable = new Table();
 
 		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
@@ -225,6 +244,7 @@ public class PlayerChooseScreen implements Screen {
 				p = new MazePlayerLocal(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
 			togglePlayer(p);
 		}
+		
 //		for (Controller c : Controllers.getControllers()) {
 //			if (c.getButton(Xbox.Y)) {
 //				p = getPlayerWithCtrl(c);
@@ -233,17 +253,19 @@ public class PlayerChooseScreen implements Screen {
 //				togglePlayer(p);
 //			}
 //		}
+		
+		//Update labels
+		for(int i = 0; i < labels.length; i++) {
+			labels[i].setText(i < players.size() ? "-- Player Ready! --" : "-- empty slot --" );
+		}
 	}
 
 	public void togglePlayer(MazePlayerLocal p) {
 		try {
-			if (alreadyAddedPlayer(p)) {
-				players.get(p).setText("Not Joined Yet");
+			if (alreadyAddedPlayer(p))
 				players.remove(p);
-			} else {
+			else
 				players.put(p, labels[players.size()]);
-				players.get(p).setText("Player Read");
-			}
 		} catch (Exception e) {
 			System.out.println("All players already joined");
 		}
@@ -259,11 +281,12 @@ public class PlayerChooseScreen implements Screen {
 
 	public MazePlayerLocal getPlayerWithKeys(int... keys) {
 		for (MazePlayer p : players.keySet()) {
-			if(p instanceof MazePlayerLocal) {
-			for (int k : keys) {
-				if (((MazePlayerLocal)p).kup == k || ((MazePlayerLocal)p).kdown == k || ((MazePlayerLocal)p).ksx == k || ((MazePlayerLocal)p).kdx == k)
-					return (MazePlayerLocal)p;
-			}
+			if (p instanceof MazePlayerLocal) {
+				for (int k : keys) {
+					if (((MazePlayerLocal) p).kup == k || ((MazePlayerLocal) p).kdown == k
+							|| ((MazePlayerLocal) p).ksx == k || ((MazePlayerLocal) p).kdx == k)
+						return (MazePlayerLocal) p;
+				}
 			}
 		}
 		return null;
@@ -276,7 +299,7 @@ public class PlayerChooseScreen implements Screen {
 	public MazePlayerLocal getPlayerWithCtrl(Controller ctrl) {
 		for (MazePlayer p : players.keySet()) {
 			if (p instanceof MazePlayerLocal) {
-				if (((MazePlayerLocal)p).ctrl == ctrl)
+				if (((MazePlayerLocal) p).ctrl == ctrl)
 					return (MazePlayerLocal) p;
 			}
 		}

@@ -57,7 +57,7 @@ public class GameClient {
 		main = main_;
 	}
 
-	public void start(String addr_, int port_) {
+	public boolean start(String addr_, int port_) {
 		port = port_;
 		addr = addr_;
 
@@ -149,11 +149,13 @@ public class GameClient {
 			} else {
 				System.out.println("Already connected, to need to connect again");
 			}
+			return true;
 			// Server communication after connection can go here, or in
 			// Listener#connected().
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+		return false;
 	}
 
 	// Update must be called from Main thread and used for applications on main
