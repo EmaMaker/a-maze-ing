@@ -2,7 +2,6 @@ package com.emamaker.amazeing.player;
 
 import java.util.Random;
 
-import com.badlogic.gdx.Game;
 import com.emamaker.amazeing.AMazeIng;
 
 public class MazePlayerRemote extends MazePlayer{
@@ -13,16 +12,15 @@ public class MazePlayerRemote extends MazePlayer{
 
 	AMazeIng main;
 	//UUID is stored a string, for kryonet ease of use
-	public String uuid;
 	
 	boolean disposing = false;
 
-	public MazePlayerRemote(Game main_, String u) {
-		this(main_, u, true);
+	public MazePlayerRemote(String u) {
+		this(u, true);
 	}
 	
-	public MazePlayerRemote(Game main_, String u, boolean b) {
-		super(main_, b);
+	public MazePlayerRemote( String u, boolean b) {
+		super(b);
 		uuid = u;
 	}
 

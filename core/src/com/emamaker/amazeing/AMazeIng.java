@@ -29,9 +29,13 @@ public class AMazeIng extends Game {
 	/* Local manager for local games and server host in multiplayer games */
 	public GameServer server;
 	public GameClient client;
+	
+	static AMazeIng game;
 
 	@Override
 	public void create() {
+		game = this;
+		
 		// Bullet init for physics
 		Bullet.init();
 
@@ -98,6 +102,10 @@ public class AMazeIng extends Game {
 	@Override
 	public void resume() {
 		world.resume();
+	}
+	
+	public static AMazeIng getMain() {
+		return game;
 	}
 
 }

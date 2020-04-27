@@ -2,7 +2,6 @@ package com.emamaker.amazeing.player;
 
 import java.util.Random;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -37,19 +36,20 @@ public abstract class MazePlayer implements Disposable {
 	boolean disposed = false;
 	boolean playing = false;
 	boolean show = true;
+	public String uuid;
 
 	Vector3 pos = new Vector3();
 	Quaternion rot = new Quaternion();
 
-	MazePlayer(Game main_, boolean s) {
-		this(main_, String.valueOf((char) (65 + rand.nextInt(26))), s);
+	MazePlayer(boolean s) {
+		this(String.valueOf((char) (65 + rand.nextInt(26))), s);
 		disposing = false;
 		disposed = false;
 		playing = false;
 	}
 
-	MazePlayer(Game main_, String name, boolean s) {
-		main = (AMazeIng) main_;
+	MazePlayer(String name, boolean s) {
+		main = AMazeIng.getMain();
 		show = s;
 		setName(name);
 		if (show)
@@ -80,7 +80,7 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposing) {
+		if (!disposing && !disposed) {
 			pos.set(x, y, z);
 			rot.set(i, j, k, l);
 			if (show)
@@ -97,7 +97,7 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	public void render(ModelBatch b, Environment e) {
-		if (!disposing && playing) {
+		if (!disposing && ! disposed && playing) {
 			update();
 			if (show)
 				b.render(instance, e);

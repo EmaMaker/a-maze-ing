@@ -44,7 +44,6 @@ public class GameManager {
 		main.setScreen(null);
 		anyoneWon = false;
 
-		gameStarted = true;
 		// Only add new players and dispose the old ones
 		// Check if actually there are players to be deleted
 		if (pl != null) {
@@ -94,6 +93,8 @@ public class GameManager {
 		if (todraw != null && showGame == true) {
 			mazeGen.show(todraw);
 		}
+
+		gameStarted = true;
 	}
 
 	public void update() {

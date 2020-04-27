@@ -19,7 +19,7 @@ public class MazeGenerator {
 
 	public int w, h, W, H;
 	public int EP_DIST = 5;
-	public int WINX, WINZ;
+	public int WINX = Integer.MAX_VALUE, WINZ  = Integer.MAX_VALUE;
 
 	public MazeGenerator(AMazeIng game) {
 		this(game, 20, 20);
@@ -153,9 +153,7 @@ public class MazeGenerator {
 				}
 				s += String.valueOf((char)(count + 97));
 				s += String.valueOf((char)(todraw[i][j] + 65));
-//				System.out.println("Got block " + todraw[i][j] + " for " + count + "times");
 			}
-//			System.out.println("Going next column");
 			s += "-";
 		}
 		System.out.println(s);
@@ -175,7 +173,6 @@ public class MazeGenerator {
 
 		// Split the various rows
 		String[] rows = s.split("-");
-		System.out.println(Arrays.deepToString(rows));
 
 		count = ((int) (rows[0].charAt(0))) - 97;
 		width += count;

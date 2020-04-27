@@ -1,11 +1,11 @@
 package com.emamaker.amazeing.ui.screens;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
+import com.emamaker.amazeing.player.PlayerUtils;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class PlayerChooseScreen implements Screen {
@@ -30,7 +31,7 @@ public class PlayerChooseScreen implements Screen {
 
 	Label[] labels;
 	int currentLabel = 0;
-	HashMap<MazePlayer, Label> players = new HashMap<MazePlayer, Label>();
+	ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 
 	Screen thisScreen;
 
@@ -160,7 +161,7 @@ public class PlayerChooseScreen implements Screen {
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				if (!players.isEmpty()) {
 					hide();
-					uiManager.main.gameManager.generateMaze(players.keySet());
+					uiManager.main.gameManager.generateMaze(new HashSet<>(players));
 				}
 				return true;
 			}
@@ -186,8 +187,7 @@ public class PlayerChooseScreen implements Screen {
 		for (int i = 0; i < labels.length; i++) {
 			labels[i] = new Label("-- empty slot --", uiManager.skin);
 		}
-		
-		
+
 		/* BUILD UP TABLE */
 		Table firstRowTable = new Table();
 
@@ -231,79 +231,27 @@ public class PlayerChooseScreen implements Screen {
 		// Consantly search for new players to be added
 		// First search for keyboard players (WASD and ARROWS)
 		if (Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A)
-				|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D)) {
-			p = getPlayerWithKeys(Keys.W, Keys.S, Keys.A, Keys.D);
-			if (p == null)
-				p = new MazePlayerLocal(uiManager.main, Keys.W, Keys.S, Keys.A, Keys.D);
-			togglePlayer(p);
-		}
+				|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D))
+			PlayerUtils.togglePlayerWithKeys(new HashSet<>(players), Keys.W, Keys.S, Keys.A, Keys.D);
 		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
-				|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT)) {
-			p = getPlayerWithKeys(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
-			if (p == null)
-				p = new MazePlayerLocal(uiManager.main, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
-			togglePlayer(p);
-		}
-		
+				|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT))
+			PlayerUtils.togglePlayerWithKeys(new HashSet<>(players), Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+
 //		for (Controller c : Controllers.getControllers()) {
-//			if (c.getButton(Xbox.Y)) {
+//			System.out.println(c.getButton(Xbox.A));
+
+		// if (c.getButton(Xbox.Y)) {
 //				p = getPlayerWithCtrl(c);
 //				if (p == null)
 //					p = new MazePlayerLocal(uiManager.main, c);
 //				togglePlayer(p);
 //			}
 //		}
-		
-		//Update labels
-		for(int i = 0; i < labels.length; i++) {
-			labels[i].setText(i < players.size() ? "-- Player Ready! --" : "-- empty slot --" );
+
+		// Update labels
+		for (int i = 0; i < labels.length; i++) {
+			labels[i].setText(i < players.size() ? "-- Player Ready! --" : "-- empty slot --");
 		}
-	}
-
-	public void togglePlayer(MazePlayerLocal p) {
-		try {
-			if (alreadyAddedPlayer(p))
-				players.remove(p);
-			else
-				players.put(p, labels[players.size()]);
-		} catch (Exception e) {
-			System.out.println("All players already joined");
-		}
-	}
-
-	public boolean alreadyAddedPlayerWithKeys(int... keys) {
-		return getPlayerWithKeys(keys) != null;
-	}
-
-	public boolean alreadyAddedPlayer(MazePlayerLocal p) {
-		return players.containsKey(p);
-	}
-
-	public MazePlayerLocal getPlayerWithKeys(int... keys) {
-		for (MazePlayer p : players.keySet()) {
-			if (p instanceof MazePlayerLocal) {
-				for (int k : keys) {
-					if (((MazePlayerLocal) p).kup == k || ((MazePlayerLocal) p).kdown == k
-							|| ((MazePlayerLocal) p).ksx == k || ((MazePlayerLocal) p).kdx == k)
-						return (MazePlayerLocal) p;
-				}
-			}
-		}
-		return null;
-	}
-
-	public boolean alreadyAddedPlayerWithCtrl(Controller ctrl) {
-		return getPlayerWithCtrl(ctrl) != null;
-	}
-
-	public MazePlayerLocal getPlayerWithCtrl(Controller ctrl) {
-		for (MazePlayer p : players.keySet()) {
-			if (p instanceof MazePlayerLocal) {
-				if (((MazePlayerLocal) p).ctrl == ctrl)
-					return (MazePlayerLocal) p;
-			}
-		}
-		return null;
 	}
 
 	@Override

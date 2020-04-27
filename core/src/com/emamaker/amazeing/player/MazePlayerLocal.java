@@ -1,6 +1,5 @@
 package com.emamaker.amazeing.player;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.math.Matrix4;
@@ -32,21 +31,26 @@ public class MazePlayerLocal extends MazePlayer {
 	public int kup, kdown, ksx, kdx;
 	float startx, starty, startz;
 
-	public MazePlayerLocal(Game main_, int up_, int down_, int sx_, int dx_) {
-		this(main_, up_, down_, sx_, dx_, 0, 0, 0);
+	// Give keys in up, down, left, right order
+	public MazePlayerLocal(int... keys) {
+		this(keys[0], keys[1], keys[2], keys[3]);
 	}
 
-	public MazePlayerLocal(Game main_, int up_, int down_, int sx_, int dx_, String name) {
-		this(main_, up_, down_, sx_, dx_, 0, 0, 0, name);
+	public MazePlayerLocal(int up_, int down_, int sx_, int dx_) {
+		this(up_, down_, sx_, dx_, 0, 0, 0);
 	}
 
-	public MazePlayerLocal(Game main_, int up_, int down_, int sx_, int dx_, float startx, float starty, float startz) {
-		this(main_, up_, down_, sx_, dx_, startx, starty, startz, String.valueOf((char) (65 + rand.nextInt(26))));
+	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, String name) {
+		this(up_, down_, sx_, dx_, 0, 0, 0, name);
 	}
 
-	public MazePlayerLocal(Game main_, int up_, int down_, int sx_, int dx_, float startx, float starty, float startz,
+	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, float startx, float starty, float startz) {
+		this(up_, down_, sx_, dx_, startx, starty, startz, String.valueOf((char) (65 + rand.nextInt(26))));
+	}
+
+	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, float startx, float starty, float startz,
 			String name) {
-		super(main_, name, true);
+		super(name, true);
 		this.kup = up_;
 		this.kdown = down_;
 		this.ksx = sx_;
@@ -59,20 +63,20 @@ public class MazePlayerLocal extends MazePlayer {
 		initPhysics();
 	}
 
-	public MazePlayerLocal(Game main_, Controller ctrl_) {
-		this(main_, ctrl_, 0, 0, 0);
+	public MazePlayerLocal(Controller ctrl_) {
+		this(ctrl_, 0, 0, 0);
 	}
 
-	public MazePlayerLocal(Game main_, Controller ctrl_, String name) {
-		this(main_, ctrl_, 0, 0, 0, name);
+	public MazePlayerLocal(Controller ctrl_, String name) {
+		this(ctrl_, 0, 0, 0, name);
 	}
 
-	public MazePlayerLocal(Game main_, Controller crtl_, float startx, float starty, float startz) {
-		this(main_, crtl_, startx, starty, startz, String.valueOf((char) (65 + rand.nextInt(26))));
+	public MazePlayerLocal(Controller crtl_, float startx, float starty, float startz) {
+		this(crtl_, startx, starty, startz, String.valueOf((char) (65 + rand.nextInt(26))));
 	}
 
-	public MazePlayerLocal(Game main_, Controller ctrl_, float startx, float starty, float startz, String name) {
-		super(main_, true);
+	public MazePlayerLocal(Controller ctrl_, float startx, float starty, float startz, String name) {
+		super(true);
 		this.ctrl = ctrl_;
 
 		this.startx = startx;
@@ -139,10 +143,8 @@ public class MazePlayerLocal extends MazePlayer {
 		// be rendered correctly)
 		ghostObject.getWorldTransform(characterTransform);
 
-		if (pressed) {
-			System.out.println("Player in: " + getPos());
+		if (pressed)
 			main.client.updateLocalPlayer(this);
-		}
 	}
 
 	@Override

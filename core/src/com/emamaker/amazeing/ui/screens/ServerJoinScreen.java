@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerJoinScreen implements Screen {
@@ -92,7 +93,11 @@ public class ServerJoinScreen implements Screen {
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				if (!uiManager.main.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText())))
+				if (uiManager.main.client.start(srvIp.getText(), Integer.valueOf(srvPort.getText()))) {
+					hide();
+					uiManager.preGameScreen.setGameType(uiManager.main.server.isRunning() ? GameType.SERVER : GameType.CLIENT);						
+					uiManager.main.setScreen(uiManager.preGameScreen);
+				}else
 					failDlg.show(stage);
 				return true;
 			}

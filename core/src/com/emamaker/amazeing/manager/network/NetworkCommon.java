@@ -9,6 +9,7 @@ public class NetworkCommon {
 	// This registers objects that are going to be sent over the network.
 	static public void register(EndPoint endPoint) {
 		Kryo kryo = endPoint.getKryo();
+		kryo.register(JustConnected.class);
 		kryo.register(LoginAO.class);
 		kryo.register(LoginAO2.class);
 		kryo.register(ConnectionRefused.class);
@@ -23,6 +24,8 @@ public class NetworkCommon {
 	}
 
 	//Login stuff
+	static public class JustConnected {
+	}
 	static public class LoginAO {
 	}
 	static public class LoginAO2 {

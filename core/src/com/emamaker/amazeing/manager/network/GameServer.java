@@ -13,6 +13,7 @@ import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.ConnectionRefused;
 import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
+import com.emamaker.amazeing.manager.network.NetworkCommon.JustConnected;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
@@ -46,13 +47,21 @@ public class GameServer {
 		uuid = UUID.randomUUID();
 	}
 
-	//Returns true if the server started successfully
+	// Returns true if the server started successfully
 	public boolean startServer(int port_) {
 		port = port_;
 		serverRunning = true;
 		try {
 			server = new Server() {
 				protected Connection newConnection() {
+					// Notify connection about previously connected clients
+
+					AddNewPlayer response = new AddNewPlayer();
+					for (String s : remotePlayers.keySet()) {
+						response.uuid = s;
+						server.sendToAllTCP(response);
+					}
+
 					// By providing our own connection implementation, we can store per
 					// connection state without a connection ID to state look up.
 					return new ConnectionPlayer();
@@ -67,11 +76,16 @@ public class GameServer {
 				public void received(Connection c, Object object) {
 					ConnectionPlayer connection = (ConnectionPlayer) c;
 
-					if (object instanceof LoginAO) {
-						// Ignore this if player already is in the list
-						if (connection.uuid != null)
-							return;
-
+					if(object instanceof JustConnected) {
+						//Notify the newly connected client about all other clients already present here
+						System.out.println("New client just connected, updating it with info about other clients!");	
+						AddNewPlayer response = new AddNewPlayer();
+						for (String s : remotePlayers.keySet()) {
+							response.uuid = s;
+							c.sendTCP(response);
+							System.out.println("Updated about: " + s);
+						}					
+					}else if (object instanceof LoginAO) { 
 						// Give player its UUID and wait for response. Once the LoginAO2 response is
 						// received, move the
 						// UUID to the list of players, create a new one and notify clients about it
@@ -84,51 +98,35 @@ public class GameServer {
 
 					} else if (object instanceof LoginAO2) {
 						// Ignore is there's no uuid or it's different from the login message one
-						if (connection.uuid == null || !connection.uuid.equals(((LoginAO2) object).uuid))
-							return;
-
 						// If there's still space left for players to join
 						if (remotePlayers.values().size() < MazeSettings.MAXPLAYERS) {
-							// Otherwise add a new player and notify all clients about it
 							remotePlayers.put(((LoginAO2) object).uuid,
-									new MazePlayerRemote(main, ((LoginAO2) object).uuid, false));
-
-							AddNewPlayer response = new AddNewPlayer();
-							response.uuid = ((LoginAO2) object).uuid;
+									new MazePlayerRemote(((LoginAO2) object).uuid, false));
 
 							System.out.println(
-									"Client with UUID " + response.uuid + " is connected and ready to play :)");
+									"Client with UUID " + ((LoginAO2) object).uuid + " is connected and ready to play :)");
+							
+							AddNewPlayer response = new AddNewPlayer();
+							response.uuid = ((LoginAO2) object).uuid;
 							server.sendToAllTCP(response);
-
-							for (String s : remotePlayers.keySet()) {
-								response.uuid = s;
-								c.sendTCP(response);
-							}
 						} else {
 							// Send connection refused
 							c.sendTCP(new ConnectionRefused());
 						}
 
 					} else if (object instanceof RemovePlayer) {
-						// Ignore is there's no uuid or it's different from the login message one
-						if (connection.uuid == null || !connection.uuid.equals(((RemovePlayer) object).uuid))
-							return;
 						// Otherwise remove the player and notify all clients about it
-						if (remotePlayers.get(((RemovePlayer) object).uuid) != null) {
+						if (remotePlayers.containsKey(((RemovePlayer) object).uuid.toString())) {
 							remotePlayers.get(((RemovePlayer) object).uuid).dispose();
+							remotePlayers.remove(((RemovePlayer) object).uuid);
+
+							System.out.println("Client with UUID " + connection.uuid + " is leaving the server :(");
+							server.sendToAllTCP(object);
+						}else {
+							System.out.println("Server received delete message for player with UUID " + connection.uuid + " but player wasn't playing");
 						}
-						remotePlayers.remove(((RemovePlayer) object).uuid);
-
-						System.out.println("Client with UUID " + connection.uuid + " is leaving the server :(");
-
-						server.sendToAllTCP(object);
-
 					} else if (object instanceof UpdatePlayerTransform) {
 						UpdatePlayerTransform transform = (UpdatePlayerTransform) object;
-						// Ignore is there's no uuid or it's different from the login message one
-						if (connection.uuid == null || !connection.uuid.equals(transform.uuid))
-							return;
-
 						if (gameManager.gameStarted) {
 							// Otherwise Update the transport and notify clients about it
 							MazePlayerRemote player = remotePlayers.get((transform.uuid));
@@ -158,14 +156,15 @@ public class GameServer {
 			server.start();
 			System.out.println("Server registered and running on port " + port);
 
-			// Also launch the client to have a player play on host. We return the result of starting, so server doesn't start if local client has problems 
+			// Also launch the client to have a player play on host. We return the result of
+			// starting, so server doesn't start if local client has problems
 			if (main.client.start("localhost", port))
-					return true;
+				return true;
 			else {
 				server.stop();
 				return false;
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
