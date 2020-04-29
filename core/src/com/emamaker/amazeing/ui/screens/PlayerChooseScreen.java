@@ -196,7 +196,7 @@ public class PlayerChooseScreen implements Screen {
 		firstRowTable.add(setBtn).height(50).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
 		firstRowTable.setOrigin(Align.center | Align.top);
-		table.row().colspan(4);
+		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
 
 		table.add(firstRowTable);
 
@@ -205,7 +205,7 @@ public class PlayerChooseScreen implements Screen {
 				table.row().expandY().fillY();
 			table.add(labels[i]).space(1);
 		}
-		table.row().colspan(4);
+		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
 		table.add(playBtn).fillX().width(cw * 0.06f);
 
 		tableContainer.setActor(table);
@@ -232,10 +232,10 @@ public class PlayerChooseScreen implements Screen {
 		// First search for keyboard players (WASD and ARROWS)
 		if (Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A)
 				|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D))
-			PlayerUtils.togglePlayerWithKeys(new HashSet<>(players), Keys.W, Keys.S, Keys.A, Keys.D);
+			PlayerUtils.togglePlayerWithKeys(players, Keys.W, Keys.S, Keys.A, Keys.D);
 		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
 				|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT))
-			PlayerUtils.togglePlayerWithKeys(new HashSet<>(players), Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+			PlayerUtils.togglePlayerWithKeys(players, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
 
 //		for (Controller c : Controllers.getControllers()) {
 //			System.out.println(c.getButton(Xbox.A));
@@ -247,7 +247,7 @@ public class PlayerChooseScreen implements Screen {
 //				togglePlayer(p);
 //			}
 //		}
-
+		
 		// Update labels
 		for (int i = 0; i < labels.length; i++) {
 			labels[i].setText(i < players.size() ? "-- Player Ready! --" : "-- empty slot --");

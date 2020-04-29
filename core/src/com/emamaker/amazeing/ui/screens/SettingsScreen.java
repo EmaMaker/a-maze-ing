@@ -14,9 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.emamaker.amazeing.maze.settings.MazeSetting;
-import com.emamaker.amazeing.maze.settings.MazeSettingDimension;
-import com.emamaker.amazeing.maze.settings.MazeSettingMaxPlayers;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class SettingsScreen implements Screen{
@@ -27,8 +25,6 @@ public class SettingsScreen implements Screen{
 	
 	public SettingsScreen(UIManager uiManager_) {
 		this.uiManager = uiManager_;
-//		float sw = Gdx.graphics.getWidth();
-//	    float sh = Gdx.graphics.getHeight();
 		
 		stage = new Stage(new ScreenViewport());
 		Container<Table> tableContainer = new Container<Table>();
@@ -42,11 +38,13 @@ public class SettingsScreen implements Screen{
 		
 		Label instLab = new Label("Here you can customize game settings!", uiManager.skin);
 		TextButton backBtn = new TextButton("<", uiManager.skin);
+		TextButton resetBtn = new TextButton("Reset All", uiManager.skin);
+		TextButton saveBtn = new TextButton("Save", uiManager.skin);
 		TextButton helpBtn = new TextButton("?", uiManager.skin);
 
 		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
-		helpDlg.text("Here you can customize can settings:\n"
+		helpDlg.text("Here you can customize game settings:\n"
 				+ "Maze Size: changes the size of the maze. Mazes are always squares. This affects both local and online games.\n"
 				+ "Max. Players: changes the max number of players that can join the game. This affects both local and online games.");
 		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
@@ -58,17 +56,60 @@ public class SettingsScreen implements Screen{
 				return true;
 			}
 		});
-
-		// Add actions to the buttons
-		backBtn.addListener(new InputListener() {
+		/* BACK DIALOG */
+		final Dialog backDlg = new Dialog("Go Back", uiManager.skin);
+		backDlg.text("Are you sure you want to go back without saving changes?\nThis cannot be reverted");		
+		TextButton backDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		TextButton backDlgOkBtn = new TextButton("OK", uiManager.skin);
+		backDlg.button(backDlgOkBtn);
+		backDlg.button(backDlgCancelBtn);
+		backDlgOkBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				hide();
+				backDlg.hide();
+				MazeSettings.restoreStates();
 				uiManager.main.setScreen(prevScreen == null ? uiManager.titleScreen : prevScreen);
 				return true;
 			}
 		});
-		// Add actions to the buttons
+		backDlgCancelBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				backDlg.hide();
+				return true;
+			}
+		});
+		/* RESET DIALOG */
+		final Dialog resetDlg = new Dialog("Reset All Settings", uiManager.skin);
+		resetDlg.text("Are you sure you want to reset all settings?\nThis cannot be reverted");		
+		TextButton resetDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		TextButton resetDlgOkBtn = new TextButton("OK", uiManager.skin);
+		resetDlg.button(resetDlgOkBtn);
+		resetDlg.button(resetDlgCancelBtn);
+		resetDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				MazeSettings.resetAll();
+				resetDlg.hide();
+				return true;
+			}
+		});
+		resetDlgCancelBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				resetDlg.hide();
+				return true;
+			}
+		});
+		
+		/*ACTIONS TO BUTTONS*/
+		backBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				backDlg.show(stage);
+				return true;
+			}
+		});
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -76,10 +117,21 @@ public class SettingsScreen implements Screen{
 				return true;
 			}
 		});
-		
-		
-		
-		
+		resetBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				resetDlg.show(stage);
+				return true;
+			}
+		});
+		saveBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.main.setScreen(prevScreen == null ? uiManager.titleScreen : prevScreen);
+				return true;
+			}
+		});
 		
 		Table firstRowTable = new Table();
 		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw*0.005f);
@@ -93,23 +145,26 @@ public class SettingsScreen implements Screen{
 		table.row().colspan(4);
 		table.add(setSettings());
 		
+		table.row().colspan(2);
+		table.add(resetBtn).fillX().expandX();
+		table.add(saveBtn).fillX().expandX();
+
+		
 		tableContainer.setActor(table);
 		stage.addActor(tableContainer);
 	}
 	
 	VerticalGroup setSettings() {
 		VerticalGroup group = new VerticalGroup().space(5).pad(5).fill();
-		//Add various settings here
-		MazeSetting setDim = new MazeSettingDimension("MAZE DIMENSIONS: ", new String[] {
-				"10x10", "20x20", "30x30"
-		}, this.uiManager);
-		MazeSetting setPlayers = new MazeSettingMaxPlayers("MAX NUMBER OF PLAYERS: ", new String[] {
-				"2", "4", "6", "8", "10", "15", "20"
-		}, this.uiManager);
-		group.addActor(setDim.getTable());
-		group.addActor(setPlayers.getTable());
+		group.addActor(MazeSettings.setDim.getTable());
+		group.addActor(MazeSettings.setPlayers.getTable());
 		
 		return group;
+	}
+	
+	void saveStates() {
+		MazeSettings.setDim.saveState();
+		MazeSettings.setPlayers.saveState();
 	}
 	
 	public void setPrevScreen(Screen s) {
@@ -118,6 +173,7 @@ public class SettingsScreen implements Screen{
 	
 	@Override
 	public void show() {
+		MazeSettings.saveStates();
 		uiManager.main.multiplexer.addProcessor(stage);
 	}
 

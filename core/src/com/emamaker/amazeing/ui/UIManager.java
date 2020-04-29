@@ -28,6 +28,9 @@ public class UIManager {
 		
 		//Load the sinks
 		skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+	}
+	
+	public void setupScreens() {
 		//Load all the screens after loading the skin
 		titleScreen = new TitleScreen(this);
 		playersScreen = new PlayerChooseScreen(this);

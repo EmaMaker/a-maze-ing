@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
@@ -38,39 +39,29 @@ public class GameManager {
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
 	}
 
-//	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
 
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 		anyoneWon = false;
 
-		// Only add new players and dispose the old ones
-		// Check if actually there are players to be deleted
 		if (pl != null) {
+			for (MazePlayer p : players)
+				if (!pl.contains(p))
+					toDelete.add(p);
 
-//			destroyPlayers();
-//			players.addAll(p);
-			for(MazePlayer p : players)
-				if(!p.isDisposed())
-					p.dispose();
-			players.clear();
-			players.addAll(pl);
-//			for (MazePlayer p : players)
-//				if (!pl.contains(p))
-//					toDelete.add(p);
-//
-//			// Check if new players have to be added
-//			for (MazePlayer p : pl)
-//				if (!players.contains(p))
-//					players.add(p);
-//
-//			// Fianlly delete players. A separated step is needed to remove the risk of a
-//			// ConcurrentModificationException
-//			for (MazePlayer p : toDelete) {
-//				p.dispose();
-//				players.remove(p);
-//			}
-//			toDelete.clear();
+			// Check if new players have to be added
+			for (MazePlayer p : pl)
+				if (!players.contains(p))
+					players.add(p);
+
+			// Fianlly delete players. A separated step is needed to remove the risk of a
+			// ConcurrentModificationException
+			for (MazePlayer p : toDelete) {
+				p.dispose();
+				players.remove(p);
+			}
+			toDelete.clear();
 		}
 
 		for (int i = 0; i < MazeSettings.MAZEX; i++) {
@@ -83,7 +74,6 @@ public class GameManager {
 
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
-		mazeGen.runLenghtEncode();
 
 		if (type != GameType.CLIENT) {
 			spreadPlayers();
@@ -94,15 +84,16 @@ public class GameManager {
 			mazeGen.show(todraw);
 		}
 
+		resetCamera();
+		setCamera(new Vector3(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2),
+				new Vector3(0, -90, 0));
+
 		gameStarted = true;
 	}
 
 	public void update() {
 		if (gameStarted && !anyoneWon) {
-			main.world.cam.position.set(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
-					mazeGen.h / 2);
-			main.world.cam.lookAt(MazeSettings.MAZEX / 2, 0, MazeSettings.MAZEX / 2);
-			main.world.cam.update();
+
 			if (getShowGame())
 				main.world.render();
 
@@ -142,8 +133,8 @@ public class GameManager {
 			do {
 				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
 				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-				System.out.println(
-						thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x, z) + " --- " + x + ", " + z);
+//				System.out.println(
+//						thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x, z) + " --- " + x + ", " + z);
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPlaying();
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
@@ -194,6 +185,24 @@ public class GameManager {
 		}
 
 		return false;
+	}
+
+	public void resetCamera() {
+		main.world.cam.position.set(0f, 0f, 0.5f); // Set cam position at origin
+		main.world.cam.lookAt(0, 0, 0); // Direction to look at, for setting direction (perhaps better to set manually)
+//		 main.world.cam.near = 1f;            // Minimum distance visible
+//		 main.world.cam.far = 300f;            // Maximum distance visible
+		main.world.cam.up.set(0f, 1f, 0f); // Up is in y positive direction
+		main.world.cam.view.idt(); // Reset rotation matrix
+		main.world.cam.update();
+	}
+
+	public void setCamera(Vector3 position, Vector3 rotation) {
+		main.world.cam.translate(position); // set cam absolute position
+		main.world.cam.rotate(rotation.x, 0f, 1f, 0f); // set cam absolute rotation on axis X
+		main.world.cam.rotate(rotation.y, 1f, 0f, 0f); // set cam absolute rotation on axis Y
+		main.world.cam.rotate(rotation.z, 0f, 0f, 1f); // set cam absolute rotation on axis Z
+		main.world.cam.update();
 	}
 
 	boolean getShowGame() {

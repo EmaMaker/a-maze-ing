@@ -8,6 +8,11 @@ public class MazeSettingDimension extends MazeSetting{
 	 * Provide Options in the x*z format
 	 */
 	
+	public MazeSettingDimension(String name_, String[] options_, int defaultOption, UIManager uiManager_) {
+		super(name_, options_, defaultOption, uiManager_);
+	}
+
+	
 	public MazeSettingDimension(String name_, String[] options_, UIManager uiManager_) {
 		super(name_, options_, uiManager_);
 	}

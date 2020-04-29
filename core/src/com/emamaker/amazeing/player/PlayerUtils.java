@@ -1,5 +1,7 @@
 package com.emamaker.amazeing.player;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.badlogic.gdx.controllers.Controller;
@@ -15,7 +17,21 @@ public class PlayerUtils {
 			players.remove(p);
 			return false;
 		}
-		if (players.size() < MazeSettings.MAXPLAYERS) {
+		if(players.size() < MazeSettings.MAXPLAYERS) {
+			players.add(p);
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean togglePlayer(MazePlayerLocal p, ArrayList<MazePlayer> players) {
+		HashSet<MazePlayer> players2 = new HashSet<>(players);
+		if (alreadyAddedPlayer(p, players2)) {
+			p.dispose();
+			players.remove(p);
+			return false;
+		}
+		if(players.size() < MazeSettings.MAXPLAYERS) {
 			players.add(p);
 			return true;
 		}
@@ -24,7 +40,22 @@ public class PlayerUtils {
 
 	public static boolean togglePlayerWithKeys(Set<MazePlayer> players, int... keys) {
 		if (alreadyAddedPlayerWithKeys(players, keys)) {
+			getPlayerWithKeys(players, keys).dispose();
 			players.remove(getPlayerWithKeys(players, keys));
+			return false;
+		}
+		if (players.size() < MazeSettings.MAXPLAYERS) {
+			players.add(new MazePlayerLocal(keys));
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean togglePlayerWithKeys(ArrayList<MazePlayer> players, int... keys) {
+		HashSet<MazePlayer> players2 = new HashSet<>(players);
+		if (alreadyAddedPlayerWithKeys(players2, keys)) {
+			getPlayerWithKeys(players2, keys).dispose();
+			players.remove(getPlayerWithKeys(players2, keys));
 			return false;
 		}
 		if (players.size() < MazeSettings.MAXPLAYERS) {

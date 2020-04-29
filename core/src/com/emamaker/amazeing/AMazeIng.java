@@ -11,6 +11,7 @@ import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.manager.network.GameClient;
 import com.emamaker.amazeing.manager.network.GameServer;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.ui.UIManager;
 import com.emamaker.voxelengine.VoxelWorld;
 
@@ -24,6 +25,7 @@ public class AMazeIng extends Game {
 
 	public UIManager uiManager;
 	public GameManager gameManager;
+	public MazeSettings settings;
 	public InputMultiplexer multiplexer = new InputMultiplexer();
 
 	/* Local manager for local games and server host in multiplayer games */
@@ -42,15 +44,19 @@ public class AMazeIng extends Game {
 		// Set windowed resolution
 		Gdx.graphics.setWindowedMode(1280, 720);
 
+		//Enable on-screen keyboard for mobile devices
+		//Gdx.input.setOnscreenKeyboardVisible(true);
+
 		// Voxel engine init. Call everything after this
 		world.init(this);
 		world.worldManager.generateChunks = false;
 		world.worldManager.updateChunks = true;
 
-		// Disable VoxelEngines's integrated camera input processor
+		// Disable VoxelEngines's integrated camera input processor and enable our own
 		Gdx.input.setInputProcessor(multiplexer);
 
 		generated = false;
+
 		setupGUI();
 		setupGameManager();
 	}
@@ -58,6 +64,8 @@ public class AMazeIng extends Game {
 	public void setupGUI() {
 		System.out.println("Setup UI Manager");
 		uiManager = new UIManager(this);
+		settings = new MazeSettings();
+		uiManager.setupScreens();
 	}
 
 	public void setupGameManager() {

@@ -25,9 +25,16 @@ public class MazeSetting {
 	protected Table table;
 	private UIManager uiManager;
 	private Label currentOptLabel;
+	private int defaultOption;
+	private int prevState;
 	
 	public MazeSetting(String name_, String[] options_, UIManager uiManager_) {
-		this.currentOption = 0;
+		this(name_, options_, 0, uiManager_);
+	}
+	
+	public MazeSetting(String name_, String[] options_, int defaultOption, UIManager uiManager_) {
+		this.defaultOption = defaultOption;
+		this.currentOption = defaultOption;
 		this.name = name_;
 		this.options = Arrays.copyOf(options_, options_.length);
 		this.uiManager = uiManager_;
@@ -38,7 +45,9 @@ public class MazeSetting {
 		currentOptLabel = new Label(this.options[currentOption], uiManager.skin);
 		TextButton backBtn = new TextButton("<", uiManager.skin);
 		TextButton forthBtn = new TextButton(">", uiManager.skin);
+		TextButton resetBtn = new TextButton("R", uiManager.skin);
 		
+		update();
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
 			@Override
@@ -56,21 +65,42 @@ public class MazeSetting {
 				return true;
 			}
 		});
+		resetBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				reset();
+				return true;
+			}
+		});
 		
 		table.row().expandX().fillX();
 		table.add(nameLabel).fillX();
 		table.add(backBtn).fillX();
 		table.add(currentOptLabel).fillX();
 		table.add(forthBtn).fillX();
+		table.add(resetBtn).fillX();
 	}
 	
 	public Table getTable() {
 		return table;
 	}
 	
+	public void reset() {
+		currentOption = defaultOption;
+		update();
+	}
+	
 	public void update() {
 		preUpdate();
 		customUpdate();
+	}
+	
+	public void saveState() {
+		prevState = currentOption;
+	}
+	
+	public void restoreState() {
+		currentOption = prevState;
 	}
 	
 	public void preUpdate() {

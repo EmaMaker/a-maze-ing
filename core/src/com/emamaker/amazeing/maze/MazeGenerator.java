@@ -1,10 +1,10 @@
 package com.emamaker.amazeing.maze;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 import com.emamaker.amazeing.AMazeIng;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.voxelengine.block.CellId;
 
 public class MazeGenerator {
@@ -19,7 +19,8 @@ public class MazeGenerator {
 
 	public int w, h, W, H;
 	public int EP_DIST = 5;
-	public int WINX = Integer.MAX_VALUE, WINZ  = Integer.MAX_VALUE;
+	public int WINX = Integer.MAX_VALUE, WINZ = Integer.MAX_VALUE;
+	public int OLDMAZEX, OLDMAZEZ;
 
 	public MazeGenerator(AMazeIng game) {
 		this(game, 20, 20);
@@ -38,7 +39,7 @@ public class MazeGenerator {
 
 		cellsGrid = new Cell[W][H];
 		todraw = new int[w][h];
-		System.out.println(W + "*" + H + " --- " + w + "*" + h);
+//		System.out.println(W + "*" + H + " --- " + w + "*" + h);
 	}
 
 	/*
@@ -151,8 +152,8 @@ public class MazeGenerator {
 					count++;
 					j++;
 				}
-				s += String.valueOf((char)(count + 97));
-				s += String.valueOf((char)(todraw[i][j] + 65));
+				s += String.valueOf((char) (count + 97));
+				s += String.valueOf((char) (todraw[i][j] + 65));
 			}
 			s += "-";
 		}
@@ -233,11 +234,19 @@ public class MazeGenerator {
 	}
 
 	public void show(int[][] todraw_) {
+
+		for (int j = 0; j < OLDMAZEX+2; j++) {
+			for (int i = 0; i < OLDMAZEZ+2; i++) {
+				main.world.worldManager.setCell(i, 0, j, CellId.ID_AIR);
+				main.world.worldManager.setCell(i, 1, j, CellId.ID_AIR);
+			}
+		}
+		OLDMAZEX = MazeSettings.MAZEX;
+		OLDMAZEZ = MazeSettings.MAZEZ;
+		
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				todraw[i][j] = todraw_[i][j];
-				main.world.worldManager.setCell(i, 1, j, CellId.ID_AIR);
-
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
 
 				if (todraw[i][j] == 1)
@@ -245,7 +254,7 @@ public class MazeGenerator {
 				if (todraw[i][j] == 2) {
 					WINX = i;
 					WINZ = j;
-					
+
 					System.out.println("Win position in: " + i + ", " + j);
 					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
 				}

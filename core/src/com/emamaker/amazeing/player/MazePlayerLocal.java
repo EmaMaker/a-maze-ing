@@ -183,11 +183,13 @@ public class MazePlayerLocal extends MazePlayer {
 	public void dispose() {
 		super.dispose();
 		disposing = true;
+		if(!isDisposed()) {
 		main.world.dynamicsWorld.removeAction(characterController);
 		main.world.dynamicsWorld.removeCollisionObject(ghostObject);
 		characterController.dispose();
 		ghostObject.dispose();
 		ghostShape.dispose();
+		}
 		disposing = false;
 	}
 
