@@ -1,50 +1,46 @@
 package com.emamaker.amazeing.ui.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.ui.UIManager;
 
-public class ServerLaunchScreen implements Screen {
+public class ServerLaunchScreen extends MyScreen {
 
-	Stage stage;
-	UIManager uiManager;
-	Screen thisScreen;
+	MyScreen thisScreen;
+	Label instLab, srvPortL;
+	TextButton backBtn, connectBtn, setBtn, helpBtn;
+	TextArea srvPort;
+	
+	Table firstRowTable;
+	Container<Table> firstRowContainer;
 	
 	public ServerLaunchScreen(UIManager uiManager_) {
-
-		uiManager = uiManager_;
+		super(uiManager_);
 		thisScreen = this;
+		chmult = .8f;
+	}
+	
+	@Override
+	public void createTable() {
+		super.createTable();		
 		
-		stage = new Stage(new ScreenViewport());
-		Container<Table> tableContainer = new Container<Table>();
-		Table table = new Table();
-
-		float cw = stage.getWidth();
-		float ch = stage.getHeight();
-
-		tableContainer.setSize(cw, ch);
-		tableContainer.setPosition(0, 0);
-
-		Label instLab = new Label("Enter the port the server must start on", uiManager.skin);
-		TextButton backBtn = new TextButton("<", uiManager.skin);
-		TextButton connectBtn = new TextButton("Launch the server!", uiManager.skin);
-		TextButton setBtn = new TextButton("Settings", uiManager.skin);
-		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		Label srvPortL = new Label("Port: ", uiManager.skin);
-		final TextArea srvPort = new TextArea("", uiManager.skin);
+		firstRowTable = new Table();
+		firstRowContainer = new Container<Table>();
+		
+		instLab = new Label("Enter the port the server must start on", uiManager.skin);
+		backBtn = new TextButton("<", uiManager.skin);
+		connectBtn = new TextButton("Launch the server!", uiManager.skin);
+		setBtn = new TextButton("Settings", uiManager.skin);
+		helpBtn = new TextButton("?", uiManager.skin);
+		srvPortL = new Label("Port: ", uiManager.skin);
+		srvPort = new TextArea("", uiManager.skin);
 
 		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
@@ -117,60 +113,40 @@ public class ServerLaunchScreen implements Screen {
 			}
 		});
 		
-		Table firstRowTable = new Table();
-		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw * 0.25f);
-		firstRowTable.add(setBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.setOrigin(Align.center | Align.top);
+		firstRowContainer.setActor(firstRowTable);
+	}
+	
+	@Override
+	public void buildTable() {
+		super.buildTable();
+
+		firstRowTable.clear();
+
+		float d = containerDiagonal();
+		float labScale = d * .00080f;
+		float buttonDim = d * 0.05f;
+
+		firstRowContainer.setSize(cw, ch * 0.2f);
+		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
+		firstRowContainer.fill();
+
+		instLab.setFontScale(labScale);
+		backBtn.getLabel().setFontScale(labScale);
+		helpBtn.getLabel().setFontScale(labScale);
+
+		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
+		firstRowTable.add(instLab).space(cw * 0.25f);
+		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
 
 		table.row().colspan(4);
-		table.add(firstRowTable);
+		table.add(firstRowContainer);
 
-		table.row().colspan(2);
-		table.add(srvPortL).expandX();
-		table.add(srvPort).expandX();
-
+		table.row().colspan(2).fillX().expandX();
+		table.add(srvPortL).space(buttonDim).width(buttonDim*4f).height(buttonDim*0.5f).fillY().expandY();
+		table.add(srvPort).space(buttonDim).width(buttonDim*4f).height(buttonDim*0.5f).fillY().expandY();
 		table.row().colspan(4);
-		table.add(connectBtn).fillX().expandX();
-
-		tableContainer.setActor(table);
-		stage.addActor(tableContainer);
+		table.add(connectBtn).fillX().width(buttonDim*3f).height(buttonDim);
 	}
 
-	@Override
-	public void show() {
-		uiManager.main.multiplexer.addProcessor(stage);
-	}
-
-	@Override
-	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 0);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		stage.act();
-		stage.draw();
-	}
-
-	@Override
-	public void resize(int width, int height) {
-		stage.getViewport().update(width, height, true);
-	}
-
-	@Override
-	public void hide() {
-		uiManager.main.multiplexer.removeProcessor(stage);
-	}
-
-	@Override
-	public void pause() {
-	}
-
-	@Override
-	public void resume() {
-	}
-
-	@Override
-	public void dispose() {
-	}
 
 }

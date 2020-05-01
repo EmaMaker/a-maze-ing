@@ -1,47 +1,45 @@
 package com.emamaker.amazeing.ui.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.ui.UIManager;
 
-public class SettingsScreen implements Screen{
-	
-	UIManager uiManager;
-	Stage stage;
-	Screen prevScreen;
-	
+public class SettingsScreen extends MyScreen {
+
+	Label instLab;
+	TextButton backBtn, resetBtn, saveBtn, helpBtn;
+	ScrollPane scrollPane;
+
+	Container<Table> firstRowContainer;
+	Table firstRowTable;
+
 	public SettingsScreen(UIManager uiManager_) {
-		this.uiManager = uiManager_;
-		
-		stage = new Stage(new ScreenViewport());
-		Container<Table> tableContainer = new Container<Table>();
-		Table table = new Table();
+		super(uiManager_);
+		chmult = 0.8f;
+	}
 
-		float cw = stage.getWidth();
-		float ch = stage.getHeight();
+	@Override
+	public void createTable() {
+		super.createTable();
+		firstRowContainer = new Container<Table>();
+		firstRowTable = new Table();
 		
-		tableContainer.setSize(cw, ch);
-		tableContainer.setPosition(0, 0);
-		
-		Label instLab = new Label("Here you can customize game settings!", uiManager.skin);
-		TextButton backBtn = new TextButton("<", uiManager.skin);
-		TextButton resetBtn = new TextButton("Reset All", uiManager.skin);
-		TextButton saveBtn = new TextButton("Save", uiManager.skin);
-		TextButton helpBtn = new TextButton("?", uiManager.skin);
+		firstRowContainer.setActor(firstRowTable);
 
+		instLab = new Label("Here you can customize game settings!", uiManager.skin);
+		backBtn = new TextButton("<", uiManager.skin);
+		resetBtn = new TextButton("Reset All", uiManager.skin);
+		saveBtn = new TextButton("Save", uiManager.skin);
+		helpBtn = new TextButton("?", uiManager.skin);
+		scrollPane = new ScrollPane(setSettings(), uiManager.skin);
 		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
 		helpDlg.text("Here you can customize game settings:\n"
@@ -58,11 +56,11 @@ public class SettingsScreen implements Screen{
 		});
 		/* BACK DIALOG */
 		final Dialog backDlg = new Dialog("Go Back", uiManager.skin);
-		backDlg.text("Are you sure you want to go back without saving changes?\nThis cannot be reverted");		
+		backDlg.text("Are you sure you want to go back without saving changes?\nThis cannot be reverted");
 		TextButton backDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
 		TextButton backDlgOkBtn = new TextButton("OK", uiManager.skin);
-		backDlg.button(backDlgOkBtn);
 		backDlg.button(backDlgCancelBtn);
+		backDlg.button(backDlgOkBtn);
 		backDlgOkBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -81,7 +79,7 @@ public class SettingsScreen implements Screen{
 		});
 		/* RESET DIALOG */
 		final Dialog resetDlg = new Dialog("Reset All Settings", uiManager.skin);
-		resetDlg.text("Are you sure you want to reset all settings?\nThis cannot be reverted");		
+		resetDlg.text("Are you sure you want to reset all settings?\nThis cannot be reverted");
 		TextButton resetDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
 		TextButton resetDlgOkBtn = new TextButton("OK", uiManager.skin);
 		resetDlg.button(resetDlgOkBtn);
@@ -101,8 +99,8 @@ public class SettingsScreen implements Screen{
 				return true;
 			}
 		});
-		
-		/*ACTIONS TO BUTTONS*/
+
+		/* ACTIONS TO BUTTONS */
 		backBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -132,79 +130,68 @@ public class SettingsScreen implements Screen{
 				return true;
 			}
 		});
+
+	}
+
+	@Override
+	public void buildTable() {
+		super.buildTable();
+
+		firstRowTable.clear();
+
 		
-		Table firstRowTable = new Table();
-		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw*0.005f);
-		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw*0.25f);
-		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw*0.005f);
-		firstRowTable.setOrigin(Align.center | Align.top);
+		float d = containerDiagonal();
+		float labScale = d * .00080f;
+		float buttonDim = d * 0.05f;
+
+		firstRowContainer.setSize(cw, ch * 0.2f);
+		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
+		firstRowContainer.fill();
+
+		instLab.setFontScale(labScale);
+		backBtn.getLabel().setFontScale(labScale);
+		helpBtn.getLabel().setFontScale(labScale);
+		resetBtn.getLabel().setFontScale(labScale);
+		saveBtn.getLabel().setFontScale(labScale);
+
+		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
+		firstRowTable.add(instLab).space(cw * 0.25f);
+		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);;
 
 		table.row().colspan(4);
-		table.add(firstRowTable);
-
-		table.row().colspan(4);
-		table.add(setSettings());
-		
+		table.add(firstRowContainer);
 		table.row().colspan(2);
-		table.add(resetBtn).fillX().expandX();
-		table.add(saveBtn).fillX().expandX();
+		table.add(scrollPane).fill().expand();
 
-		
-		tableContainer.setActor(table);
-		stage.addActor(tableContainer);
+
+		table.row();
+		table.add(resetBtn).fillX().expandX().width(buttonDim*2f).height(buttonDim);
+		table.add(saveBtn).fillX().expandX().width(buttonDim*2f).height(buttonDim);
+
+//		table.add(resetBtn).fillX().expandX().pad(buttonDim/2).height(buttonDim);
+//		table.add(saveBtn).fillX().expandX().pad(buttonDim/2).height(buttonDim);
 	}
 	
-	VerticalGroup setSettings() {
-		VerticalGroup group = new VerticalGroup().space(5).pad(5).fill();
-		group.addActor(MazeSettings.setDim.getTable());
-		group.addActor(MazeSettings.setPlayers.getTable());
+	public Table setSettings() {
+		Table table = new Table();
+
+		table.row().colspan(2);
+		table.add(MazeSettings.setDim.getTable());
+		table.row().colspan(2);
+		table.add(MazeSettings.setPlayers.getTable());
 		
-		return group;
+		return table;
 	}
 	
+	@Override
+	public void resize(int width, int height) {
+		super.resize(width, height);
+		for(MazeSetting s : MazeSettings.settings) s.buildTable();
+	}
+
 	void saveStates() {
 		MazeSettings.setDim.saveState();
 		MazeSettings.setPlayers.saveState();
-	}
-	
-	public void setPrevScreen(Screen s) {
-		this.prevScreen = s;
-	}
-	
-	@Override
-	public void show() {
-		MazeSettings.saveStates();
-		uiManager.main.multiplexer.addProcessor(stage);
-	}
-
-	@Override
-	public void hide() {
-		uiManager.main.multiplexer.removeProcessor(stage);		
-	}
-
-	@Override
-	public void render(float delta) {
-        Gdx.gl.glClearColor(0,0,0,0);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act();
-        stage.draw();		
-	}
-
-	@Override
-	public void resize(int width, int height) {
-		stage.getViewport().update(width, height, true);
-	}
-	
-	@Override
-	public void pause() {
-	}
-
-	@Override
-	public void resume() {
-	}
-
-	@Override
-	public void dispose() {
 	}
 
 }

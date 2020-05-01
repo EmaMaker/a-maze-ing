@@ -18,7 +18,8 @@ public class MazeSettingDimension extends MazeSetting{
 	}
 
 	@Override
-	public void customUpdate(){
+	public void update(){
+		super.update();
 		String opt = options[currentOption];
 		String[] split = opt.split("x");
 		MazeSettings.MAZEX = Integer.valueOf(split[0]);

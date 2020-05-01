@@ -17,7 +17,7 @@ public class MazeSettings {
 	
 	public MazeSettings() {
 		//Add various settings here
-		setDim = new MazeSettingDimension("MAZE DIMENSIONS: ", new String[] {
+		setDim = new MazeSettingDimension("MAZE DIMENSIONS:", new String[] {
 				"10x10", "20x20", "30x30"
 		}, 1, AMazeIng.getMain().uiManager);
 		setPlayers = new MazeSettingMaxPlayers("MAX NUMBER OF PLAYERS: ", new String[] {

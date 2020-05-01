@@ -25,6 +25,7 @@ import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 import com.emamaker.amazeing.player.PlayerUtils;
+import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -76,7 +77,8 @@ public class GameClient {
 					toAdd.add("Local" + localPlrQueue.get(0).uuid);
 					client.sendTCP(object);
 
-					System.out.println("Received UUID "  + localPlrQueue.get(0).uuid + " for player " + localPlrQueue.get(0) + " giving confirmation");
+					System.out.println("Received UUID " + localPlrQueue.get(0).uuid + " for player "
+							+ localPlrQueue.get(0) + " giving confirmation");
 
 					// When we receive the connection accept from the server, we can show the
 					// pre-game screen listing the players' names, setting this flag to let the main
@@ -84,16 +86,17 @@ public class GameClient {
 					showPreGame = true;
 				} else if (object instanceof AddNewPlayer) {
 					AddNewPlayer msg = (AddNewPlayer) object;
-					if (!players.containsKey(msg.uuid) && !toAdd.contains("Local"+msg.uuid)) {
+					if (!players.containsKey(msg.uuid) && !toAdd.contains("Local" + msg.uuid)) {
 						toAdd.add("Remote" + msg.uuid);
-						System.out.println("Remote player with uuid " + msg.uuid.toString() + " has joined the game :)");
+						System.out
+								.println("Remote player with uuid " + msg.uuid.toString() + " has joined the game :)");
 					}
 				} else if (object instanceof RemovePlayer) {
 					RemovePlayer msg = (RemovePlayer) object;
 					if (players.containsKey(msg.uuid)) {
 						toRemove.add(msg.uuid);
 						System.out.println("Player with uuid " + msg.uuid.toString() + " is leaving the game :(");
-					}else {
+					} else {
 						System.out.println("Player remove received, but I don't know that player :/");
 					}
 				} else if (object instanceof NetworkCommon.UpdatePlayerTransformServer) {
@@ -134,7 +137,7 @@ public class GameClient {
 		try {
 			client.connect(5000, addr, port);
 			System.out.println("Connecting to server...");
-			//Tell the server you just connected, but still no players have to be add
+			// Tell the server you just connected, but still no players have to be add
 			client.sendTCP(new JustConnected());
 			return true;
 			// Server communication after connection can go here, or in
@@ -155,7 +158,8 @@ public class GameClient {
 		if (clientRunning) {
 			try {
 				for (String s : toAdd) {
-					if (!(players.containsKey(s.replace("Local", "")) || players.containsKey(s.replace("Remote", "")))) {
+					if (!(players.containsKey(s.replace("Local", ""))
+							|| players.containsKey(s.replace("Remote", "")))) {
 						if (s.startsWith("Local")) {
 //							System.out.println(s + " | " + s.replace("Local", "") + " | " + localPlrQueue.get(0).uuid);
 							if (localPlrQueue.get(0) != null) {
@@ -185,7 +189,7 @@ public class GameClient {
 				// the server is running in the same instance, client if not
 				// In this way server host is shown the start game button.
 				if (!main.server.isRunning())
-					main.uiManager.preGameScreen.setGameType(GameType.CLIENT);
+					((PreGameScreen) main.uiManager.preGameScreen).setGameType(GameType.CLIENT);
 				main.setScreen(main.uiManager.preGameScreen);
 				showPreGame = false;
 			}

@@ -1,67 +1,76 @@
 package com.emamaker.amazeing.ui.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.ui.UIManager;
 
-public class PreGameScreen implements Screen {
-
-	UIManager uiManager;
-	Stage stage;
-	Table table;
+public class PreGameScreen extends MyScreen {
 
 	Label[] labels;
-	MazePlayer[] players, tmp;
+	MazePlayer[] players;
 	int nPlayers, nPlayersOld;
 
 	// GameType we are runnig. assuming server for default. If client, the StartGame
 	// button shouldn't appear
 	GameType type = GameType.SERVER;
+	MyScreen thisScreen;
 
-	Screen thisScreen;
+	Container<Table> firstRowContainer;
+	Table firstRowTable;
 
+	Label instLab;
+	TextButton backBtn, setBtn, helpBtn, playBtn;
+	Dialog helpDlg;
+	
 	public PreGameScreen(UIManager uiManager_) {
-		uiManager = uiManager_;
+		super(uiManager_);
+		chmult = 0.8f;
 	}
 
 	@Override
-	public void show() {
+	public void createTable() {
+		super.createTable();
 		thisScreen = this;
 
 		labels = new Label[MazeSettings.MAXPLAYERS];
 		players = new MazePlayer[MazeSettings.MAXPLAYERS];
-//		tmp = new MazePlayer[MazeSettings.MAXPLAYERS];
 		nPlayers = 0;
 		nPlayersOld = 0;
 
-		stage = new Stage(new ScreenViewport());
-		Container<Table> tableContainer = new Container<Table>();
-		Table table = new Table();
+		firstRowTable = new Table();
+		firstRowContainer = new Container<Table>();
 
-		float cw = stage.getWidth();
-		float ch = stage.getHeight();
+		instLab = new Label("Waiting for players to join...", uiManager.skin);
+		backBtn = new TextButton("Back", uiManager.skin);
+		setBtn = new TextButton("Settings", uiManager.skin);
+		helpBtn = new TextButton("?", uiManager.skin);
+		playBtn = new TextButton("Start the match!", uiManager.skin);
 
-		tableContainer.setSize(cw, ch);
-		tableContainer.setPosition(0, 0);
-
-		Label instLab = new Label("Waiting for players to join...", uiManager.skin);
-		TextButton backBtn = new TextButton("Back", uiManager.skin);
-		TextButton setBtn = new TextButton("Settings", uiManager.skin);
-		TextButton helpBtn = new TextButton("?", uiManager.skin);
-		TextButton playBtn = new TextButton("Start the match!", uiManager.skin);
+		/* HELP DIALOG */
+		helpDlg = new Dialog("Help", uiManager.skin);
+		helpDlg.text("An online game is about to start!\n"
+				+ "If you're a client, just wait for the server to start the game.\n"
+				+ "If you're a server, wait for players and start the game pressing the \"Start the match!\" button.\n"
+				+ "How to join (for both client and server):\n"
+				+ "On a computer players can join or leave the game pressing WASD, Arrow buttons or\n"
+				+ "a button on the controller\n" + "On mobile players can be toggled using the buttons below.");
+		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlg.button(helpDlgOkBtn);
+		helpDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				helpDlg.hide();
+				return true;
+			}
+		});
 
 		if (type == GameType.CLIENT)
 			instLab.setText("Waiting for server to start the game...");
@@ -86,49 +95,71 @@ public class PreGameScreen implements Screen {
 				return true;
 			}
 		});
-		if (type == GameType.SERVER) {
-			// Add actions to the buttons
-			playBtn.addListener(new InputListener() {
-				@Override
-				public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-					hide();
-					uiManager.main.server.startGame();
-					return true;
-				}
-			});
-			// Add actions to the buttons
-			setBtn.addListener(new InputListener() {
-				@Override
-				public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-					hide();
-					uiManager.setScreen.setPrevScreen(thisScreen);
-					uiManager.main.setScreen(uiManager.setScreen);
-					return true;
-				}
-			});
-		}
+		// Add actions to the buttons
+		playBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.main.server.startGame();
+				return true;
+			}
+		});
+		// Add actions to the buttons
+		setBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.setScreen.setPrevScreen(thisScreen);
+				uiManager.main.setScreen(uiManager.setScreen);
+				System.out.println("Bup");
+				return true;
+			}
+		});
 		// Add actions to the buttons
 		helpBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				System.out.println("Make this appear help dialog (TODO)");
+				helpDlg.show(stage);
 				return true;
 			}
 		});
 
-		Table firstRowTable = new Table();
+		firstRowContainer.setActor(firstRowTable);
+		tableContainer.setActor(table);
+		stage.addActor(tableContainer);
+	}
 
-		firstRowTable.add(backBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.add(instLab).height(50).fillX().expandX().space(cw * 0.25f);
+	@Override
+	public void buildTable() {
+		super.buildTable();
+		firstRowTable.clear();
+
+		float d = containerDiagonal();
+		float labScale = d * .00080f;
+		float buttonDim = d * 0.05f;
+		
+		firstRowContainer.setSize(cw, ch * 0.2f);
+		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
+		firstRowContainer.fill();
+		
+		instLab.setFontScale(labScale);
+		backBtn.getLabel().setFontScale(labScale);
+		setBtn.getLabel().setFontScale(labScale);
+		helpBtn.getLabel().setFontScale(labScale);
+		playBtn.getLabel().setFontScale(labScale);
+
+		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
+		firstRowTable.add(instLab).space(cw * 0.25f);
 		if (type == GameType.SERVER)
-			firstRowTable.add(setBtn).height(50).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.add(helpBtn).width(50).height(50).fillX().expandX().space(cw * 0.005f);
-		firstRowTable.setOrigin(Align.center | Align.top);
-		table.row().colspan(4);
+			firstRowTable.add(setBtn).fillX().expandX().space(cw * 0.005f).height(buttonDim);
+		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
 
-		table.add(firstRowTable);
+		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
+
+		table.add(firstRowContainer);
 
 		for (int i = 0; i < labels.length; i++) {
+			labels[i].setFontScale(labScale);
 			if (i % 4 == 0)
 				table.row().expandY().fillY();
 			table.add(labels[i]).space(1);
@@ -136,40 +167,21 @@ public class PreGameScreen implements Screen {
 
 		if (type == GameType.SERVER) {
 			table.row().colspan(4);
-			table.add(playBtn).fillX().width(cw * 0.06f);
+			table.add(playBtn).fillX().width(buttonDim * 2f).height(buttonDim);
 		}
-
-		tableContainer.setActor(table);
-		stage.addActor(tableContainer);
-
-		uiManager.main.multiplexer.addProcessor(stage);
 	}
 
 	@Override
-	public void hide() {
-		uiManager.main.multiplexer.removeProcessor(stage);
-	}
-
-	@Override
-	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 0);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		stage.act();
-		stage.draw();
-
+	public void update() {
+		instLab.setText(type.toString() + ": Waiting for players to join...");
 		// Constantly update player labels, comparing with the remote players present on
 		// server
 		nPlayers = type == GameType.SERVER ? uiManager.main.server.remotePlayers.values().size()
 				: uiManager.main.client.players.size();
-//		tmp = type == GameType.SERVER
-//				? Arrays.copyOf(uiManager.main.server.remotePlayers.values().toArray(),
-//						uiManager.main.server.remotePlayers.values().size(), MazePlayer[].class)
-//				: Arrays.copyOf(uiManager.main.client.players.toArray(), uiManager.main.client.players.size(),
-//						MazePlayer[].class);
 		if (nPlayers != nPlayersOld) {
 			// Update Labels
 			for (int i = 0; i < labels.length; i++) {
-				labels[i].setText(i < nPlayers ? "-- Player Ready! --" : "-- empty slot --" );
+				labels[i].setText(i < nPlayers ? "-- Player Ready! --" : "-- empty slot --");
 			}
 		}
 		nPlayersOld = nPlayers;
@@ -182,27 +194,6 @@ public class PreGameScreen implements Screen {
 
 	public GameType getGameType() {
 		return type;
-	}
-
-	@Override
-	public void resize(int width, int height) {
-		stage.getViewport().update(width, height, true);
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void dispose() {
-		stage.dispose();
 	}
 
 }

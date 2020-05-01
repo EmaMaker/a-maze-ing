@@ -1,60 +1,70 @@
 package com.emamaker.amazeing.ui.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.ui.UIManager;
 
-public class TitleScreen implements Screen {
+public class TitleScreen extends MyScreen {
 
-	UIManager uiManager;
-	Stage stage;
-	
+	Label amazeingLab;
+	TextButton setBut, makeSrvBtn, joinSrvBtn, localBut, quitBut;
+
 	public TitleScreen(UIManager uiManager_) {
-		uiManager = uiManager_;
-		
-		stage = new Stage(new ScreenViewport());
-		Table table = new Table();
+		super(uiManager_);
+	}
 
-		VerticalGroup mainScreenGroup = new VerticalGroup().space(5).pad(5).fill();
-		TextButton setBut = new TextButton("Customize Game Settings", uiManager.skin);
-		mainScreenGroup.addActor(setBut);
-		TextButton makeSrvBtn = new TextButton("Start Server and play online (WIP)", uiManager.skin);
-		mainScreenGroup.addActor(makeSrvBtn);
-		TextButton joinSrvBtn = new TextButton("Join Server and play online (WIP)", uiManager.skin);
-		mainScreenGroup.addActor(joinSrvBtn);
-		TextButton localBut = new TextButton("Start a game on the local machine", uiManager.skin);
-		mainScreenGroup.addActor(localBut);
-		TextButton quitBut = new TextButton("Quit game", uiManager.skin);
+	@Override
+	public void createTable() {
+		amazeingLab = new Label("A - MAZE - ING", uiManager.skin);
+		setBut = new TextButton("CUSTOMIZE GAME SETTINGS", uiManager.skin);
+		makeSrvBtn = new TextButton("START SERVER", uiManager.skin);
+		joinSrvBtn = new TextButton("JOIN SERVER", uiManager.skin);
+		localBut = new TextButton("LOCAL GAME", uiManager.skin);
+		quitBut = new TextButton("QUIT GAME", uiManager.skin);
 
-		table.setPosition(stage.getWidth() *0.5f-mainScreenGroup.getWidth(), stage.getHeight() * 0.2f, Align.center);
-		table.add(mainScreenGroup);
-		stage.addActor(table);
-		
-		//Add actions to the buttons
-		localBut.addListener(new InputListener(){
-		    @Override
-		    public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-		    	hide();
-		    	uiManager.main.setScreen(uiManager.playersScreen);
-		    	return true;
-		    }
+		/* QUIT DIALOG */
+		final Dialog quitDlg = new Dialog("Quit?", uiManager.skin);
+		quitDlg.text("Are you sure you want to quit the game?");		
+		TextButton quitDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		TextButton quitDlgOkBtn = new TextButton("OK", uiManager.skin);
+		quitDlg.button(quitDlgCancelBtn);
+		quitDlg.button(quitDlgOkBtn);
+		quitDlgOkBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				System.out.println("Bye bye");
+				Gdx.app.exit();
+				return true;
+			}
 		});
-		quitBut.addListener(new InputListener(){
-		    @Override
-		    public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-		    	System.out.println("Bye bye!");
-		    	Gdx.app.exit();
-		        return true;
-		    }
+		quitDlgCancelBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				quitDlg.hide();
+				return true;
+			}
+		});
+		
+
+		// Add actions to the buttons
+		localBut.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				hide();
+				uiManager.main.setScreen(uiManager.playersScreen);
+				return true;
+			}
+		});
+		quitBut.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				quitDlg.show(stage);
+				return true;
+			}
 		});
 		makeSrvBtn.addListener(new InputListener() {
 			@Override
@@ -76,57 +86,45 @@ public class TitleScreen implements Screen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-		    	uiManager.main.setScreen(uiManager.setScreen);
+				uiManager.main.setScreen(uiManager.setScreen);
 				return true;
 			}
 		});
-		
-		//Add actors to the group
-		mainScreenGroup.addActor(setBut);
-		mainScreenGroup.addActor(makeSrvBtn);
-		mainScreenGroup.addActor(joinSrvBtn);
-		mainScreenGroup.addActor(localBut);
-		mainScreenGroup.addActor(quitBut);
-	}
-	
-	@Override
-	public void show() {
-		uiManager.main.multiplexer.addProcessor(stage);
+
 	}
 
 	@Override
-	public void hide() {
-		uiManager.main.multiplexer.removeProcessor(stage);		
-	}
+	public void buildTable() {
+		super.buildTable();
 
-	@Override
-	public void render(float delta) {
-        Gdx.gl.glClearColor(0,0,0,0);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act();
-        stage.draw();		
-	}
+		float d = containerDiagonal();
 
-	@Override
-	public void resize(int width, int height) {
-		stage.getViewport().update(width, height, true);
-	}
+		amazeingLab.setFontScale(d * .005f);
 
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-		
-	}
+		float spaceBetweenBtns = d * 0.015f;
+		float btnHeight = spaceBetweenBtns * 2.4f;
+		float btnWidth = cw*0.46f;
+		float n = d * 0.0015f;
+		setBut.getLabel().setFontScale(n);
+		makeSrvBtn.getLabel().setFontScale(n);
+		joinSrvBtn.getLabel().setFontScale(n);
+		localBut.getLabel().setFontScale(n);
+		quitBut.getLabel().setFontScale(n);
 
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-		
-	}
+		// Add actors to the group
+		table.row().colspan(1);
+		table.add(amazeingLab).spaceBottom(spaceBetweenBtns * 3);
+		table.row();
+		table.add(setBut).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
+		table.row();
+		table.add(makeSrvBtn).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
+		table.row();
+		table.add(joinSrvBtn).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
+		table.row();
+		table.add(localBut).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
+		table.row();
+		table.add(quitBut).spaceBottom(ch * 0.05f).height(btnHeight).width(btnWidth);
 
-	@Override
-	public void dispose() {
-		stage.dispose();  
 	}
 
 }

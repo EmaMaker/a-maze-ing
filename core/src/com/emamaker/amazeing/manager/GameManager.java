@@ -10,6 +10,7 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
 
@@ -85,8 +86,6 @@ public class GameManager {
 		}
 
 		resetCamera();
-		setCamera(new Vector3(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2),
-				new Vector3(0, -90, 0));
 
 		gameStarted = true;
 	}
@@ -94,8 +93,12 @@ public class GameManager {
 	public void update() {
 		if (gameStarted && !anyoneWon) {
 
-			if (getShowGame())
+			if (getShowGame()) {
 				main.world.render();
+				resetCamera();
+				setCamera(new Vector3(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2),
+						new Vector3(0, -90, 0));
+			}
 
 			main.world.modelBatch.begin(main.world.cam);
 			if (players != null) {
@@ -119,7 +122,9 @@ public class GameManager {
 				if (type == GameType.LOCAL) {
 					main.setScreen(main.uiManager.playersScreen);
 				} else if (type == GameType.SERVER) {
-					main.uiManager.preGameScreen.setGameType(GameType.SERVER);
+
+					((PreGameScreen)main.uiManager.preGameScreen)
+							.setGameType(GameType.SERVER);
 					main.setScreen(main.uiManager.preGameScreen);
 				}
 			}
