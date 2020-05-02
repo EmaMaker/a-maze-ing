@@ -112,7 +112,7 @@ public class PlayerChooseScreen extends MyScreen {
 
 	@Override
 	public void buildTable() {
-		super.buildTable();
+			super.buildTable();
 		firstRowTable.clear();
 
 		labels = new Label[MazeSettings.MAXPLAYERS];
@@ -122,15 +122,12 @@ public class PlayerChooseScreen extends MyScreen {
 		}
 
 		float d = containerDiagonal();
-		float labScale = d * .00080f;
+		float labScale = d * .00090f;
 		float buttonDim = d * 0.05f;
 
 		firstRowContainer.setSize(cw, ch * 0.2f);
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
-
-		helpDlg.setScale(d * 0.00075f);
-		helpDlg.setPosition(width / 2, height / 2);
 
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
@@ -139,10 +136,10 @@ public class PlayerChooseScreen extends MyScreen {
 		playBtn.getLabel().setFontScale(labScale);
 
 		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
-		firstRowTable.add(instLab).space(cw * 0.25f);
+		firstRowTable.add(instLab).space(cw * 0.25f).width(cw / 2);
 		firstRowTable.add(setBtn).fillX().expandX().space(cw * 0.005f).height(buttonDim);
 		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
-
+		
 		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
 
 		table.add(firstRowContainer);
@@ -159,7 +156,6 @@ public class PlayerChooseScreen extends MyScreen {
 	}
 
 	MazePlayerLocal p;
-
 	@Override
 	public void update() {
 		// Consantly search for new players to be added

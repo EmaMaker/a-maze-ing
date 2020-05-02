@@ -141,7 +141,7 @@ public class SettingsScreen extends MyScreen {
 
 		
 		float d = containerDiagonal();
-		float labScale = d * .00080f;
+		float labScale = d * .00090f;
 		float buttonDim = d * 0.05f;
 
 		firstRowContainer.setSize(cw, ch * 0.2f);
@@ -155,7 +155,7 @@ public class SettingsScreen extends MyScreen {
 		saveBtn.getLabel().setFontScale(labScale);
 
 		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
-		firstRowTable.add(instLab).space(cw * 0.25f);
+		firstRowTable.add(instLab).space(cw * 0.25f).width(cw / 2);
 		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);;
 
 		table.row().colspan(4);
