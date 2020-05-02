@@ -14,9 +14,11 @@ import com.emamaker.amazeing.ui.UIManager;
 public class ServerLaunchScreen extends MyScreen {
 
 	MyScreen thisScreen;
-	Label instLab, srvPortL;
-	TextButton backBtn, connectBtn, setBtn, helpBtn;
+	Label instLab, srvPortL, helpDlgText, failDlgText;
+	TextButton backBtn, connectBtn, setBtn, helpBtn, helpDlgOkBtn, failDlgOkBtn;
 	TextArea srvPort;
+	Dialog helpDlg, failDlg;
+
 	
 	Table firstRowTable;
 	Container<Table> firstRowContainer;
@@ -42,13 +44,14 @@ public class ServerLaunchScreen extends MyScreen {
 		srvPortL = new Label("Port: ", uiManager.skin);
 		srvPort = new TextArea("", uiManager.skin);
 
-		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
-		helpDlg.text("Here you can start a server to play with your friends over the network.\n"
+		helpDlgText = new Label("Here you can start a server to play with your friends over the network.\n"
 				+ "Choose a network port to start the server on and start the server.\n"
 				+ "In the next screen you will be given the address and port other players have to connect to play on this server.\n"
-				+ "The port must not being used by another program at the same time, or the server start-up will fail");
-		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+				+ "The port must not being used by another program at the same time, or the server start-up will fail", uiManager.skin);
+		helpDlg.text(helpDlgText);
+		 helpDlgOkBtn = new TextButton("OK", uiManager.skin);
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
 			@Override
@@ -58,10 +61,11 @@ public class ServerLaunchScreen extends MyScreen {
 			}
 		});
 		
-		final Dialog failDlg = new Dialog("Server start-up failed", uiManager.skin);
+		failDlg = new Dialog("Server start-up failed", uiManager.skin);
 		/* HELP DIALOG */
-		failDlg.text("Server start-up failed. Pheraps the port is already being used?");
-		TextButton failDlgOkBtn = new TextButton("OK", uiManager.skin);
+		failDlgText = new Label("Server start-up failed. Pheraps the port is already being used?", uiManager.skin);
+		failDlg.text(failDlgText);
+		failDlgOkBtn = new TextButton("OK", uiManager.skin);
 		failDlg.button(failDlgOkBtn);
 		failDlg.addListener(new InputListener() {
 			@Override
@@ -85,6 +89,7 @@ public class ServerLaunchScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -100,14 +105,21 @@ public class ServerLaunchScreen extends MyScreen {
 		connectBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				try {
 				if(uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()))) {
 					// If the server and the client have been started successfully, we can show the
 					// joining screen
 					uiManager.preGameScreen.setGameType(GameType.SERVER);
 					uiManager.main.setScreen(uiManager.preGameScreen);
 				}else {
-					//Show the dialog to say there's was something wrong
+					//Show the dialog to say there was something wrong
 					failDlg.show(stage);
+					buildTable();
+				}
+				}catch(Exception e) {
+					//Show the dialog to say there was something wrong
+					failDlg.show(stage);
+					buildTable();
 				}
 				return true;
 			}
@@ -130,6 +142,16 @@ public class ServerLaunchScreen extends MyScreen {
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
 
+		helpDlg.setSize(cw*0.8f, ch*0.3f);
+		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
+		helpDlgText.setFontScale(labScale*0.9f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+
+		failDlg.setSize(cw*0.45f, ch*0.2f);
+		failDlg.setPosition((sw-failDlg.getWidth())/2, (sh-failDlg.getHeight())/2);
+		failDlgText.setFontScale(labScale*0.9f);
+		failDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		helpBtn.getLabel().setFontScale(labScale);
@@ -145,7 +167,7 @@ public class ServerLaunchScreen extends MyScreen {
 		table.add(srvPortL).space(buttonDim).width(buttonDim*4f).height(buttonDim*0.5f).fillY().expandY();
 		table.add(srvPort).space(buttonDim).width(buttonDim*4f).height(buttonDim*0.5f).fillY().expandY();
 		table.row().colspan(4);
-		table.add(connectBtn).fillX().width(buttonDim*3f).height(buttonDim);
+		table.add(connectBtn).fillX().height(buttonDim);
 	}
 
 

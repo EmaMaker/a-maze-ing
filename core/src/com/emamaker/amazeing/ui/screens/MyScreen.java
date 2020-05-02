@@ -5,29 +5,34 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.ui.UIManager;
 
-public class MyScreen implements Screen{
+public class MyScreen implements Screen {
 
-	//This method makes the UI super easy to scale and resize with just a little effort in code
-	
-	//Main stage. Must only contain tableContainer
+	// This method makes the UI super easy to scale and resize with just a little
+	// effort in code
+
+	// Main stage. Must only contain tableContainer
 	Stage stage;
-	//Container for main stage table. This must only contain table
+	// Container for main stage table. This must only contain table
 	Container<Table> tableContainer = new Container<Table>();
-	//Table that contains all the stage. Must be cleared any time the window is resize. Look at buildTable1()
+	// Table that contains all the stage. Must be cleared any time the window is
+	// resize. Look at buildTable1()
 	Table table = new Table();
+
+	Container<Dialog> dialogContainer = new Container<Dialog>();
 	
-	UIManager uiManager; 
+	UIManager uiManager;
 	MyScreen prevScreen;
 
 	float width = Gdx.graphics.getWidth(), height = Gdx.graphics.getHeight();
 	static float sw, sh;
 	float cw, ch;
 	float cwmult = 0.8f, chmult = 1f;
-	
+
 	public MyScreen(UIManager uiManager_) {
 		this.uiManager = uiManager_;
 		stage = new Stage(new ScreenViewport());
@@ -35,22 +40,25 @@ public class MyScreen implements Screen{
 		stage = new Stage(new ScreenViewport());
 		tableContainer.setActor(table);
 		stage.addActor(tableContainer);
-		
+
 //		table.setDebug(true);
 
 		sw = width;
 		sh = height;
 		cw = sw * cwmult;
 		ch = sh * chmult;
-		
+
 		createTable();
 		buildTable();
 	}
-	
-	//Classes that inherit from this must use createTable to prepare the stage (create actors and listeners) and buildTable() to layout them
-	//buildTable1 make sure the table is cleared before it's layout, since position and sizes have to recalculated each time the window is resized
-	public void createTable() {}
-	
+
+	// Classes that inherit from this must use createTable to prepare the stage
+	// (create actors and listeners) and buildTable() to layout them
+	// buildTable1 make sure the table is cleared before it's layout, since position
+	// and sizes have to recalculated each time the window is resized
+	public void createTable() {
+	}
+
 	public void buildTable() {
 		table.clear();
 
@@ -63,8 +71,9 @@ public class MyScreen implements Screen{
 		tableContainer.setPosition((sw - cw) / 2.0f, (sh - ch) / 2.0f);
 		tableContainer.fill();
 	}
-	
-	public void update() {}
+
+	public void update() {
+	}
 
 	@Override
 	public void show() {
@@ -80,10 +89,10 @@ public class MyScreen implements Screen{
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
+
 		update();
-		
-	    stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+
+		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
 		stage.draw();
 	}
 
@@ -109,15 +118,30 @@ public class MyScreen implements Screen{
 	}
 
 	public float containerDiagonal() {
-		return (float) Math.sqrt( cw*cw + ch*ch );
+		return (float) Math.sqrt(cw * cw + ch * ch);
 	}
-	
+
 	public static float screenDiagonal() {
-		return (float) Math.sqrt( sw*sw + sh*sh );
+		return (float) Math.sqrt(sw * sw + sh * sh);
 	}
-	
+
 	public void setPrevScreen(MyScreen s) {
 		this.prevScreen = s;
+	}
+
+	public void showDialog(Dialog d) {
+		dialogContainer.setActor(d);
+		d.setScale(containerDiagonal()*0.0005f);
+		
+		dialogContainer.setSize(cw, ch);
+		dialogContainer.setPosition((sw - dialogContainer.getWidth()) / 2.0f, (sh - dialogContainer.getHeight()) / 2.0f);
+		dialogContainer.fill();
+		
+//		d.show(s);
+		stage.addActor(dialogContainer);
+	}
+
+	public void hideDialog() {
 	}
 
 }

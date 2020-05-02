@@ -29,8 +29,8 @@ public class PlayerChooseScreen extends MyScreen {
 	Container<Table> firstRowContainer;
 	Table firstRowTable;
 
-	Label instLab;
-	TextButton backBtn, setBtn, helpBtn, playBtn;
+	Label instLab, helpDlgText;
+	TextButton backBtn, setBtn, helpBtn, playBtn, helpDlgOkBtn;
 	Dialog helpDlg;
 
 	public PlayerChooseScreen(UIManager uiManager_) {
@@ -56,18 +56,21 @@ public class PlayerChooseScreen extends MyScreen {
 		playBtn = new TextButton("Play!", uiManager.skin);
 		/* HELP DIALOG */
 		helpDlg = new Dialog("Help", uiManager.skin);
-		helpDlg.text("Here you can start a singleplayer or multiplayer game on the local machine:\n"
+//		helpDlg.setResizable(true);
+		helpDlgText = new Label("Here you can start a singleplayer or multiplayer game on the local machine:\n"
 				+ "For keyboard players, pressing W,A,S,D or the directional arrows will toggle two different players.\n"
 				+ "Pressing a button on a controller will toggle a player.\n"
 				+ "You can edit game settings from the \"Settings\" menu or use the \"<\" button to go back to the main menu\n"
 				+ "Press the \"Play!\" button to start the game with the players that have currently joined.\n"
-				+ "Once a game is finished you will go back to this menu");
-		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+				+ "Once a game is finished you will go back to this menu", uiManager.skin);
+		helpDlg.text(helpDlgText);
+		helpDlgOkBtn = new TextButton("OK", uiManager.skin);
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.hide();
+//				hideDialog();
 				return true;
 			}
 		});
@@ -104,6 +107,7 @@ public class PlayerChooseScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -112,7 +116,7 @@ public class PlayerChooseScreen extends MyScreen {
 
 	@Override
 	public void buildTable() {
-			super.buildTable();
+		super.buildTable();
 		firstRowTable.clear();
 
 		labels = new Label[MazeSettings.MAXPLAYERS];
@@ -129,6 +133,10 @@ public class PlayerChooseScreen extends MyScreen {
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
 
+		helpDlg.setSize(cw*0.7f, ch*0.3f);
+		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
+		helpDlgText.setFontScale(labScale*0.8f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale*0.8f);
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		setBtn.getLabel().setFontScale(labScale);
@@ -139,7 +147,7 @@ public class PlayerChooseScreen extends MyScreen {
 		firstRowTable.add(instLab).space(cw * 0.25f).width(cw / 2);
 		firstRowTable.add(setBtn).fillX().expandX().space(cw * 0.005f).height(buttonDim);
 		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
-		
+
 		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
 
 		table.add(firstRowContainer);
@@ -156,6 +164,7 @@ public class PlayerChooseScreen extends MyScreen {
 	}
 
 	MazePlayerLocal p;
+
 	@Override
 	public void update() {
 		// Consantly search for new players to be added

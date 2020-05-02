@@ -14,9 +14,11 @@ import com.emamaker.amazeing.ui.UIManager;
 
 public class SettingsScreen extends MyScreen {
 
-	Label instLab;
-	TextButton backBtn, resetBtn, saveBtn, helpBtn;
+	Label instLab, helpDlgText, resetDlgText, backDlgText;
+	TextButton backBtn, resetBtn, saveBtn, helpBtn, backDlgOkBtn, backDlgCancelBtn, helpDlgOkBtn, resetDlgOkBtn, resetDlgCancelBtn;
 	ScrollPane scrollPane;
+	
+	Dialog helpDlg, resetDlg, backDlg;
 
 	Container<Table> firstRowContainer;
 	Table firstRowTable;
@@ -40,12 +42,14 @@ public class SettingsScreen extends MyScreen {
 		saveBtn = new TextButton("Save", uiManager.skin);
 		helpBtn = new TextButton("?", uiManager.skin);
 		scrollPane = new ScrollPane(setSettings(), uiManager.skin);
-		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
-		helpDlg.text("Here you can customize game settings:\n"
+		helpDlgText = new Label("Here you can customize game settings:\n"
 				+ "Maze Size: changes the size of the maze. Mazes are always squares. This affects both local and online games.\n"
-				+ "Max. Players: changes the max number of players that can join the game. This affects both local and online games.");
-		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+				+ "Max. Players: changes the max number of players that can join the game. This affects both local and online games.", uiManager.skin);
+		helpDlg.text(helpDlgText);
+		
+		helpDlgOkBtn = new TextButton("OK", uiManager.skin);
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
 			@Override
@@ -54,11 +58,13 @@ public class SettingsScreen extends MyScreen {
 				return true;
 			}
 		});
+		
 		/* BACK DIALOG */
-		final Dialog backDlg = new Dialog("Go Back", uiManager.skin);
-		backDlg.text("Are you sure you want to go back without saving changes?\nThis cannot be reverted");
-		TextButton backDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
-		TextButton backDlgOkBtn = new TextButton("OK", uiManager.skin);
+		backDlg = new Dialog("Go Back", uiManager.skin);
+		backDlgText = new Label("Are you sure you want to go back without saving changes?\nThis cannot be reverted", uiManager.skin);
+		backDlg.text(backDlgText);
+		backDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		backDlgOkBtn = new TextButton("OK", uiManager.skin);
 		backDlg.button(backDlgCancelBtn);
 		backDlg.button(backDlgOkBtn);
 		backDlgOkBtn.addListener(new InputListener() {
@@ -77,13 +83,15 @@ public class SettingsScreen extends MyScreen {
 				return true;
 			}
 		});
+		
 		/* RESET DIALOG */
-		final Dialog resetDlg = new Dialog("Reset All Settings", uiManager.skin);
-		resetDlg.text("Are you sure you want to reset all settings?\nThis cannot be reverted");
-		TextButton resetDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
-		TextButton resetDlgOkBtn = new TextButton("OK", uiManager.skin);
-		resetDlg.button(resetDlgOkBtn);
+		resetDlg = new Dialog("Reset All Settings", uiManager.skin);
+		resetDlgText = new Label("Are you sure you want to reset all settings?\nThis cannot be reverted", uiManager.skin);
+		resetDlg.text(resetDlgText);
+		resetDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		resetDlgOkBtn = new TextButton("OK", uiManager.skin);
 		resetDlg.button(resetDlgCancelBtn);
+		resetDlg.button(resetDlgOkBtn);
 		resetDlgOkBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -105,6 +113,7 @@ public class SettingsScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				backDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -112,6 +121,7 @@ public class SettingsScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -119,6 +129,7 @@ public class SettingsScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				resetDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -147,6 +158,23 @@ public class SettingsScreen extends MyScreen {
 		firstRowContainer.setSize(cw, ch * 0.2f);
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
+
+		helpDlg.setSize(cw*0.8f, ch*0.3f);
+		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
+		helpDlgText.setFontScale(labScale*0.9f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+
+		resetDlg.setSize(cw*0.45f, ch*0.25f);
+		resetDlg.setPosition((sw-resetDlg.getWidth())/2, (sh-resetDlg.getHeight())/2);
+		resetDlgText.setFontScale(labScale*0.9f);
+		resetDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+		resetDlgCancelBtn.getLabel().setFontScale(labScale*0.9f);
+		
+		backDlg.setSize(cw*0.45f, ch*0.25f);
+		backDlg.setPosition((sw-backDlg.getWidth())/2, (sh-backDlg.getHeight())/2);
+		backDlgText.setFontScale(labScale*0.9f);
+		backDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+		backDlgCancelBtn.getLabel().setFontScale(labScale*0.9f);
 
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);

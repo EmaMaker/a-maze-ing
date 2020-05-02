@@ -26,8 +26,8 @@ public class PreGameScreen extends MyScreen {
 	Container<Table> firstRowContainer;
 	Table firstRowTable;
 
-	Label instLab;
-	TextButton backBtn, setBtn, helpBtn, playBtn;
+	Label instLab, helpDlgText;
+	TextButton backBtn, setBtn, helpBtn, playBtn, helpDlgOkBtn;
 	Dialog helpDlg;
 	
 	public PreGameScreen(UIManager uiManager_) {
@@ -56,13 +56,14 @@ public class PreGameScreen extends MyScreen {
 
 		/* HELP DIALOG */
 		helpDlg = new Dialog("Help", uiManager.skin);
-		helpDlg.text("An online game is about to start!\n"
+		helpDlgText = new Label("An online game is about to start!\n"
 				+ "If you're a client, just wait for the server to start the game.\n"
 				+ "If you're a server, wait for players and start the game pressing the \"Start the match!\" button.\n"
 				+ "How to join (for both client and server):\n"
 				+ "On a computer players can join or leave the game pressing WASD, Arrow buttons or\n"
-				+ "a button on the controller\n" + "On mobile players can be toggled using the buttons below.");
-		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+				+ "a button on the controller\n" + "On mobile players can be toggled using the buttons below.", uiManager.skin);
+				helpDlg.text(helpDlgText);
+		helpDlgOkBtn = new TextButton("OK", uiManager.skin);
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
 			@Override
@@ -120,6 +121,7 @@ public class PreGameScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -141,6 +143,11 @@ public class PreGameScreen extends MyScreen {
 		firstRowContainer.setSize(cw, ch * 0.2f);
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
+
+		helpDlg.setSize(cw*0.65f, ch*0.4f);
+		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
+		helpDlgText.setFontScale(labScale*0.9f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
 		
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
@@ -155,7 +162,6 @@ public class PreGameScreen extends MyScreen {
 		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
 
 		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
-
 		table.add(firstRowContainer);
 
 		for (int i = 0; i < labels.length; i++) {
@@ -167,7 +173,7 @@ public class PreGameScreen extends MyScreen {
 
 		if (type == GameType.SERVER) {
 			table.row().colspan(4);
-			table.add(playBtn).fillX().width(buttonDim * 2f).height(buttonDim);
+			table.add(playBtn).fillX().height(buttonDim);
 		}
 	}
 

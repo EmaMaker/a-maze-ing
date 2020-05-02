@@ -13,12 +13,14 @@ import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerJoinScreen extends MyScreen {
 
-	Label instLab, srvIpL;
-	TextButton backBtn, connectBtn, helpBtn;
+	Label instLab, srvIpL, helpDlgText, failDlgText;
+	TextButton backBtn, connectBtn, helpBtn, helpDlgOkBtn, failDlgOkBtn;
 	TextArea srvIp;
 
 	Container<Table> firstRowContainer;
 	Table firstRowTable;
+	
+	Dialog helpDlg, failDlg;
 	
 	public ServerJoinScreen(UIManager uiManager_) {
 		super(uiManager_);
@@ -40,11 +42,14 @@ public class ServerJoinScreen extends MyScreen {
 		srvIpL = new Label("Server IP: ", uiManager.skin);
 		srvIp = new TextArea("", uiManager.skin);
 
-		final Dialog helpDlg = new Dialog("Help", uiManager.skin);
+		helpDlg = new Dialog("Help", uiManager.skin);
 		/* HELP DIALOG */
-		helpDlg.text("Here you can connect to a server to play with your friends over the network.\n"
-				+ "The server host should provide you with address and port info to connect to the server");
-		TextButton helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		helpDlgText = new Label("Here you can connect to a server to play with your friends over the network.\n"
+				+ "The server host should provide you with address and port info to connect to the server", uiManager.skin);
+		
+		helpDlg.text(helpDlgText);
+		helpDlgOkBtn = new TextButton("OK", uiManager.skin);
+		
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
 			@Override
@@ -54,11 +59,12 @@ public class ServerJoinScreen extends MyScreen {
 			}
 		});
 
-		final Dialog failDlg = new Dialog("Server start-up failed", uiManager.skin);
+		failDlg = new Dialog("Server start-up failed", uiManager.skin);
 		/* HELP DIALOG */
-		failDlg.text("Connection to the server failed. Check your internet connection and address/port combination.\n"
-				+ "Or Pheraps there's no server running there?");
-		TextButton failDlgOkBtn = new TextButton("OK", uiManager.skin);
+		failDlgText = new Label("Connection to the server failed. Check your internet connection and address/port combination.\n"
+				+ "Or Pheraps there's no server running there?", uiManager.skin);
+		failDlg.text(failDlgText);
+		failDlgOkBtn = new TextButton("OK", uiManager.skin);
 		failDlg.button(failDlgOkBtn);
 		failDlg.addListener(new InputListener() {
 			@Override
@@ -82,6 +88,7 @@ public class ServerJoinScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				helpDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -98,9 +105,11 @@ public class ServerJoinScreen extends MyScreen {
 						uiManager.main.setScreen(uiManager.preGameScreen);
 					} else {
 						failDlg.show(stage);
+						buildTable();
 					}
 				} catch (Exception e) {
 					failDlg.show(stage);
+					buildTable();
 				}
 				return true;
 			}
@@ -122,6 +131,16 @@ public class ServerJoinScreen extends MyScreen {
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
 
+		helpDlg.setSize(cw*0.7f, ch*0.2f);
+		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
+		helpDlgText.setFontScale(labScale*0.9f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+
+		failDlg.setSize(cw*0.7f, ch*0.2f);
+		failDlg.setPosition((sw-failDlg.getWidth())/2, (sh-failDlg.getHeight())/2);
+		failDlgText.setFontScale(labScale*0.9f);
+		failDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+		
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		helpBtn.getLabel().setFontScale(labScale);
