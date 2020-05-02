@@ -155,6 +155,7 @@ public class ServerLaunchScreen extends MyScreen {
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		helpBtn.getLabel().setFontScale(labScale);
+		connectBtn.getLabel().setFontScale(labScale);
 
 		firstRowTable.add(backBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
 		firstRowTable.add(instLab).space(cw * 0.25f).width(cw / 2);

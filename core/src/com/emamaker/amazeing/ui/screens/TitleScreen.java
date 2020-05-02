@@ -10,9 +10,10 @@ import com.emamaker.amazeing.ui.UIManager;
 
 public class TitleScreen extends MyScreen {
 
-	Label amazeingLab;
-	TextButton setBut, makeSrvBtn, joinSrvBtn, localBut, quitBut;
-
+	Label amazeingLab, quitDlgText;
+	TextButton setBut, makeSrvBtn, joinSrvBtn, localBut, quitBut, quitDlgOkBtn, quitDlgCancelBtn;
+	Dialog quitDlg;
+	
 	public TitleScreen(UIManager uiManager_) {
 		super(uiManager_);
 	}
@@ -27,10 +28,11 @@ public class TitleScreen extends MyScreen {
 		quitBut = new TextButton("QUIT GAME", uiManager.skin);
 
 		/* QUIT DIALOG */
-		final Dialog quitDlg = new Dialog("Quit?", uiManager.skin);
-		quitDlg.text("Are you sure you want to quit the game?");		
-		TextButton quitDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
-		TextButton quitDlgOkBtn = new TextButton("OK", uiManager.skin);
+		quitDlg = new Dialog("Quit?", uiManager.skin);
+		quitDlgText = new Label ("Are you sure you want to quit the game?", uiManager.skin);
+		quitDlg.text(quitDlgText);		
+		quitDlgCancelBtn = new TextButton("Cancel", uiManager.skin);
+		quitDlgOkBtn = new TextButton("OK", uiManager.skin);
 		quitDlg.button(quitDlgCancelBtn);
 		quitDlg.button(quitDlgOkBtn);
 		quitDlgOkBtn.addListener(new InputListener() {
@@ -63,6 +65,7 @@ public class TitleScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				quitDlg.show(stage);
+				buildTable();
 				return true;
 			}
 		});
@@ -105,6 +108,15 @@ public class TitleScreen extends MyScreen {
 		float btnHeight = spaceBetweenBtns * 2.4f;
 		float btnWidth = cw*0.46f;
 		float n = d * 0.0015f;
+		
+		float labScale = d * .00090f;
+
+		quitDlg.setSize(cw*0.35f, ch*0.15f);
+		quitDlg.setPosition((sw-quitDlg.getWidth())/2, (sh-quitDlg.getHeight())/2);
+		quitDlgText.setFontScale(labScale*0.9f);
+		quitDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+		quitDlgCancelBtn.getLabel().setFontScale(labScale*0.9f);
+		
 		setBut.getLabel().setFontScale(n);
 		makeSrvBtn.getLabel().setFontScale(n);
 		joinSrvBtn.getLabel().setFontScale(n);
