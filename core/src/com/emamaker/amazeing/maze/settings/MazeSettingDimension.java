@@ -16,11 +16,9 @@ public class MazeSettingDimension extends MazeSetting{
 	public MazeSettingDimension(String name_, String[] options_, UIManager uiManager_) {
 		super(name_, options_, uiManager_);
 	}
-
 	@Override
-	public void update(){
-		super.update();
-		String opt = options[currentOption];
+	public void parseOptionString(String opt) {
+		super.parseOptionString(opt);
 		String[] split = opt.split("x");
 		MazeSettings.MAZEX = Integer.valueOf(split[0]);
 		MazeSettings.MAZEZ = Integer.valueOf(split[1]);

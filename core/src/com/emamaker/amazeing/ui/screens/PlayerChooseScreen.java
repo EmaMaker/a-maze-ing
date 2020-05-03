@@ -102,7 +102,7 @@ public class PlayerChooseScreen extends MyScreen {
                     for (MazePlayer p : players)
                         p.dispose();
                     players.clear();
-                    
+
                     for (int i = 0; i < buttons.length; i++)
                         if (buttons[i].isChecked())
                             players.add(new MazePlayerLocal(new Touchpad(0f, uiManager.skin), i));

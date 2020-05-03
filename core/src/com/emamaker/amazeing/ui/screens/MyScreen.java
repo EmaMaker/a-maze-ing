@@ -92,7 +92,7 @@ public class MyScreen implements Screen {
 
 		update();
 
-		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+		stage.act();
 		stage.draw();
 	}
 

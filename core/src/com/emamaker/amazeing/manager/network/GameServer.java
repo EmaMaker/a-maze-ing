@@ -19,6 +19,7 @@ import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateSettings;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerRemote;
@@ -76,16 +77,17 @@ public class GameServer {
 				public void received(Connection c, Object object) {
 					ConnectionPlayer connection = (ConnectionPlayer) c;
 
-					if(object instanceof JustConnected) {
-						//Notify the newly connected client about all other clients already present here
-						System.out.println("New client just connected, updating it with info about other clients!");	
+					if (object instanceof JustConnected) {
+						// Notify the newly connected client about all other clients already present
+						// here
+						System.out.println("New client just connected, updating it with info about other clients!");
 						AddNewPlayer response = new AddNewPlayer();
 						for (String s : remotePlayers.keySet()) {
 							response.uuid = s;
 							c.sendTCP(response);
 							System.out.println("Updated about: " + s);
-						}					
-					}else if (object instanceof LoginAO) { 
+						}
+					} else if (object instanceof LoginAO) {
 						// Give player its UUID and wait for response. Once the LoginAO2 response is
 						// received, move the
 						// UUID to the list of players, create a new one and notify clients about it
@@ -103,12 +105,15 @@ public class GameServer {
 							remotePlayers.put(((LoginAO2) object).uuid,
 									new MazePlayerRemote(((LoginAO2) object).uuid, false));
 
-							System.out.println(
-									"Client with UUID " + ((LoginAO2) object).uuid + " is connected and ready to play :)");
-							
+							updateSettingForClient(c);
+
+							System.out.println("Client with UUID " + ((LoginAO2) object).uuid
+									+ " is connected and ready to play :)");
+
 							AddNewPlayer response = new AddNewPlayer();
 							response.uuid = ((LoginAO2) object).uuid;
 							server.sendToAllTCP(response);
+
 						} else {
 							// Send connection refused
 							c.sendTCP(new ConnectionRefused());
@@ -122,8 +127,9 @@ public class GameServer {
 
 							System.out.println("Client with UUID " + connection.uuid + " is leaving the server :(");
 							server.sendToAllTCP(object);
-						}else {
-							System.out.println("Server received delete message for player with UUID " + connection.uuid + " but player wasn't playing");
+						} else {
+							System.out.println("Server received delete message for player with UUID " + connection.uuid
+									+ " but player wasn't playing");
 						}
 					} else if (object instanceof UpdatePlayerTransform) {
 						UpdatePlayerTransform transform = (UpdatePlayerTransform) object;
@@ -189,29 +195,34 @@ public class GameServer {
 	// host should decide when to start the gmae
 	// A proper ui should be added, but for now we can just start the game without
 	// showing any players and just show the map across all the clients
-	public void startGame() {
+	public boolean startGame() {
 		if (serverRunning) {
 			update();
-			// Start game stuff
-			this.gameManager = new GameManager(main, GameType.SERVER);
-			this.gameManager.generateMaze(new HashSet<MazePlayer>(remotePlayers.values()));
-			endGameCalled = false;
 
-			StartGame request = new StartGame();
-			request.map = this.gameManager.mazeGen.runLenghtEncode();
-			server.sendToAllTCP(request);
+			if (!remotePlayers.isEmpty()) {
+				// Start game stuff
+				this.gameManager = new GameManager(main, GameType.SERVER);
+				this.gameManager.generateMaze(new HashSet<MazePlayer>(remotePlayers.values()));
+				endGameCalled = false;
 
-			if (gameManager.gameStarted)
-				for (String p : remotePlayers.keySet())
-					updatePlayer(p, remotePlayers.get(p), true);
+				StartGame request = new StartGame();
+				request.map = this.gameManager.mazeGen.runLenghtEncode();
+				server.sendToAllTCP(request);
 
-			if (main.getScreen() != null) {
-				main.getScreen().hide();
-				main.setScreen(null);
+				if (gameManager.gameStarted)
+					for (String p : remotePlayers.keySet())
+						updatePlayer(p, remotePlayers.get(p), true);
+
+				if (main.getScreen() != null) {
+					main.getScreen().hide();
+					main.setScreen(null);
+				}
+				return true;
 			}
 		} else {
 			System.out.println("Server not started yet, game cannot start");
 		}
+		return false;
 	}
 
 	public void updatePlayer(String uuid, MazePlayerRemote p, boolean force) {
@@ -263,6 +274,28 @@ public class GameServer {
 	public boolean isRunning() {
 		return serverRunning;
 	}
+
+	UpdateSettings s = new UpdateSettings();
+
+	// Send updates about settings to the clients
+	public void updateSettingForAll() {
+		if(isRunning())
+		for (int i = 0; i < MazeSettings.settings.size(); i++) {
+			s.index = i;
+			s.value = MazeSettings.settings.get(i).getOptionString();
+			server.sendToAllTCP(s);
+		}
+	}
+
+	public void updateSettingForClient(Connection c) {
+		if(isRunning())
+		for (int i = 0; i < MazeSettings.settings.size(); i++) {
+			s.index = i;
+			s.value = MazeSettings.settings.get(i).getOptionString();
+			c.sendTCP(s);
+		}
+	}
+
 }
 
 class ConnectionPlayer extends Connection {

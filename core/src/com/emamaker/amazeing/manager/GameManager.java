@@ -1,10 +1,11 @@
 package com.emamaker.amazeing.manager;
 
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Set;
+
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.Plane.PlaneSide;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.AMazeIng;
@@ -16,10 +17,6 @@ import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
-
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Set;
 
 public class GameManager {
 

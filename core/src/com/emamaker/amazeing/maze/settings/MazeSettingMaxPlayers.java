@@ -14,9 +14,8 @@ public class MazeSettingMaxPlayers extends MazeSetting{
 	}
 
 	@Override
-	public void update(){
-		super.update();
-		MazeSettings.MAXPLAYERS = Integer.valueOf(options[currentOption]);
+	public void parseOptionString(String opt) {
+		MazeSettings.MAXPLAYERS = Integer.valueOf(opt);
 	}
 	
 }

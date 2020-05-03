@@ -7,7 +7,7 @@ public class NetworkCommon {
 
 
 	// This registers objects that are going to be sent over the network.
-	static public void register(EndPoint endPoint) {
+	public static void register(EndPoint endPoint) {
 		Kryo kryo = endPoint.getKryo();
 		kryo.register(JustConnected.class);
 		kryo.register(LoginAO.class);
@@ -21,51 +21,57 @@ public class NetworkCommon {
 		kryo.register(StartGame.class);
 		kryo.register(EndGame.class);
 		kryo.register(UpdateMap.class);
+		kryo.register(UpdateSettings.class);
 	}
 
 	//Login stuff
-	static public class JustConnected {
+	public static class JustConnected {
 	}
-	static public class LoginAO {
+	public static class LoginAO {
 	}
-	static public class LoginAO2 {
+	public static class LoginAO2 {
 		String uuid;
 	}
-	static public class ConnectionRefused {
+	public static class ConnectionRefused {
 		String uuid;
 	}
-	static public class LoginUUID {
+	public static class LoginUUID {
 		String uuid;
 	}
 
 	//Player stuff
-	static public class AddNewPlayer {
+	public static class AddNewPlayer {
 		String uuid;
 	}
-	static public class RemovePlayer {
+	public static class RemovePlayer {
 		String uuid;
 	}
-	static public class UpdatePlayerTransform {
+	public static class UpdatePlayerTransform {
 		String uuid;
 		float tx, ty, tz, rx, ry, rz, rw;
 	}
-	static public class UpdatePlayerTransformServer {
+	public static class UpdatePlayerTransformServer {
 		String uuid;
 		float tx, ty, tz, rx, ry, rz, rw;
 	}
 
-	static public class StartGame{
+	public static class StartGame{
 		//Use this to notify clients of a newly started game
 		//A Run-lenght-encoded representation of the map can be appended, this can be avoided but it's not recommended
 		String map;
 	}
-	static public class EndGame{
+	public static class EndGame{
 		//Use this to notify clients when a game ends
 	}
-	static public class UpdateMap{
+	public static class UpdateMap{
 		//Use this to notify clients of a modification of the map
 		//Run-lenght-encoded representation of the map
 		String map;
 	}
-
+	
+	public static class UpdateSettings {
+		int index;
+		String value;
+	}
+	
 }

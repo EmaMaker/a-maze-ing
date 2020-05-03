@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.ui.UIManager;
@@ -137,8 +138,12 @@ public class SettingsScreen extends MyScreen {
 		saveBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				//If we are running server, we must send update to clients
+				AMazeIng.getMain().server.updateSettingForAll();
+				
 				hide();
 				uiManager.main.setScreen(prevScreen == null ? uiManager.titleScreen : prevScreen);
+
 				return true;
 			}
 		});

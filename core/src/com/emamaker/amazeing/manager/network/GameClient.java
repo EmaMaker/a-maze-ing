@@ -21,6 +21,8 @@ import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateSettings;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.MazePlayerRemote;
@@ -126,6 +128,17 @@ public class GameClient {
 						gameManager.anyoneWon = true;
 						showPreGame = true;
 					}
+				} else if (object instanceof UpdateSettings) {
+					System.out.println("Update received for setting n." + ((UpdateSettings) object).index);
+					if (!main.server.isRunning()) {
+						MazeSettings.settings.get(((UpdateSettings) object).index)
+								.parseOptionString(((UpdateSettings) object).value);
+					}else {
+						System.out.println("Ignoring settings update since we are running on a server");
+					}
+					
+					//We don't mind if we are client or server, just set the flag to update pregamescreen
+					showPreGame = true;
 				}
 			}
 

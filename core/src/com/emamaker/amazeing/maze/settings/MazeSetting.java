@@ -44,7 +44,7 @@ public class MazeSetting {
 		
 		//Build the Table which will be later used to add this to the screen
 		table = new Table();
-		nameLabel = new Label(this.name+"\t\t\t", uiManager.skin);
+		nameLabel = new Label(this.name, uiManager.skin);
 		currentOptLabel = new Label(this.options[currentOption], uiManager.skin);
 		backBtn = new TextButton("<", uiManager.skin);
 		forthBtn = new TextButton(">", uiManager.skin);
@@ -89,7 +89,9 @@ public class MazeSetting {
 	}
 	
 	public void update() {
-		preUpdate();
+		currentOption = (currentOption+options.length)%options.length;
+		currentOptLabel.setText(options[currentOption]);
+		parseOptionString(options[currentOption]);
 	}
 	
 	public void saveState() {
@@ -123,9 +125,9 @@ public class MazeSetting {
 		table.add(resetBtn).fillX().expandX();
 	}
 	
-	public void preUpdate() {
-		this.currentOption = (this.currentOption+this.options.length)%this.options.length;
-		this.currentOptLabel.setText(this.options[currentOption]);
+	public void parseOptionString(String opt) {}
+	public String getOptionString() {
+		return options[currentOption];
 	}
 
 }

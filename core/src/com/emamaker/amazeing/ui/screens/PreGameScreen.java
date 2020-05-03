@@ -1,5 +1,7 @@
 package com.emamaker.amazeing.ui.screens;
 
+import java.util.Arrays;
+
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
@@ -9,13 +11,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
-import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class PreGameScreen extends MyScreen {
 
 	Label[] labels;
-	MazePlayer[] players;
+	// MazePlayer[] players;
 	int nPlayers, nPlayersOld;
 
 	// GameType we are runnig. assuming server for default. If client, the StartGame
@@ -29,7 +30,7 @@ public class PreGameScreen extends MyScreen {
 	Label instLab, helpDlgText;
 	TextButton backBtn, setBtn, helpBtn, playBtn, helpDlgOkBtn;
 	Dialog helpDlg;
-	
+
 	public PreGameScreen(UIManager uiManager_) {
 		super(uiManager_);
 		chmult = 0.8f;
@@ -40,8 +41,6 @@ public class PreGameScreen extends MyScreen {
 		super.createTable();
 		thisScreen = this;
 
-		labels = new Label[MazeSettings.MAXPLAYERS];
-		players = new MazePlayer[MazeSettings.MAXPLAYERS];
 		nPlayers = 0;
 		nPlayersOld = 0;
 
@@ -61,8 +60,9 @@ public class PreGameScreen extends MyScreen {
 				+ "If you're a server, wait for players and start the game pressing the \"Start the match!\" button.\n"
 				+ "How to join (for both client and server):\n"
 				+ "On a computer players can join or leave the game pressing WASD, Arrow buttons or\n"
-				+ "a button on the controller\n" + "On mobile players can be toggled using the buttons below.", uiManager.skin);
-				helpDlg.text(helpDlgText);
+				+ "a button on the controller\n" + "On mobile players can be toggled using the buttons below.",
+				uiManager.skin);
+		helpDlg.text(helpDlgText);
 		helpDlgOkBtn = new TextButton("OK", uiManager.skin);
 		helpDlg.button(helpDlgOkBtn);
 		helpDlgOkBtn.addListener(new InputListener() {
@@ -75,11 +75,6 @@ public class PreGameScreen extends MyScreen {
 
 		if (type == GameType.CLIENT)
 			instLab.setText("Waiting for server to start the game...");
-
-		// Labels to know if players joined
-		for (int i = 0; i < labels.length; i++) {
-			labels[i] = new Label("-- empty slot --", uiManager.skin);
-		}
 
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
@@ -100,8 +95,8 @@ public class PreGameScreen extends MyScreen {
 		playBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				hide();
-				uiManager.main.server.startGame();
+				if (uiManager.main.server.startGame())
+					hide();
 				return true;
 			}
 		});
@@ -112,7 +107,6 @@ public class PreGameScreen extends MyScreen {
 				hide();
 				uiManager.setScreen.setPrevScreen(thisScreen);
 				uiManager.main.setScreen(uiManager.setScreen);
-				System.out.println("Bup");
 				return true;
 			}
 		});
@@ -134,21 +128,31 @@ public class PreGameScreen extends MyScreen {
 	@Override
 	public void buildTable() {
 		super.buildTable();
-		firstRowTable.clear();
 
+		firstRowTable.clear();
+		
 		float d = containerDiagonal();
 		float labScale = d * .00090f;
 		float buttonDim = d * 0.05f;
+
+		labels = new Label[MazeSettings.MAXPLAYERS];
+
+		// Labels to know if players joined
+		for (int i = 0; i < labels.length; i++) {
+			labels[i] = new Label("-- empty slot --", uiManager.skin);
+		}
+		
+		System.out.println(Arrays.toString(labels));
 		
 		firstRowContainer.setSize(cw, ch * 0.2f);
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();
 
-		helpDlg.setSize(cw*0.65f, ch*0.4f);
-		helpDlg.setPosition((sw-helpDlg.getWidth())/2, (sh-helpDlg.getHeight())/2);
-		helpDlgText.setFontScale(labScale*0.9f);
-		helpDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
-		
+		helpDlg.setSize(cw * 0.65f, ch * 0.4f);
+		helpDlg.setPosition((sw - helpDlg.getWidth()) / 2, (sh - helpDlg.getHeight()) / 2);
+		helpDlgText.setFontScale(labScale * 0.9f);
+		helpDlgOkBtn.getLabel().setFontScale(labScale * 0.9f);
+
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		setBtn.getLabel().setFontScale(labScale);
@@ -162,6 +166,7 @@ public class PreGameScreen extends MyScreen {
 		firstRowTable.add(helpBtn).fillX().expandX().space(cw * 0.005f).width(buttonDim).height(buttonDim);
 
 		table.row().colspan(MazeSettings.MAXPLAYERS == 2 ? 2 : 4);
+		table.row().colspan(4);
 		table.add(firstRowContainer);
 
 		for (int i = 0; i < labels.length; i++) {
@@ -184,13 +189,12 @@ public class PreGameScreen extends MyScreen {
 		// server
 		nPlayers = type == GameType.SERVER ? uiManager.main.server.remotePlayers.values().size()
 				: uiManager.main.client.players.size();
-		if (nPlayers != nPlayersOld) {
+		if (labels.length > 0) {
 			// Update Labels
 			for (int i = 0; i < labels.length; i++) {
 				labels[i].setText(i < nPlayers ? "-- Player Ready! --" : "-- empty slot --");
 			}
 		}
-		nPlayersOld = nPlayers;
 	}
 
 	public void setGameType(GameType t) {
