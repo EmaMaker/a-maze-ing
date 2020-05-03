@@ -142,6 +142,7 @@ public class ServerJoinScreen extends MyScreen {
 		failDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
 		
 		instLab.setFontScale(labScale);
+		srvIpL.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
 		helpBtn.getLabel().setFontScale(labScale);
 		connectBtn.getLabel().setFontScale(labScale);

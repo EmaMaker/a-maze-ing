@@ -20,9 +20,14 @@ public class MazeSettings {
 		setDim = new MazeSettingDimension("MAZE DIMENSIONS:", new String[] {
 				"10x10", "20x20", "30x30"
 		}, 1, AMazeIng.getMain().uiManager);
-		setPlayers = new MazeSettingMaxPlayers("MAX NUMBER OF PLAYERS: ", new String[] {
-				"2", "4", "6", "8", "10", "15", "20"
-		}, AMazeIng.getMain().uiManager);
+		if(AMazeIng.PLATFORM == AMazeIng.Platform.DESKTOP)
+			setPlayers = new MazeSettingMaxPlayers("MAX NUMBER OF PLAYERS: ", new String[] {
+					"2", "4", "6", "8", "10", "15", "20"
+			}, AMazeIng.getMain().uiManager);
+		else
+			setPlayers = new MazeSettingMaxPlayers("MAX NUMBER OF PLAYERS: ", new String[] {
+					"2", "4"
+			}, AMazeIng.getMain().uiManager);
 		
 		settings.add(setDim);
 		settings.add(setPlayers);

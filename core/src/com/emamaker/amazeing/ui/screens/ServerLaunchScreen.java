@@ -154,6 +154,7 @@ public class ServerLaunchScreen extends MyScreen {
 
 		instLab.setFontScale(labScale);
 		backBtn.getLabel().setFontScale(labScale);
+		srvPortL.setFontScale(labScale);
 		helpBtn.getLabel().setFontScale(labScale);
 		connectBtn.getLabel().setFontScale(labScale);
 

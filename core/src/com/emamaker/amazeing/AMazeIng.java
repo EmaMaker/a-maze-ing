@@ -31,21 +31,27 @@ public class AMazeIng extends Game {
 	/* Local manager for local games and server host in multiplayer games */
 	public GameServer server;
 	public GameClient client;
-	
+
 	static AMazeIng game;
+	
+	public static Platform PLATFORM;
+	
+	public AMazeIng(Platform p) {
+		PLATFORM = p;
+	}
 
 	@Override
 	public void create() {
 		game = this;
-		
+
 		// Bullet init for physics
 		Bullet.init();
 
 		// Set windowed resolution
 		Gdx.graphics.setWindowedMode(1280, 720);
 
-		//Enable on-screen keyboard for mobile devices
-		//Gdx.input.setOnscreenKeyboardVisible(true);
+		// Enable on-screen keyboard for mobile devices
+		// Gdx.input.setOnscreenKeyboardVisible(true);
 
 		// Voxel engine init. Call everything after this
 		world.init(this);
@@ -111,9 +117,12 @@ public class AMazeIng extends Game {
 	public void resume() {
 		world.resume();
 	}
-	
+
 	public static AMazeIng getMain() {
 		return game;
 	}
 
+	public static enum Platform {
+		DESKTOP, ANDROID, IOS
+	}
 }

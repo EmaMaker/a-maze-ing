@@ -1,18 +1,25 @@
 package com.emamaker.amazeing.manager;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Set;
-
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Plane.PlaneSide;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.AMazeIng;
+import com.emamaker.amazeing.AMazeIng.Platform;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Set;
 
 public class GameManager {
 
@@ -23,6 +30,8 @@ public class GameManager {
 	public boolean showGame = true;
 	public boolean anyoneWon = false;
 
+	public Stage stage;
+
 	Random rand = new Random();
 
 	GameType type = GameType.LOCAL;
@@ -32,38 +41,50 @@ public class GameManager {
 	public GameManager(Game main_, GameType t) {
 		main = (AMazeIng) main_;
 		gameStarted = false;
-		// Maze Generation
 
 		type = t;
 		setShowGame(type != GameType.SERVER);
 
 		mazeGen = new MazeGenerator(main, MazeSettings.MAZEX, MazeSettings.MAZEZ);
+		stage = new Stage(new ScreenViewport());
 	}
 
 	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
 
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
+
+		AMazeIng.getMain().multiplexer.removeProcessor(stage);
+
 		anyoneWon = false;
 
-		if (pl != null) {
-			for (MazePlayer p : players)
-				if (!pl.contains(p))
-					toDelete.add(p);
+		if(AMazeIng.PLATFORM == Platform.DESKTOP) {
+			if (pl != null) {
+				for (MazePlayer p : players)
+					if (!pl.contains(p))
+						toDelete.add(p);
 
-			// Check if new players have to be added
-			for (MazePlayer p : pl)
-				if (!players.contains(p))
-					players.add(p);
+				// Check if new players have to be added
+				for (MazePlayer p : pl)
+					if (!players.contains(p))
+						players.add(p);
 
-			// Fianlly delete players. A separated step is needed to remove the risk of a
-			// ConcurrentModificationException
-			for (MazePlayer p : toDelete) {
-				p.dispose();
-				players.remove(p);
+				// Fianlly delete players. A separated step is needed to remove the risk of a
+				// ConcurrentModificationException
+				for (MazePlayer p : toDelete) {
+					p.dispose();
+					players.remove(p);
+				}
+				toDelete.clear();
 			}
-			toDelete.clear();
+		}else{
+			for (MazePlayer p : players) {
+				p.dispose();
+			}
+			players.clear();
+			players.addAll(pl);
 		}
+
 
 		for (int i = 0; i < MazeSettings.MAZEX; i++) {
 			for (int j = 0; j < 2; j++) {
@@ -88,9 +109,19 @@ public class GameManager {
 		resetCamera();
 
 		gameStarted = true;
+
+		stage.clear();
+		if (AMazeIng.PLATFORM == Platform.ANDROID)
+			for (MazePlayer p : players) {
+				if (p instanceof MazePlayerLocal)
+					stage.addActor(((MazePlayerLocal) p).tctrl);
+			}
+
+		AMazeIng.getMain().multiplexer.addProcessor(stage);
 	}
 
 	public void update() {
+
 		if (gameStarted && !anyoneWon) {
 
 			if (getShowGame()) {
@@ -98,6 +129,10 @@ public class GameManager {
 				resetCamera();
 				setCamera(new Vector3(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2),
 						new Vector3(0, -90, 0));
+
+				stage.act();
+				stage.draw();
+
 			}
 
 			main.world.modelBatch.begin(main.world.cam);
@@ -123,12 +158,13 @@ public class GameManager {
 					main.setScreen(main.uiManager.playersScreen);
 				} else if (type == GameType.SERVER) {
 
-					((PreGameScreen)main.uiManager.preGameScreen)
-							.setGameType(GameType.SERVER);
+					((PreGameScreen) main.uiManager.preGameScreen).setGameType(GameType.SERVER);
 					main.setScreen(main.uiManager.preGameScreen);
 				}
 			}
+
 			main.world.modelBatch.end();
+
 		}
 	}
 
