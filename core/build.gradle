@@ -1,0 +1,11 @@
+apply plugin: "java"
+
+sourceCompatibility = 1.7
+dependencies {
+    implementation files('/home/emamaker/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
+}
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+eclipse.project.name = appName + "-core"
