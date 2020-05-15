@@ -110,7 +110,6 @@ public class ServerLaunchScreen extends MyScreen {
 				if(uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()))) {
 					// If the server and the client have been started successfully, we can show the
 					// joining screen
-
 					MazeSettings.setPlayers.setOptions(MazeSettings.maxPlayersDesktop, 3);
 
 					uiManager.preGameScreen.setGameType(GameType.SERVER);

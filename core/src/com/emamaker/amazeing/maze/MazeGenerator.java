@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import com.emamaker.amazeing.AMazeIng;
-import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.voxelengine.block.CellId;
 

@@ -42,17 +42,6 @@ public class MazeSetting {
 		this.uiManager = uiManager_;
 		setOptions(options_, defaultOption);
 
-
-		//Build the Table which will be later used to add this to the screen
-		table = new Table();
-		nameLabel = new Label(this.name, uiManager.skin);
-		currentOptLabel = new Label(this.options[currentOption], uiManager.skin);
-		backBtn = new TextButton("<", uiManager.skin);
-		forthBtn = new TextButton(">", uiManager.skin);
-		resetBtn = new TextButton("R", uiManager.skin);
-
-
-		
 		update();
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {

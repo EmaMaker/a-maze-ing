@@ -213,12 +213,6 @@ public class SettingsScreen extends MyScreen {
 			table.row().colspan(2);
 			table.add(s.getTable());
         }
-		/*table.row().colspan(2);
-		table.add(MazeSettings.setDim.getTable());
-		table.row().colspan(2);
-		table.add(MazeSettings.setPlayers.getTable());
-		table.row().colspan(2);
-		table.add(MazeSettings.setEpDist.getTable());*/
 		
 		return table;
 	}

@@ -36,8 +36,8 @@ public class UIManager {
 	public void setupScreens() {
 		//Load all the screens after loading the skin
 		titleScreen = new TitleScreen(this);
-		setScreen = new SettingsScreen(this);
 		playersScreen = new PlayerChooseScreen(this);
+		setScreen = new SettingsScreen(this);
 		srvJoinScreen = new ServerJoinScreen(this);
 		srvLaunchScreen = new ServerLaunchScreen(this);
 		preGameScreen = new PreGameScreen(this);

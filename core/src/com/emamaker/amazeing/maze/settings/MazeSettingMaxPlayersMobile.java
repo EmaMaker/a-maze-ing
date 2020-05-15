@@ -1,6 +1,5 @@
 package com.emamaker.amazeing.maze.settings;
 
-import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class MazeSettingMaxPlayersMobile extends MazeSetting{

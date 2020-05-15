@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -268,6 +267,7 @@ public class GameClient {
 						}
 					}
 				}else{
+					//Search for mobile players
 					if(updateMobilePlayers){
 						for(int i = 0; i < MazeSettings.MAXPLAYERS; i++) {
 							p = PlayerUtils.getPlayerWithTouchCtrl(i, new HashSet<>(players.values()));
@@ -290,7 +290,6 @@ public class GameClient {
 						updateMobilePlayers = false;
 					}
 				}
-				//Search for mobile players
 			}
 		}
 	}

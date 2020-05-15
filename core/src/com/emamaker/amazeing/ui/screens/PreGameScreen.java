@@ -1,10 +1,5 @@
 package com.emamaker.amazeing.ui.screens;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
@@ -12,14 +7,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameType;
-import com.emamaker.amazeing.manager.network.NetworkCommon;
-import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
-import com.emamaker.amazeing.player.MazePlayerLocal;
-import com.emamaker.amazeing.player.PlayerUtils;
 import com.emamaker.amazeing.ui.UIManager;
 
 public class PreGameScreen extends MyScreen {
@@ -57,8 +47,6 @@ public class PreGameScreen extends MyScreen {
 		firstRowContainer = new Container<Table>();
 
 		instLab = new Label("Waiting for players to join...", uiManager.skin);
-
-
 		mobileLab1 = new Label("Remote Players: ", uiManager.skin);
 
 		backBtn = new TextButton("<", uiManager.skin);
@@ -171,7 +159,6 @@ public class PreGameScreen extends MyScreen {
 				labels[i] = new Label("-- empty slot --", uiManager.skin);
 			}
 		}
-		
 		firstRowContainer.setSize(cw, ch * 0.2f);
 		firstRowContainer.setPosition(tableContainer.getX(), ch * 0.1f);
 		firstRowContainer.fill();

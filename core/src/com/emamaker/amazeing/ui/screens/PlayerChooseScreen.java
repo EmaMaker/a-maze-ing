@@ -1,5 +1,8 @@
 package com.emamaker.amazeing.ui.screens;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -13,15 +16,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.AMazeIng.Platform;
-import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.PlayerUtils;
 import com.emamaker.amazeing.ui.UIManager;
-
-import java.util.ArrayList;
-import java.util.HashSet;
 
 public class PlayerChooseScreen extends MyScreen {
 
@@ -143,14 +142,12 @@ public class PlayerChooseScreen extends MyScreen {
         totalPlayers = 0;
 
         if (AMazeIng.PLATFORM == Platform.DESKTOP) {
-
             labels = new Label[MazeSettings.MAXPLAYERS];
             // Labels to know if players joined
             for (int i = 0; i < labels.length; i++) {
                 labels[i] = new Label("-- empty slot --", uiManager.skin);
             }
         } else {
-
             buttons = new CheckBox[MazeSettings.MAXPLAYERS];
             // Labels to know if players joined
             for (int i = 0; i < buttons.length; i++) {

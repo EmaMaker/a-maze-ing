@@ -81,7 +81,6 @@ public class TitleScreen extends MyScreen {
 				hide();
 
                 MazeSettings.setPlayers.setOptions(MazeSettings.maxPlayersDesktop, 2);
-
                 uiManager.main.setScreen(uiManager.srvLaunchScreen);
 				return true;
 			}
@@ -136,8 +135,6 @@ public class TitleScreen extends MyScreen {
 		table.row().colspan(1);
 		table.add(amazeingLab).spaceBottom(spaceBetweenBtns * 3);
 		table.row();
-		//table.add(setBut).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
-		//table.row();
 		table.add(makeSrvBtn).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);
 		table.row();
 		table.add(joinSrvBtn).spaceBottom(spaceBetweenBtns).height(btnHeight).width(btnWidth);

@@ -95,8 +95,8 @@ public class GameManager {
 		mazeGen.generateMaze();
 
 		if (type != GameType.CLIENT) {
-			mazeGen.setupEndPoint();
 			spreadPlayers();
+			mazeGen.setupEndPoint();
 		}
 
 		if (todraw != null && showGame == true) {
