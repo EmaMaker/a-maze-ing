@@ -15,9 +15,9 @@ public class MazeGenerator {
 	Cell currentCell;
 	Cell[][] cellsGrid;
 	ArrayList<Cell> stack = new ArrayList<Cell>();
-	public int[][] todraw;
+	public static int[][] todraw;
 
-	public int w, h, W, H;
+	public static int w, h, W, H;
 	public int WINX = Integer.MAX_VALUE, WINZ = Integer.MAX_VALUE;
 	public int OLDMAZEX, OLDMAZEZ;
 
@@ -234,15 +234,15 @@ public class MazeGenerator {
 
 	public void show(int[][] todraw_) {
 
-		for (int j = 0; j < OLDMAZEX+2; j++) {
-			for (int i = 0; i < OLDMAZEZ+2; i++) {
+		for (int j = 0; j < OLDMAZEX + 2; j++) {
+			for (int i = 0; i < OLDMAZEZ + 2; i++) {
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_AIR);
 				main.world.worldManager.setCell(i, 1, j, CellId.ID_AIR);
 			}
 		}
 		OLDMAZEX = MazeSettings.MAZEX;
 		OLDMAZEZ = MazeSettings.MAZEZ;
-		
+
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				todraw[i][j] = todraw_[i][j];
@@ -258,6 +258,19 @@ public class MazeGenerator {
 					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
 				}
 			}
+		}
+	}
+	
+	public static int[][] changeMap(int[][] tmp, int x, int z, int type) {
+		if(x > 0 && x < w - 1 && z > 0 && z < h - 1 && todraw[x][z] != 2) tmp[x][z] = type;
+		return tmp;
+	}
+
+	public void requestChangeToMap(int[][] todraw_) {
+		if(AMazeIng.getMain().client.isRunning()) {
+			AMazeIng.getMain().client.requestUpdateMap(todraw_);
+		}else {
+			show(todraw_);
 		}
 	}
 

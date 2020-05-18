@@ -90,14 +90,7 @@ task run(type: Exec) {
 }
 
 dependencies {
-    implementation files('/home/emamaker/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
-<<<<<<< HEAD
+    implementation files('/srv/nfs/home/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
 }
 
-
-=======
-    implementation files('/home/emamaker/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
-}
-
->>>>>>> 98d66880a8d39751df9c3f47d8728c913b0851c6
 eclipse.project.name = appName + "-android"

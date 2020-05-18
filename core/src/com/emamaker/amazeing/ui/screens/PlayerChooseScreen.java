@@ -3,8 +3,6 @@ package com.emamaker.amazeing.ui.screens;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -210,12 +208,10 @@ public class PlayerChooseScreen extends MyScreen {
     public void update() {
         // Consantly search for new players to be added
         // First search for keyboard players (WASD and ARROWS)
-        if (Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A)
-                || Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D))
-            PlayerUtils.togglePlayerWithKeys(players, Keys.W, Keys.S, Keys.A, Keys.D);
-        if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
-                || Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT))
-            PlayerUtils.togglePlayerWithKeys(players, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT);
+        if (PlayerUtils.wasdPressed())
+            PlayerUtils.togglePlayerWithKeys(players, PlayerUtils.WASDKEYS);
+        if (PlayerUtils.arrowsPressed())
+            PlayerUtils.togglePlayerWithKeys(players, PlayerUtils.ARROWKEYS);
 
 //		for (Controller c : Controllers.getControllers()) {
 //			System.out.println(c.getButton(Xbox.A));

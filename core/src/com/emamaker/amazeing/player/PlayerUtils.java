@@ -4,10 +4,27 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.controllers.Controller;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 
 public class PlayerUtils {
+
+	public static int[] WASDKEYS = {Keys.W, Keys.S, Keys.A, Keys.D, Keys.SPACE};
+	public static int[] ARROWKEYS = {Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT, Keys.SHIFT_RIGHT};
+	
+	public static boolean wasdPressed() {
+		for(int i : WASDKEYS) 
+			if(Gdx.input.isKeyJustPressed(i)) return true;
+		return false;
+	}
+	public static boolean arrowsPressed() {
+		for(int i : ARROWKEYS) 
+			if(Gdx.input.isKeyJustPressed(i)) return true;
+		return false;
+	}
+	
 	
 	/*Utility function to add and remove players from arrays when organizing as game*/
 

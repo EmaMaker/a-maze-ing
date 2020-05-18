@@ -12,6 +12,7 @@ import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.manager.network.GameClient;
 import com.emamaker.amazeing.manager.network.GameServer;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
+import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.emamaker.amazeing.ui.UIManager;
 import com.emamaker.voxelengine.VoxelWorld;
 
@@ -24,7 +25,7 @@ public class AMazeIng extends Game {
 	Random rand = new Random();
 
 	public UIManager uiManager;
-	public GameManager gameManager;
+	public GameManager gameManager, currentGameManager;
 	public MazeSettings settings;
 	public InputMultiplexer multiplexer = new InputMultiplexer();
 
@@ -64,6 +65,7 @@ public class AMazeIng extends Game {
 		generated = false;
 		setupGUI();
 		setupGameManager();
+		setupPowerUps();
 	}
 
 	public void setupGUI() {
@@ -80,8 +82,11 @@ public class AMazeIng extends Game {
 		server = new GameServer(this);
 		client = new GameClient(this);
 	}
-
-	float delta;
+	
+	public void setupPowerUps() {
+		System.out.println("Setting up PowerUps");
+		new PowerUps();
+	}
 
 	@Override
 	public void render() {

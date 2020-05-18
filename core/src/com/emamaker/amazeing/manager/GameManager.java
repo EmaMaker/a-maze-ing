@@ -14,6 +14,8 @@ import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
+import com.emamaker.amazeing.player.powerups.PowerUp;
+import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
@@ -34,6 +36,10 @@ public class GameManager {
 	GameType type = GameType.LOCAL;
 
 	public ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
+	public ArrayList<PowerUp> powerups = new ArrayList<PowerUp>();
+	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+
+	PowerUp pup;
 
 	public GameManager(Game main_, GameType t) {
 		main = (AMazeIng) main_;
@@ -46,8 +52,6 @@ public class GameManager {
 		stage = new Stage(new ScreenViewport());
 	}
 
-	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
-
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 
@@ -55,7 +59,7 @@ public class GameManager {
 
 		anyoneWon = false;
 
-		if(AMazeIng.PLATFORM == Platform.DESKTOP) {
+		if (AMazeIng.PLATFORM == Platform.DESKTOP) {
 			if (pl != null) {
 				for (MazePlayer p : players)
 					if (!pl.contains(p))
@@ -74,14 +78,12 @@ public class GameManager {
 				}
 				toDelete.clear();
 			}
-		}else{
-			for (MazePlayer p : players) {
+		} else {
+			for (MazePlayer p : players)
 				p.dispose();
-			}
 			players.clear();
 			players.addAll(pl);
 		}
-
 
 		for (int i = 0; i < MazeSettings.MAZEX; i++) {
 			for (int j = 0; j < 2; j++) {
@@ -97,6 +99,8 @@ public class GameManager {
 		if (type != GameType.CLIENT) {
 			spreadPlayers();
 			mazeGen.setupEndPoint();
+			powerups.clear();
+			spawnPowerUps();
 		}
 
 		if (todraw != null && showGame == true) {
@@ -112,14 +116,17 @@ public class GameManager {
 			for (MazePlayer p : players) {
 				if (p instanceof MazePlayerLocal)
 					stage.addActor(((MazePlayerLocal) p).tctrl);
+					stage.addActor(((MazePlayerLocal) p).touchpadPowerUp);
 			}
 
 		AMazeIng.getMain().multiplexer.addProcessor(stage);
 	}
 
 	public void update() {
+		main.currentGameManager = this;
 
 		if (gameStarted && !anyoneWon) {
+			pup = null;
 
 			if (getShowGame()) {
 				main.world.render();
@@ -133,10 +140,27 @@ public class GameManager {
 			}
 
 			main.world.modelBatch.begin(main.world.cam);
+			if (getShowGame())
+				for (PowerUp p : powerups)
+					p.render(main.world.modelBatch, main.world.environment);
+
 			if (players != null) {
 				for (MazePlayer p : players) {
-					if (getShowGame() && !p.isDisposed())
-						p.render(main.world.modelBatch, main.world.environment);
+					if (!p.isDisposed()) {
+						// Check if there's a power-up in the same spot, if so give it to the player
+						for (PowerUp p1 : powerups)
+							if ((int) p1.getPosition().x == (int) p.getPos().x
+									&& (int) p1.getPosition().z == (int) p.getPos().z) {
+								pup = p1;
+								p.currentPowerUp = pup;
+								break;
+							}
+						if (pup != null)
+							powerups.remove(pup);
+
+						if (getShowGame())
+							p.render(main.world.modelBatch, main.world.environment);
+					}
 
 					anyoneWon = false;
 					if (type != GameType.CLIENT) {
@@ -161,7 +185,6 @@ public class GameManager {
 			}
 
 			main.world.modelBatch.end();
-
 		}
 	}
 
@@ -176,6 +199,21 @@ public class GameManager {
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPlaying();
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
+		}
+	}
+
+	public void spawnPowerUps() {
+
+		for (int i = 0; i < MazeSettings.START_POWERUPS; i++) {
+			PowerUp p = PowerUps.pickRandomPU();
+			int x = 1, z = 1;
+			do {
+				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
+				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
+			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z) || thereIsPowerUpInPos(x, z));
+			p.setPosition(x + 0.5f, 1.25f, z + 0.5f);
+			powerups.add(p);
+			System.out.println("Spawning power-up in " + x + ", " + z);
 		}
 
 	}
@@ -212,6 +250,14 @@ public class GameManager {
 		return false;
 	}
 
+	public boolean thereIsPowerUpInPos(int x, int z) {
+		for (PowerUp p : powerups) {
+			if ((int) p.getPosition().x == x || (int) p.getPosition().z == z)
+				return true;
+		}
+		return false;
+	}
+
 	public boolean areTherePlayersNearby(int x, int z, int range) {
 		int i, k;
 		for (MazePlayer p : players) {
@@ -221,8 +267,15 @@ public class GameManager {
 			if ((x - i) * (x - i) + (k - z) * (k - z) <= range * range)
 				return true;
 		}
-
 		return false;
+	}
+
+	public MazePlayer getRandomPlayer() {
+		return players.get(Math.abs(rand.nextInt() % players.size()));
+	}
+
+	public void requestChangeToMap(int[][] todraw) {
+		mazeGen.requestChangeToMap(todraw);
 	}
 
 	public void resetCamera() {

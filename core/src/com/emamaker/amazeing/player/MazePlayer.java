@@ -16,6 +16,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
+import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.voxelengine.physics.GameObject;
 
 public abstract class MazePlayer implements Disposable {
@@ -37,6 +38,13 @@ public abstract class MazePlayer implements Disposable {
 	boolean playing = false;
 	boolean show = true;
 	public String uuid;
+	public PowerUp currentPowerUp;
+	
+	public float baseSpeed = 3f;
+	public float baseTurnSpeed = 2.5f;
+	public float speedMult = 1f;
+	public float speed;
+	public float turnSpeed;
 
 	Vector3 pos = new Vector3();
 	Quaternion rot = new Quaternion();
@@ -115,6 +123,16 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	public void update() {
+		speed = baseSpeed * speedMult;
+		turnSpeed = baseTurnSpeed * speedMult;
+		
+		if(currentPowerUp != null && currentPowerUp.continousEffect) usePowerUp();
+	}
+	
+	public void usePowerUp() {
+		if (currentPowerUp != null && !currentPowerUp.beingUsed)
+			if (currentPowerUp.usePowerUp(this))
+				currentPowerUp = null;
 	}
 
 	@Override

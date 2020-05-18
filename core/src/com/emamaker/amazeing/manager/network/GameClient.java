@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
@@ -240,29 +238,26 @@ public class GameClient {
 				// Consantly search for new players to be added
 				if(AMazeIng.PLATFORM == AMazeIng.Platform.DESKTOP) {
 					// Search for keyboard players (WASD and ARROWS) on Desktop
-					if (Gdx.input.isKeyJustPressed(Keys.W) || Gdx.input.isKeyJustPressed(Keys.A)
-							|| Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.D)) {
-						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), Keys.W, Keys.S, Keys.A, Keys.D);
+					if (PlayerUtils.wasdPressed()) {
+						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.WASDKEYS);
 						if (p != null) {
 							RemovePlayer msg = new RemovePlayer();
 							msg.uuid = p.uuid;
 							client.sendTCP(msg);
 						} else {
-							localPlrQueue.add(new MazePlayerLocal(Keys.W, Keys.S, Keys.A, Keys.D));
+							localPlrQueue.add(new MazePlayerLocal(PlayerUtils.WASDKEYS));
 							client.sendTCP(new LoginAO());
 						}
 					}
 
-					if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.LEFT)
-							|| Gdx.input.isKeyJustPressed(Keys.DOWN) || Gdx.input.isKeyJustPressed(Keys.RIGHT)) {
-						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), Keys.UP, Keys.DOWN, Keys.LEFT,
-								Keys.RIGHT);
+					if (PlayerUtils.arrowsPressed()) {
+						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.ARROWKEYS);
 						if (p != null) {
 							RemovePlayer msg = new RemovePlayer();
 							msg.uuid = p.uuid;
 							client.sendTCP(msg);
 						} else {
-							localPlrQueue.add(new MazePlayerLocal(Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT));
+							localPlrQueue.add(new MazePlayerLocal( PlayerUtils.ARROWKEYS));
 							client.sendTCP(new LoginAO());
 						}
 					}
@@ -310,6 +305,10 @@ public class GameClient {
 
 			client.sendTCP(pu);
 		}
+	}
+	
+	public void requestUpdateMap(int[][] tmpMap) {
+		
 	}
 
 	public void setUpdateMobilePlayers(){
