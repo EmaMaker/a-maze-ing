@@ -3,294 +3,298 @@ package com.emamaker.amazeing.manager.network;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.emamaker.amazeing.AMazeIng;
-import com.emamaker.amazeing.manager.GameManager;
-import com.emamaker.amazeing.manager.GameType;
+import com.emamaker.amazeing.manager.managers.GameManagerClient;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
-import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
-import com.emamaker.amazeing.manager.network.NetworkCommon.JustConnected;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateSettings;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransformServer;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 import com.emamaker.amazeing.player.PlayerUtils;
-import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 
-public class GameClient {
+public class GameClient extends NetworkHandler {
 
-	public AMazeIng main;
-	volatile boolean clientRunning = false;
+	Client client;
+	String addr;
 
-	public String addr;
-	public int port;
+	boolean updateMobilePlayers = false;
 
 	boolean startGame = false;
-	boolean showPreGame = false;
-	boolean updateMobilePlayers = false;
 	String map = "";
 
-	// Hashtable of players present in the match
-	public Hashtable<String, MazePlayer> players = new Hashtable<>();
-	ArrayList<MazePlayer> localPlrQueue = new ArrayList<MazePlayer>();
+	ArrayList<String> localPlayers = new ArrayList<String>();
 
-	volatile HashSet<String> toAdd = new HashSet<>();
-	volatile HashSet<String> toRemove = new HashSet<>();
-
-	public GameManager gameManager;
-	Client client;
-
-	public GameClient(AMazeIng main_) {
-		main = main_;
-	}
-
+	// Returns true if the server started successfully
 	public boolean start(String addr_, int port_) {
-		port = port_;
 		addr = addr_;
-
-		clientRunning = true;
-		startGame = false;
-		client = new Client();
-		client.start();
-
-		NetworkCommon.register(client);
-
-		client.addListener(new Listener() {
-			public void connected(Connection connection) {
-			}
-
-			public void received(Connection connection, Object object) {
-				if (object instanceof LoginAO2) {
-					localPlrQueue.get(0).uuid = ((LoginAO2) object).uuid;
-					toAdd.add("Local" + localPlrQueue.get(0).uuid);
-					client.sendTCP(object);
-
-					System.out.println("Received UUID " + localPlrQueue.get(0).uuid + " for player "
-							+ localPlrQueue.get(0) + " giving confirmation");
-
-					// When we receive the connection accept from the server, we can show the
-					// pre-game screen listing the players' names, setting this flag to let the main
-					// thread to it
-					showPreGame = true;
-				} else if (object instanceof AddNewPlayer) {
-					AddNewPlayer msg = (AddNewPlayer) object;
-					if (!players.containsKey(msg.uuid) && !toAdd.contains("Local" + msg.uuid)) {
-						toAdd.add("Remote" + msg.uuid);
-						System.out
-								.println("Remote player with uuid " + msg.uuid.toString() + " has joined the game :)");
-					}
-				} else if (object instanceof RemovePlayer) {
-					RemovePlayer msg = (RemovePlayer) object;
-					if (players.containsKey(msg.uuid)) {
-						toRemove.add(msg.uuid);
-						System.out.println("Player with uuid " + msg.uuid.toString() + " is leaving the game :(");
-					} else {
-						System.out.println("Player remove received, but I don't know that player :/");
-					}
-				} else if (object instanceof NetworkCommon.UpdatePlayerTransformServer) {
-					NetworkCommon.UpdatePlayerTransformServer s = (NetworkCommon.UpdatePlayerTransformServer) object;
-					System.out.println("Received a forced position update for self!");
-					if (players.containsKey(s.uuid)) {
-						players.get(s.uuid).setPlaying();
-						players.get(s.uuid).setTransform(s.tx, s.ty, s.tz, s.rx, s.ry, s.rz, s.rw);
-					}
-				} else if (object instanceof UpdatePlayerTransform) {
-					UpdatePlayerTransform msg = (UpdatePlayerTransform) object;
-					if (players.containsKey(msg.uuid) && players.get(msg.uuid) instanceof MazePlayerRemote) {
-						players.get(msg.uuid).setPlaying();
-						players.get(msg.uuid).setTransform(msg.tx, msg.ty, msg.tz, msg.rx, msg.ry, msg.rz, msg.rw);
-					}
-				} else if (object instanceof UpdateMap) {
-					map = ((UpdateMap) object).map;
-					System.out.println("Map update!");
-				} else if (object instanceof StartGame) {
-					startGame = true;
-					map = ((StartGame) object).map;
-					System.out.println("Starting the online game!");
-				} else if (object instanceof EndGame) {
-					System.out.println("EndGame Received!");
-					if (gameManager != null) {
-						gameManager.gameStarted = false;
-						gameManager.anyoneWon = true;
-						showPreGame = true;
-					}
-				} else if (object instanceof UpdateSettings) {
-					System.out.println("Update received for setting n." + ((UpdateSettings) object).index);
-					if (!main.server.isRunning()) {
-						MazeSettings.settings.get(((UpdateSettings) object).index)
-								.parseOptionString(((UpdateSettings) object).value);
-					}else {
-						System.out.println("Ignoring settings update since we are running on a server");
-					}
-					
-					//We don't mind if we are client or server, just set the flag to update pregamescreen
-					showPreGame = true;
-				}
-			}
-
-			public void disconnected(Connection connection) {
-				toRemove.addAll(players.keySet());
-			}
-		});
-
+		port = port_;
+		running = true;
 		try {
-			client.connect(5000, addr, port);
-			System.out.println("Connecting to server...");
-			// Tell the server you just connected, but still no players have to be add
-			client.sendTCP(new JustConnected());
-			return true;
-			// Server communication after connection can go here, or in
-			// Listener#connected().
-		} catch (
+			client = new Client();
 
-		IOException ex) {
-			ex.printStackTrace();
+			// For consistency, the classes to be sent over the network are
+			// registered by the same method for both the client and server.
+			NetworkCommon.register(client);
+			client.start();
+			client.addListener(connectionListener);
+			client.connect(5000, addr, port, port + 1);
+
+			gameManager = new GameManagerClient();
+
+			if (AMazeIng.isMobile())
+				updateMobilePlayers = false;
+
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
 
-	// Update must be called from Main thread and used for applications on main
-	// thread
-	MazePlayerLocal p;
+	@Override
+	public boolean startGame() {
+		return false;
+	}
 
+	@Override
+	public void stop() {
+		if (running) {
+			for (String s : players.keySet()) {
+				if (players.get(s) instanceof MazePlayerLocal) {
+					RemovePlayer request = new RemovePlayer();
+					request.uuid = s;
+					client.sendTCP(request);
+				}
+				players.get(s).dispose();
+			}
+
+			players.clear();
+
+			client.stop();
+			running = false;
+		}
+	}
+
+	@Override
+	public void onLoginAO(Connection c) {
+	}
+
+	@Override
+	public void onLoginAO2(Connection c) {
+		String uuid = ((LoginAO2) message).uuid;
+		System.out.println(
+				"Server has responded with uuid " + uuid + ", assigning it to the first local player in queue");
+
+		// Accept uuid
+		if (!localPlrQueue.isEmpty()) {
+			players.put(uuid, localPlrQueue.get(0));
+			players.get(uuid).uuid = uuid;
+			localPlrQueue.remove(0);
+			localPlayers.add(uuid);
+
+			// Resend message to notify that uuid has been accepted
+			client.sendTCP(message);
+		}
+	}
+
+	@Override
+	public void onConnectionRefused(Connection c) {
+	}
+
+	@Override
+	public void onAddNewPlayer(Connection c) {
+		String uuid = ((AddNewPlayer) message).uuid;
+		if (!players.containsKey(uuid)) {
+			MazePlayerRemote player = new MazePlayerRemote(uuid);
+			players.put(uuid, player);
+		}
+	}
+
+	@Override
+	public void onRemovePlayer(Connection c) {
+		String uuid = ((RemovePlayer) message).uuid;
+		// Remove the player from the server
+		if (players.containsKey(uuid)) {
+			players.remove(uuid);
+			System.out.println("Player with UUID " + uuid + " is leaving the game :(");
+		}
+	}
+
+	@Override
+	public void onUpdateTransform(Connection c) {
+		String uuid = ((UpdatePlayerTransform) message).uuid;
+		if (players.containsKey(uuid) && !localPlayers.contains(uuid)) {
+
+			System.out.println("Updating player with uuid " + uuid);
+			players.get(uuid).setPos(((UpdatePlayerTransform) message).tx, ((UpdatePlayerTransform) message).ty,
+					((UpdatePlayerTransform) message).tz);
+		}
+	}
+
+	@Override
+	public void onUpdateTransformServer(Connection c) {
+		String uuid = ((UpdatePlayerTransformServer) message).uuid;
+		if (players.containsKey(uuid)) {
+			players.get(uuid).setPos(((UpdatePlayerTransformServer) message).tx,
+					((UpdatePlayerTransformServer) message).ty, ((UpdatePlayerTransformServer) message).tz);
+		}
+	}
+
+	@Override
+	public void onStartGame(Connection c) {
+		startGame = true;
+		map = ((StartGame) message).map;
+	}
+
+	@Override
+	public void onEndGame(Connection c) {
+		gameManager.setFinished();
+	}
+
+	@Override
+	public void onUpdateMap(Connection c) {
+	}
+
+	@Override
+	public void onUpdateSettings(Connection c) {
+	}
+
+	@Override
+	public void onConnected(Connection c) {
+	}
+
+	@Override
 	public void update() {
-		if (clientRunning) {
-			try {
-				for (String s : toAdd) {
-					if (!(players.containsKey(s.replace("Local", ""))
-							|| players.containsKey(s.replace("Remote", "")))) {
-						if (s.startsWith("Local")) {
-//							System.out.println(s + " | " + s.replace("Local", "") + " | " + localPlrQueue.get(0).uuid);
-							if (localPlrQueue.get(0) != null) {
-								players.put(s.replace("Local", ""), localPlrQueue.get(0));
-								System.out.println("Added local player " + localPlrQueue.get(0));
-								localPlrQueue.remove(0);
-							}
-						} else if (s.startsWith("Remote")) {
-							players.put(s.replace("Remote", ""), new MazePlayerRemote(s.replace("Remote", "")));
-						}
-					}
+		super.update();
+		if (gameManager != null) {
+			if (!gameManager.gameStarted) {
+				checkForNewPlayers();
+
+				if (startGame) {
+					gameManager.generateMaze(new HashSet<MazePlayer>(players.values()));
+					startGame = false;
 				}
-				toAdd.clear();
-				for (String s : toRemove) {
-					if (players.containsKey(s)) {
-						players.get(s).dispose();
-						players.remove(s);
-					}
-				}
-				toRemove.clear();
-			} catch (Exception e) {
-
-			}
-
-			if (showPreGame) {
-				// We are taking care of specifying what type of game we are running. Server is
-				// the server is running in the same instance, client if not
-				// In this way server host is shown the start game button.
-				if (!main.server.isRunning())
-					((PreGameScreen) main.uiManager.preGameScreen).setGameType(GameType.CLIENT);
-				main.setScreen(main.uiManager.preGameScreen);
-				showPreGame = false;
-			}
-
-			if (startGame) {
-				gameManager = new GameManager(main, GameType.CLIENT);
-
-				if (main.getScreen() != null) {
-					main.getScreen().hide();
-					main.setScreen(null);
-				}
-
-				for (MazePlayer p : players.values())
-					p.setPlaying();
-
-				gameManager.generateMaze(new HashSet<MazePlayer>(players.values()));
-				startGame = false;
-			}
-
-			if (gameManager != null) {
-				gameManager.update();
-
-				if (gameManager.gameStarted) {
+			} else {
+				if (!gameManager.anyoneWon) {
 					if (!map.equals("")) {
-						System.out.println("Setting map");
 						gameManager.mazeGen.show(gameManager.mazeGen.runLenghtDecode(map));
 						map = "";
 					}
-				}
-			}
-
-			if (gameManager == null || (gameManager != null && !gameManager.gameStarted)) {
-				// Consantly search for new players to be added
-				if(AMazeIng.PLATFORM == AMazeIng.Platform.DESKTOP) {
-					// Search for keyboard players (WASD and ARROWS) on Desktop
-					if (PlayerUtils.wasdPressed()) {
-						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.WASDKEYS);
-						if (p != null) {
-							RemovePlayer msg = new RemovePlayer();
-							msg.uuid = p.uuid;
-							client.sendTCP(msg);
-						} else {
-							localPlrQueue.add(new MazePlayerLocal(PlayerUtils.WASDKEYS));
-							client.sendTCP(new LoginAO());
-						}
-					}
-
-					if (PlayerUtils.arrowsPressed()) {
-						p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.ARROWKEYS);
-						if (p != null) {
-							RemovePlayer msg = new RemovePlayer();
-							msg.uuid = p.uuid;
-							client.sendTCP(msg);
-						} else {
-							localPlrQueue.add(new MazePlayerLocal( PlayerUtils.ARROWKEYS));
-							client.sendTCP(new LoginAO());
-						}
-					}
-				}else{
-					//Search for mobile players
-					if(updateMobilePlayers){
-						for(int i = 0; i < MazeSettings.MAXPLAYERS; i++) {
-							p = PlayerUtils.getPlayerWithTouchCtrl(i, new HashSet<>(players.values()));
-							if(i < MazeSettings.MAXPLAYERS_MOBILE){
-								//if yhe player wasn't there before, but wants to join: add it
-								if(p == null) {
-									localPlrQueue.add(new MazePlayerLocal(new Touchpad(0f, main.uiManager.skin), i));
-									client.sendTCP(new NetworkCommon.LoginAO());
-								}
-							}else {
-								//The player was there before, but has left: remove it
-								if (p != null && players.containsValue(p)) {
-									NetworkCommon.RemovePlayer msg = new NetworkCommon.RemovePlayer();
-									msg.uuid = p.uuid;
-									client.sendTCP(msg);
-								}
-								//Otherwise just do nothing
-							}
-						}
-						updateMobilePlayers = false;
-					}
+					for (String s : players.keySet())
+						if (localPlayers.contains(s))
+							updateLocalPlayerToServer((MazePlayerLocal) players.get(s));
 				}
 			}
 		}
 	}
 
-	public void updateLocalPlayer(MazePlayerLocal p) {
-		if (this.gameManager != null && this.gameManager.gameStarted && clientRunning && p.isPlaying()) {
+	/* CHECKING FOR NEW PLAYERS */
+	MazePlayerLocal p;
+	ArrayList<MazePlayerLocal> localPlrQueue = new ArrayList<MazePlayerLocal>();
+
+	private void checkForNewPlayers() {
+		checkForNewPlayersDesktop();
+		checkForNewPlayersMobile();
+	}
+
+	private void checkForNewPlayersDesktop() {
+		if (AMazeIng.isDesktop()) {
+			// Search for keyboard players (WASD and ARROWS) on Desktop
+			if (PlayerUtils.wasdPressed()) {
+				p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.WASDKEYS);
+				if (p != null) {
+					RemovePlayer msg = new RemovePlayer();
+					msg.uuid = p.uuid;
+					client.sendTCP(msg);
+				} else {
+					localPlrQueue.add(new MazePlayerLocal(PlayerUtils.WASDKEYS));
+					client.sendTCP(new LoginAO());
+				}
+			}
+
+			if (PlayerUtils.arrowsPressed()) {
+				p = PlayerUtils.getPlayerWithKeys(new HashSet<>(players.values()), PlayerUtils.ARROWKEYS);
+				if (p != null) {
+					RemovePlayer msg = new RemovePlayer();
+					msg.uuid = p.uuid;
+					client.sendTCP(msg);
+				} else {
+					localPlrQueue.add(new MazePlayerLocal(PlayerUtils.ARROWKEYS));
+					client.sendTCP(new LoginAO());
+				}
+			}
+		}
+	}
+
+	private void checkForNewPlayersMobile() {
+		if (AMazeIng.isMobile()) {
+			// Search for mobile players
+			if (updateMobilePlayers) {
+				for (int i = 0; i < MazeSettings.MAXPLAYERS; i++) {
+					p = PlayerUtils.getPlayerWithTouchCtrl(i, new HashSet<>(players.values()));
+					if (i < MazeSettings.MAXPLAYERS_MOBILE) {
+						// if yhe player wasn't there before, but wants to join: add it
+						if (p == null) {
+							localPlrQueue.add(new MazePlayerLocal(new Touchpad(0f, main.uiManager.skin), i));
+							client.sendTCP(new NetworkCommon.LoginAO());
+						}
+					} else {
+						// The player was there before, but has left: remove it
+						if (p != null && players.containsValue(p)) {
+							NetworkCommon.RemovePlayer msg = new NetworkCommon.RemovePlayer();
+							msg.uuid = p.uuid;
+							client.sendTCP(msg);
+						}
+						// Otherwise just do nothing
+					}
+				}
+				updateMobilePlayers = false;
+			}
+		}
+	}
+
+	@Override
+	public void onAddPowerUp(Connection c) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onRemovePowerUp(Connection c) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onAssignPowerUp(Connection c) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onStartUsingPowerUp(Connection c) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onEndUsingPowerUp(Connection c) {
+	}
+
+	public void updateLocalPlayerToServer(MazePlayerLocal p) {
+		if (this.gameManager != null && this.gameManager.gameStarted) {
 			UpdatePlayerTransform pu = new UpdatePlayerTransform();
 			Vector3 pos = p.ghostObject.getWorldTransform().getTranslation(new Vector3());
 			Quaternion rot = p.ghostObject.getWorldTransform().getRotation(new Quaternion());
@@ -303,38 +307,7 @@ public class GameClient {
 			pu.rw = rot.w;
 			pu.uuid = p.uuid;
 
-			client.sendTCP(pu);
-		}
-	}
-	
-	public void requestUpdateMap(int[][] tmpMap) {
-		
-	}
-
-	public void setUpdateMobilePlayers(){
-		updateMobilePlayers = true;
-	}
-
-	public boolean isRunning() {
-		return clientRunning;
-	}
-
-	public void stop() {
-		if (clientRunning) {
-			for (String s : players.keySet()) {
-				if (players.get(s) instanceof MazePlayerLocal) {
-					RemovePlayer request = new RemovePlayer();
-					request.uuid = s;
-					client.sendTCP(request);
-				}
-
-				players.get(s).dispose();
-			}
-
-			players.clear();
-
-			client.stop();
-			clientRunning = false;
+			client.sendUDP(pu);
 		}
 	}
 

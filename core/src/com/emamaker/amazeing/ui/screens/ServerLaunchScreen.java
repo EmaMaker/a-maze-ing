@@ -107,7 +107,7 @@ public class ServerLaunchScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				try {
-				if(uiManager.main.server.startServer(Integer.valueOf(srvPort.getText()))) {
+				if(uiManager.main.server.start(Integer.valueOf(srvPort.getText())) && uiManager.main.client.start("localhost", Integer.valueOf(srvPort.getText()))) {
 					// If the server and the client have been started successfully, we can show the
 					// joining screen
 					MazeSettings.setPlayers.setOptions(MazeSettings.maxPlayersDesktop, 3);

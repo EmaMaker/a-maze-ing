@@ -1,6 +1,7 @@
 package com.emamaker.amazeing.manager.network;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.EndPoint;
 
 public class NetworkCommon {
@@ -13,7 +14,6 @@ public class NetworkCommon {
 		kryo.register(LoginAO.class);
 		kryo.register(LoginAO2.class);
 		kryo.register(ConnectionRefused.class);
-		kryo.register(LoginUUID.class);
 		kryo.register(AddNewPlayer.class);
 		kryo.register(RemovePlayer.class);
 		kryo.register(UpdatePlayerTransform.class);
@@ -22,6 +22,12 @@ public class NetworkCommon {
 		kryo.register(EndGame.class);
 		kryo.register(UpdateMap.class);
 		kryo.register(UpdateSettings.class);
+		kryo.register(Present.class);
+		kryo.register(AddPowerUp.class);
+		kryo.register(RemovePowerUp.class);
+		kryo.register(AssignPowerUp.class);
+		kryo.register(StartUsingPowerUp.class);
+		kryo.register(EndUsingPowerUp.class);
 	}
 
 	//Login stuff
@@ -33,9 +39,6 @@ public class NetworkCommon {
 		String uuid;
 	}
 	public static class ConnectionRefused {
-		String uuid;
-	}
-	public static class LoginUUID {
 		String uuid;
 	}
 
@@ -55,6 +58,26 @@ public class NetworkCommon {
 		float tx, ty, tz, rx, ry, rz, rw;
 	}
 
+	//PowerUp stuff
+	public static class AddPowerUp {
+		String name;
+		float x,z;
+	}
+	public static class RemovePowerUp {
+		String uuid;
+		float x,z;
+	}
+	public static class AssignPowerUp {
+		String name, uuid;
+	}
+	public static class StartUsingPowerUp {
+		String name, uuid;
+	}
+	public static class EndUsingPowerUp {
+		String name, uuid;
+	}
+	
+	//Game
 	public static class StartGame{
 		//Use this to notify clients of a newly started game
 		//A Run-lenght-encoded representation of the map can be appended, this can be avoided but it's not recommended
@@ -74,4 +97,12 @@ public class NetworkCommon {
 		String value;
 	}
 	
+	public static class Present{
+		
+	}
+	
+}
+
+class ConnectionPlayer extends Connection {
+    public String uuid;
 }

@@ -1,11 +1,11 @@
 package com.emamaker.amazeing.maze;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.voxelengine.block.CellId;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MazeGenerator {
 
@@ -254,7 +254,6 @@ public class MazeGenerator {
 					WINX = i;
 					WINZ = j;
 
-					System.out.println("Win position in: " + i + ", " + j);
 					main.world.worldManager.setCell(i, 0, j, CellId.ID_WOOD);
 				}
 			}
@@ -268,7 +267,7 @@ public class MazeGenerator {
 
 	public void requestChangeToMap(int[][] todraw_) {
 		if(AMazeIng.getMain().client.isRunning()) {
-			AMazeIng.getMain().client.requestUpdateMap(todraw_);
+//			AMazeIng.getMain().client.requestUpdateMap(todraw_);
 		}else {
 			show(todraw_);
 		}

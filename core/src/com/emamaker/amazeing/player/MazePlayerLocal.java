@@ -73,7 +73,6 @@ public class MazePlayerLocal extends MazePlayer {
 		this.starty = starty;
 		this.startz = startz;
 
-		initPhysics();
 	}
 
 	public MazePlayerLocal(Controller ctrl_) {
@@ -96,7 +95,6 @@ public class MazePlayerLocal extends MazePlayer {
 		this.starty = starty;
 		this.startz = startz;
 
-		initPhysics();
 	}
 
 	public MazePlayerLocal(Touchpad ctrl_, int p) {
@@ -127,10 +125,10 @@ public class MazePlayerLocal extends MazePlayer {
 		touchpadPressed = false;
 
 		touchpadPowerUp = new TextButton("No object to use", AMazeIng.getMain().uiManager.skin);
-		
+
 		tctrl.setSize(Gdx.graphics.getHeight() / 6f, Gdx.graphics.getHeight() / 6f);
 		touchpadPowerUp.setSize(Gdx.graphics.getHeight() / 6f, Gdx.graphics.getHeight() / 12f);
-		
+
 		tctrl.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -169,16 +167,17 @@ public class MazePlayerLocal extends MazePlayer {
 		} else if (tctrlPosition == 2) {
 			tctrl.setPosition(Gdx.graphics.getWidth() - tctrl.getWidth() * 1.5f,
 					Gdx.graphics.getHeight() - tctrl.getHeight() * 1.5f);
-			touchpadPowerUp.setPosition(Gdx.graphics.getWidth() - tctrl.getWidth() * 1.5f, Gdx.graphics.getHeight() - tctrl.getHeight() *2.25f);
+			touchpadPowerUp.setPosition(Gdx.graphics.getWidth() - tctrl.getWidth() * 1.5f,
+					Gdx.graphics.getHeight() - tctrl.getHeight() * 2.25f);
 		} else if (tctrlPosition == 3) {
 			tctrl.setPosition(tctrl.getWidth() / 2, Gdx.graphics.getHeight() - tctrl.getHeight() * 1.5f);
 			touchpadPowerUp.setPosition(tctrl.getWidth() / 2, Gdx.graphics.getHeight() - tctrl.getHeight() * 2.25f);
 		}
 
-		initPhysics();
 	}
 
 	public void initPhysics() {
+		super.initPhysics();
 		characterTransform = instance.transform; // Set by reference
 		characterTransform.set(startx, starty, startz, 0, 0, 0, 0);
 
@@ -211,8 +210,8 @@ public class MazePlayerLocal extends MazePlayer {
 		else
 			inputTouchscreen();
 
-		if (pressed)
-			main.client.updateLocalPlayer(this);
+//		if (pressed)
+//			main.client.updateLocalPlayer(this);
 	}
 
 	public void inputController() {
@@ -250,7 +249,8 @@ public class MazePlayerLocal extends MazePlayer {
 	public void inputTouchscreen() {
 		if (touchpadPressed) {
 			touchpadPowerUp.setText("No object to use");
-			if(currentPowerUp != null) touchpadPowerUp.setText(currentPowerUp.name.toUpperCase() + "!");
+			if (currentPowerUp != null)
+				touchpadPowerUp.setText(currentPowerUp.name.toUpperCase() + "!");
 			// characterTransform.rotate(0, 1, 0, angle-oldAngle);
 			// ghostObject.setWorldTransform(characterTransform);
 
@@ -280,31 +280,29 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void update() {
 		super.update();
-		inputs();
+		if(initedPhysics) inputs();
 	}
 
 	@Override
-	public Vector3 getPos() {
-		if (!disposing) {
-			return ghostObject.getWorldTransform().getTranslation(new Vector3());
-		}
-		return null;
+	protected void updateFromTmpPos() {
+		super.updateFromTmpPos();
+		if(initedPhysics) pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
 	}
 
-	@Override
-	public void setPos(Vector3 v) {
-		this.setPos(v.x, v.y, v.z);
-	}
-
-	@Override
-	public void setPos(float x, float y, float z) {
-		if (!disposing)
-			setTransform(x, y, z, 0, 0, 0, 0);
-	}
+//	@Override
+//	public void setPos(Vector3 v) {
+//		this.setPos(v.x, v.y, v.z);
+//	}
+//
+//	@Override
+//	public void setPos(float x, float y, float z) {
+//		if (!disposed)
+//			setTransform(x, y, z, 0, 0, 0, 0);
+//	}
 
 	@Override
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposing) {
+		if (!disposed && initedPhysics) {
 			characterTransform.set(x, y, z, i, j, k, l);
 			ghostObject.setWorldTransform(characterTransform);
 		}
@@ -313,7 +311,6 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void dispose() {
 		super.dispose();
-		disposing = true;
 		if (!isDisposed()) {
 			main.world.dynamicsWorld.removeAction(characterController);
 			main.world.dynamicsWorld.removeCollisionObject(ghostObject);
@@ -322,7 +319,6 @@ public class MazePlayerLocal extends MazePlayer {
 			ghostShape.dispose();
 			disposed = true;
 		}
-		disposing = false;
 	}
 
 }

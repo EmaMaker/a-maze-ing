@@ -1,7 +1,5 @@
 package com.emamaker.amazeing.player;
 
-import java.util.Random;
-
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -19,6 +17,8 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.voxelengine.physics.GameObject;
 
+import java.util.Random;
+
 public abstract class MazePlayer implements Disposable {
 
 	AMazeIng main;
@@ -33,13 +33,15 @@ public abstract class MazePlayer implements Disposable {
 	static int meshAttr = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
 	public GameObject obj;
 	String name = "";
-	boolean disposing = false;
 	boolean disposed = false;
-	boolean playing = false;
+	boolean built = false;
 	boolean show = true;
+	boolean initedPhysics = false;
+	boolean toUpdatePos = false;
+
 	public String uuid;
 	public PowerUp currentPowerUp;
-	
+
 	public float baseSpeed = 3f;
 	public float baseTurnSpeed = 2.5f;
 	public float speedMult = 1f;
@@ -51,17 +53,14 @@ public abstract class MazePlayer implements Disposable {
 
 	MazePlayer(boolean s) {
 		this(String.valueOf((char) (65 + rand.nextInt(26))), s);
-		disposing = false;
 		disposed = false;
-		playing = false;
 	}
 
 	MazePlayer(String name, boolean s) {
 		main = AMazeIng.getMain();
 		show = s;
 		setName(name);
-		if (show)
-			buildModel();
+		built = false;
 	}
 
 	public Vector3 getPos() {
@@ -72,27 +71,30 @@ public abstract class MazePlayer implements Disposable {
 		return rot;
 	}
 
-	public void setPlaying() {
-		disposing = false;
-		playing = true;
-	}
-
 	public void setPos(Vector3 v) {
-		if (!disposing)
-			setPos(v.x, v.y, v.z);
+		setPos(v.x, v.y, v.z);
 	}
 
 	public void setPos(float x, float y, float z) {
-		if (!disposing)
-			setTransform(x, y, z, 0, 0, 0, 0);
+		if (!disposed) {
+			pos.set(x, y, z);
+			toUpdatePos = true;
+		}
 	}
 
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposing && !disposed) {
+		if (!disposed) {
 			pos.set(x, y, z);
 			rot.set(i, j, k, l);
 			if (show)
 				instance.transform.set(x, y, z, i, j, k, l);
+		}
+	}
+
+	protected void updateFromTmpPos() {
+		if (toUpdatePos && initedPhysics) {
+			setTransform(pos.x, pos.y, pos.z, 0, 0, 0, 0);
+			toUpdatePos = false;
 		}
 	}
 
@@ -102,14 +104,6 @@ public abstract class MazePlayer implements Disposable {
 
 	public String getName() {
 		return name;
-	}
-
-	public void render(ModelBatch b, Environment e) {
-		if (!disposing && ! disposed && playing) {
-			update();
-			if (show)
-				b.render(instance, e);
-		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -122,13 +116,34 @@ public abstract class MazePlayer implements Disposable {
 		instance = new ModelInstance(mazePlayerModel);
 	}
 
+	public void initPhysics() {
+		initedPhysics = true;
+	}
+
 	public void update() {
 		speed = baseSpeed * speedMult;
 		turnSpeed = baseTurnSpeed * speedMult;
-		
-		if(currentPowerUp != null && currentPowerUp.continousEffect) usePowerUp();
+
+		updateFromTmpPos();
+
+		if (currentPowerUp != null && currentPowerUp.continousEffect && currentPowerUp.beingUsed)
+			usePowerUp();
 	}
-	
+
+	public void render(ModelBatch b, Environment e) {
+		if (!disposed && show) {
+			if (!built) {
+				buildModel();
+				initPhysics();
+
+				built = true;
+			}
+
+			updateFromTmpPos();
+			b.render(instance, e);
+		}
+	}
+
 	public void usePowerUp() {
 		if (currentPowerUp != null && !currentPowerUp.beingUsed)
 			if (currentPowerUp.usePowerUp(this))
@@ -137,22 +152,14 @@ public abstract class MazePlayer implements Disposable {
 
 	@Override
 	public void dispose() {
-		playing = false;
 		if (!disposed) {
-			disposing = true;
-			if (show)
+			if (show && built)
 				mazePlayerModel.dispose();
-			disposing = false;
 		}
 		disposed = true;
 	}
-	
+
 	public boolean isDisposed() {
 		return disposed;
 	}
-
-	public boolean isPlaying() {
-		return playing;
-	}
-
 }

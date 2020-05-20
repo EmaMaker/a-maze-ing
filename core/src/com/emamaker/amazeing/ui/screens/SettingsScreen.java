@@ -140,7 +140,7 @@ public class SettingsScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				//If we are running server, we must send update to clients
-				AMazeIng.getMain().server.updateSettingForAll();
+//				AMazeIng.getMain().server.updateSettingForAll();
 				
 				hide();
 				uiManager.main.setScreen(prevScreen == null ? uiManager.titleScreen : prevScreen);

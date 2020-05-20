@@ -1,8 +1,4 @@
-package com.emamaker.amazeing.manager;
-
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Set;
+package com.emamaker.amazeing.manager.managers;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.math.Vector3;
@@ -10,15 +6,19 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.AMazeIng.Platform;
+import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.amazeing.player.powerups.PowerUps;
-import com.emamaker.amazeing.ui.screens.PreGameScreen;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Set;
 
 public class GameManager {
 
@@ -56,6 +56,7 @@ public class GameManager {
 		main.setScreen(null);
 
 		AMazeIng.getMain().multiplexer.removeProcessor(stage);
+		AMazeIng.getMain().multiplexer.addProcessor(stage);
 
 		anyoneWon = false;
 
@@ -70,7 +71,7 @@ public class GameManager {
 					if (!players.contains(p))
 						players.add(p);
 
-				// Fianlly delete players. A separated step is needed to remove the risk of a
+				// Finally delete players. A separated step is needed to remove the risk of a
 				// ConcurrentModificationException
 				for (MazePlayer p : toDelete) {
 					p.dispose();
@@ -95,110 +96,128 @@ public class GameManager {
 
 		mazeGen.setMazeSize(MazeSettings.MAZEX, MazeSettings.MAZEZ);
 		mazeGen.generateMaze();
-
-		if (type != GameType.CLIENT) {
-			spreadPlayers();
-			mazeGen.setupEndPoint();
-			powerups.clear();
-			spawnPowerUps();
-		}
-
-		if (todraw != null && showGame == true) {
-			mazeGen.show(todraw);
-		}
-
 		resetCamera();
-
 		gameStarted = true;
 
-		stage.clear();
-		if (AMazeIng.PLATFORM == Platform.ANDROID)
-			for (MazePlayer p : players) {
-				if (p instanceof MazePlayerLocal)
-					stage.addActor(((MazePlayerLocal) p).tctrl);
-					stage.addActor(((MazePlayerLocal) p).touchpadPowerUp);
-			}
+	}
 
-		AMazeIng.getMain().multiplexer.addProcessor(stage);
+	public void addTouchScreenInput() {
+		if (getShowGame()) {
+			stage.clear();
+			if (AMazeIng.PLATFORM == Platform.ANDROID)
+				for (MazePlayer p : players) {
+					if (p instanceof MazePlayerLocal)
+						stage.addActor(((MazePlayerLocal) p).tctrl);
+					stage.addActor(((MazePlayerLocal) p).touchpadPowerUp);
+				}
+		}
+	}
+
+	public void hudUpdate() {
+		resetCamera();
+		setCamera(new Vector3(MazeSettings.MAZEX / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
+				MazeSettings.MAZEZ / 2 - 1), new Vector3(0, -90, 0));
+
+		stage.act();
+		stage.draw();
+	}
+
+	public void renderWorld() {
+		main.world.render();
+	}
+
+	public void renderPowerUps() {
+		for (PowerUp p : powerups)
+			p.render(main.world.modelBatch, main.world.environment);
+	}
+
+	public void renderPlayers() {
+		for (MazePlayer p : players)
+			renderPlayer(p);
+	}
+
+	public void updatePlayers() {
+		for (MazePlayer p : players)
+			updatePlayer(p);
+	}
+
+	public void renderPlayer(MazePlayer p) {
+		if (getShowGame())
+			p.render(main.world.modelBatch, main.world.environment);
+	}
+
+	public void updatePlayer(MazePlayer p) {
+		p.update();
+	}
+
+	public boolean checkPowerUp(MazePlayer p, PowerUp p1) {
+		return (int) p1.getPosition().x == (int) p.getPos().x && (int) p1.getPosition().z == (int) p.getPos().z;
+	}
+
+	public void assignPowerUps() {
+		if (players != null && !players.isEmpty())
+			for (MazePlayer p : players)
+				assignPowerUp(p);
+	}
+
+	public void assignPowerUp(MazePlayer p) {
+		PowerUp pup = null;
+		for (PowerUp p1 : powerups) {
+			if (checkPowerUp(p, p1)) {
+				pup = p1;
+				p.currentPowerUp = pup;
+				break;
+			}
+		}
+		if (pup != null)
+			powerups.remove(pup);
+	}
+
+	public void checkWin() {
+		for (MazePlayer p : players)
+			if (checkWin(p))
+				setFinished();
+	}
+
+	public void setFinished() {
+		anyoneWon = true;
+		gameStarted = false;
+	}
+
+	public boolean getFinished() {
+		return anyoneWon;
 	}
 
 	public void update() {
 		main.currentGameManager = this;
 
+		generalUpdate();
 		if (gameStarted && !anyoneWon) {
-			pup = null;
-
-			if (getShowGame()) {
-				main.world.render();
-				resetCamera();
-				setCamera(new Vector3(mazeGen.w / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f, mazeGen.h / 2),
-						new Vector3(0, -90, 0));
-
-				stage.act();
-				stage.draw();
-
-			}
-
-			main.world.modelBatch.begin(main.world.cam);
-			if (getShowGame())
-				for (PowerUp p : powerups)
-					p.render(main.world.modelBatch, main.world.environment);
-
-			if (players != null) {
-				for (MazePlayer p : players) {
-					if (!p.isDisposed()) {
-						// Check if there's a power-up in the same spot, if so give it to the player
-						for (PowerUp p1 : powerups)
-							if ((int) p1.getPosition().x == (int) p.getPos().x
-									&& (int) p1.getPosition().z == (int) p.getPos().z) {
-								pup = p1;
-								p.currentPowerUp = pup;
-								break;
-							}
-						if (pup != null)
-							powerups.remove(pup);
-
-						if (getShowGame())
-							p.render(main.world.modelBatch, main.world.environment);
-					}
-
-					anyoneWon = false;
-					if (type != GameType.CLIENT) {
-						if (checkWin(p)) {
-							anyoneWon = true;
-							gameStarted = false;
-							break;
-						}
-					}
-				}
-			}
-
-			if (anyoneWon) {
-				System.out.println("Game Finished! " + type);
-				if (type == GameType.LOCAL) {
-					main.setScreen(main.uiManager.playersScreen);
-				} else if (type == GameType.SERVER) {
-
-					((PreGameScreen) main.uiManager.preGameScreen).setGameType(GameType.SERVER);
-					main.setScreen(main.uiManager.preGameScreen);
-				}
-			}
-
-			main.world.modelBatch.end();
+			inGameUpdate();
+			checkWin();
 		}
+	}
+
+	public void generalUpdate() {
+
+	}
+
+	public void inGameUpdate() {
+		if (players != null) {
+			updatePlayers();
+		}
+
 	}
 
 	public void spreadPlayers() {
 		for (MazePlayer p : players) {
 			int x = 1, z = 1;
 			do {
-				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
-				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-//				System.out.println(
-//						thereIsPlayerInPos(x, z) + " - " + mazeGen.occupiedSpot(x, z) + " --- " + x + ", " + z);
+				x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
+				z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
-			p.setPlaying();
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
+			System.out.println(p.getPos().x + ",  " + p.getPos().z);
 		}
 	}
 
@@ -208,14 +227,32 @@ public class GameManager {
 			PowerUp p = PowerUps.pickRandomPU();
 			int x = 1, z = 1;
 			do {
-				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
-				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
+				x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
+				z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z) || thereIsPowerUpInPos(x, z));
 			p.setPosition(x + 0.5f, 1.25f, z + 0.5f);
 			powerups.add(p);
 			System.out.println("Spawning power-up in " + x + ", " + z);
 		}
 
+	}
+
+	public void clearPowerUps() {
+		for (PowerUp p : powerups)
+			p.dispose();
+		powerups.clear();
+	}
+
+	public String getPowerUpNameByPos(int x, int z) {
+		PowerUp p = getPowerUpByPos(x, z);
+		return p == null ? "" : p.name;
+	}
+
+	public PowerUp getPowerUpByPos(int x, int z) {
+		for (PowerUp p : powerups)
+			if ((int) p.getPosition().x == x || (int) p.getPosition().z == z)
+				return p;
+		return null;
 	}
 
 	Player generateNewPlayer(int kup, int kdown, int ksx, int kdx) {
@@ -225,8 +262,8 @@ public class GameManager {
 	Player generateNewPlayer(int kup, int kdown, int ksx, int kdx, String name) {
 		int x, z;
 		do {
-			x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
-			z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
+			x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
+			z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
 		} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 		if (name.equalsIgnoreCase(""))
 			return new Player(kup, kdown, ksx, kdx, x + 0.5f, 4f, z + 0.5f);
@@ -296,7 +333,7 @@ public class GameManager {
 		main.world.cam.update();
 	}
 
-	boolean getShowGame() {
+	protected boolean getShowGame() {
 		return showGame;
 	}
 

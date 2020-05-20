@@ -1,303 +1,200 @@
 package com.emamaker.amazeing.manager.network;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.UUID;
 
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
-import com.emamaker.amazeing.AMazeIng;
-import com.emamaker.amazeing.manager.GameManager;
-import com.emamaker.amazeing.manager.GameType;
+import com.emamaker.amazeing.manager.managers.GameManagerServer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
-import com.emamaker.amazeing.manager.network.NetworkCommon.ConnectionRefused;
 import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
-import com.emamaker.amazeing.manager.network.NetworkCommon.JustConnected;
-import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateSettings;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
-public class GameServer {
+public class GameServer extends NetworkHandler {
 
-    public AMazeIng main;
+	Server server;
 
-    volatile boolean serverRunning = false;
-    boolean endGameCalled = false;
-    public int port;
-    UUID uuid;
+	// Returns true if the server started successfully
+	public boolean start(int port_) {
+		port = port_;
+		running = true;
+		try {
+			server = new Server();
+			// For consistency, the classes to be sent over the network are
+			// registered by the same method for both the client and server.
+			NetworkCommon.register(server);
+			server.addListener(connectionListener);
+			server.bind(port, port + 1);
+			server.start();
 
-    public GameManager gameManager;
-    Server server;
+			gameManager = new GameManagerServer();
 
-    // Hashtable of remote players present in the match. This will be used to update
-    // other players' transform when server reports about it
-    public Hashtable<String, MazePlayerRemote> remotePlayers = new Hashtable<>();
+			System.out.println("Server registered and running on port " + port);
+			return true;
 
-    public GameServer(AMazeIng main_) {
-        main = main_;
-        uuid = UUID.randomUUID();
-    }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	@Override
+	public void onLoginAO(Connection c) {
+		if (players.size() < MazeSettings.MAXPLAYERS) {
+			String uuid = UUID.randomUUID().toString();
+			System.out.println("Client requested adding new player, giving it uuid " + uuid);
+			LoginAO2 response = new LoginAO2();
+			response.uuid = uuid;
+			c.sendTCP(response);
+		}
+	}
 
-    // Returns true if the server started successfully
-    public boolean startServer(int port_) {
-        port = port_;
-        serverRunning = true;
-        try {
-            server = new Server() {
-                protected Connection newConnection() {
-                    // Notify connection about previously connected clients
+	@Override
+	public void onLoginAO2(Connection c) {
+		String uuid = ((LoginAO2) message).uuid;
+		if (!players.containsKey(uuid)) {
+			MazePlayerRemote player = new MazePlayerRemote(uuid);
+			players.put(uuid, player);
 
-                    AddNewPlayer response = new AddNewPlayer();
-                    for (String s : remotePlayers.keySet()) {
-                        response.uuid = s;
-                        server.sendToAllTCP(response);
-                    }
+			// Update everyone about the new player
+			AddNewPlayer response = new AddNewPlayer();
+			response.uuid = uuid;
+			server.sendToAllTCP(response);
+		}
+	}
 
-                    // By providing our own connection implementation, we can store per
-                    // connection state without a connection ID to state look up.
-                    return new ConnectionPlayer();
-                }
-            };
+	@Override
+	public void onConnectionRefused(Connection c) {
+	}
 
-            // For consistency, the classes to be sent over the network are
-            // registered by the same method for both the client and server.
-            NetworkCommon.register(server);
+	@Override
+	public void onAddNewPlayer(Connection c) {
+	}
 
-            server.addListener(new Listener() {
-                public void received(Connection c, Object object) {
-                    ConnectionPlayer connection = (ConnectionPlayer) c;
+	@Override
+	public void onRemovePlayer(Connection c) {
+		String uuid = ((RemovePlayer) message).uuid;
+		// Remove the player from the server
+		if (players.containsKey(uuid)) {
+			players.remove(uuid);
+			System.out.println("Player with UUID " + uuid + " is leaving the game :(");
+			// And update everyone about it
+			server.sendToAllTCP(message);
+		}
+	}
 
-                    if (object instanceof JustConnected) {
-                        // Notify the newly connected client about all other clients already present
-                        // here
-                        System.out.println("New client just connected, updating it with info about other clients!");
-                        AddNewPlayer response = new AddNewPlayer();
-                        for (String s : remotePlayers.keySet()) {
-                            response.uuid = s;
-                            c.sendTCP(response);
-                            System.out.println("Updated about: " + s);
-                        }
-                    } else if (object instanceof LoginAO) {
-                        // Give player its UUID and wait for response. Once the LoginAO2 response is
-                        // received, move the
-                        // UUID to the list of players, create a new one and notify clients about it
-                        connection.uuid = UUID.randomUUID().toString();
+	@Override
+	public void onUpdateTransform(Connection c) {
+		String uuid = ((UpdatePlayerTransform) message).uuid;
+		if(players.containsKey(uuid)) {
+			players.get(uuid).setPos(((UpdatePlayerTransform) message).tx, ((UpdatePlayerTransform) message).ty, ((UpdatePlayerTransform) message).tz);
+			server.sendToAllUDP(message);
+		}		
+	}
 
-                        LoginAO2 response = new LoginAO2();
-                        response.uuid = connection.uuid;
-                        System.out.println("Server received connection request! Giving client UUID " + connection.uuid);
-                        c.sendTCP(response);
+	@Override
+	public void onUpdateTransformServer(Connection c) {
+	}
 
-                    } else if (object instanceof LoginAO2) {
-                        // Ignore is there's no uuid or it's different from the login message one
-                        // If there's still space left for players to join
-                        if (remotePlayers.values().size() < MazeSettings.MAXPLAYERS) {
-                            remotePlayers.put(((LoginAO2) object).uuid,
-                                    new MazePlayerRemote(((LoginAO2) object).uuid, false));
+	@Override
+	public void onStartGame(Connection c) {
+	}
 
-                            updateSettingForClient(c);
+	@Override
+	public void onEndGame(Connection c) {
+	}
 
-                            System.out.println("Client with UUID " + ((LoginAO2) object).uuid
-                                    + " is connected and ready to play :)");
+	@Override
+	public void onUpdateMap(Connection c) {
+	}
 
-                            AddNewPlayer response = new AddNewPlayer();
-                            response.uuid = ((LoginAO2) object).uuid;
-                            server.sendToAllTCP(response);
+	@Override
+	public void onUpdateSettings(Connection c) {
+	}
 
-                        } else {
-                            // Send connection refused
-                            c.sendTCP(new ConnectionRefused());
-                        }
+	@Override
+	public void stop() {
+		for (MazePlayer p : players.values())
+			p.dispose();
+		players.clear();
+		if (isRunning()) {
+			main.client.stop();
+			server.stop();
+			running = false;
+		}
+	}
 
-                    } else if (object instanceof RemovePlayer) {
-                        // Otherwise remove the player and notify all clients about it
-                        if (remotePlayers.containsKey(((RemovePlayer) object).uuid.toString())) {
-                            remotePlayers.get(((RemovePlayer) object).uuid).dispose();
-                            remotePlayers.remove(((RemovePlayer) object).uuid);
+	@Override
+	public void onConnected(Connection c) {
+		System.out.println("New client connected, updating him about the others!");
+		for (String s : players.keySet()) {
+			AddNewPlayer request = new AddNewPlayer();
+			request.uuid = s;
+			c.sendTCP(request);
+		}
+	}
 
-                            System.out.println("Client with UUID " + connection.uuid + " is leaving the server :(");
-                            server.sendToAllTCP(object);
-                        } else {
-                            System.out.println("Server received delete message for player with UUID " + connection.uuid
-                                    + " but player wasn't playing");
-                        }
-                    } else if (object instanceof UpdatePlayerTransform) {
-                        UpdatePlayerTransform transform = (UpdatePlayerTransform) object;
-                        if (gameManager.gameStarted) {
-                            // Otherwise Update the transport and notify clients about it
-                            MazePlayerRemote player = remotePlayers.get((transform.uuid));
-                            player.setTransform(transform.tx, transform.ty, transform.tz, transform.rx, transform.ry,
-                                    transform.rz, transform.rw);
-                            updatePlayer(transform.uuid, remotePlayers.get(transform.uuid), false);
-                            System.out.println("Updating client " + connection.uuid + " position!");
-                        }
-                    }
-                }
+	@Override
+	public void onAddPowerUp(Connection c) {
+	}
 
-                public void disconnected(Connection c) {
-                    ConnectionPlayer connection = (ConnectionPlayer) c;
-                    if (connection.uuid != null) {
-                        if (remotePlayers.get(connection.uuid) != null) {
-                            remotePlayers.get(connection.uuid).dispose();
-                        }
-                        remotePlayers.remove(connection.uuid);
-                        RemovePlayer remove = new RemovePlayer();
-                        remove.uuid = connection.uuid;
-                        server.sendToAllTCP(remove);
-                    }
-                }
-            });
+	@Override
+	public void onRemovePowerUp(Connection c) {
+	}
 
-            server.bind(port);
-            server.start();
-            System.out.println("Server registered and running on port " + port);
+	@Override
+	public void onAssignPowerUp(Connection c) {
+	}
 
-            // Also launch the client to have a player play on host. We return the result of
-            // starting, so server doesn't start if local client has problems
-            if (main.client.start("localhost", port))
-                return true;
-            else {
-                server.stop();
-                return false;
-            }
+	@Override
+	public void onStartUsingPowerUp(Connection c) {
+	}
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+	@Override
+	public void onEndUsingPowerUp(Connection c) {
+	}
 
-    // Update must be called from Main thread and used for applications on main
-    // thread, such as spawning new players
-    public void update() {
-        if (serverRunning) {
-            if (gameManager != null) {
-                gameManager.update();
-                if (gameManager.anyoneWon && !endGameCalled) {
-                    server.sendToAllTCP(new EndGame());
-                    endGameCalled = true;
-                }
-            }
-        }
-    }
+	@Override
+	public boolean startGame() {
+		if(!players.isEmpty()) {
+			this.gameManager.generateMaze(new HashSet<MazePlayer>(players.values()));
+			StartGame response = new StartGame();
+			response.map = this.gameManager.mazeGen.runLenghtEncode();
+			server.sendToAllTCP(response);
+			
+			for(String s : players.keySet()) {
+				Object pu = updatePlayer(s, players.get(s), true);
+				server.sendToAllTCP(pu);
+			}
+			
+			return true;
+		}
+		return false;
+	}
 
-    // Once the server has started accepting connections from other players, the
-    // host should decide when to start the gmae
-    // A proper ui should be added, but for now we can just start the game without
-    // showing any players and just show the map across all the clients
-    public boolean startGame() {
-        if (serverRunning) {
-            update();
+	@Override
+	public void update() {
+		super.update();
+		if(gameManager != null) {
+			if(gameManager.anyoneWon) server.sendToAllUDP(new EndGame());
+		}
+	}
+	
+	
+	@Override
+	public void periodicGameUpdate() {
+		UpdateMap response = new UpdateMap();
+		response.map = gameManager.mazeGen.runLenghtEncode();
+		server.sendToAllUDP(response);
+	}
 
-            if (!remotePlayers.isEmpty()) {
-                // Start game stuff
-                this.gameManager = new GameManager(main, GameType.SERVER);
-                this.gameManager.generateMaze(new HashSet<MazePlayer>(remotePlayers.values()));
-                endGameCalled = false;
-
-                StartGame request = new StartGame();
-                request.map = this.gameManager.mazeGen.runLenghtEncode();
-                server.sendToAllTCP(request);
-
-                if (gameManager.gameStarted)
-                    for (String p : remotePlayers.keySet())
-                        updatePlayer(p, remotePlayers.get(p), true);
-
-                if (main.getScreen() != null) {
-                    main.getScreen().hide();
-                    main.setScreen(null);
-                }
-                return true;
-            } else System.out.println("No players have joined yet");
-        } else {
-            System.out.println("Server not started yet, game cannot start");
-        }
-        return false;
-    }
-
-    public void updatePlayer(String uuid, MazePlayerRemote p, boolean force) {
-        if (serverRunning && this.gameManager != null && this.gameManager.gameStarted) {
-            if (force) {
-                NetworkCommon.UpdatePlayerTransformServer pu = new NetworkCommon.UpdatePlayerTransformServer();
-                Vector3 pos = p.getPos();
-                Quaternion rot = p.getRotation();
-                pu.tx = pos.x;
-                pu.ty = pos.y;
-                pu.tz = pos.z;
-                pu.rx = rot.x;
-                pu.ry = rot.y;
-                pu.rz = rot.z;
-                pu.rw = rot.w;
-                pu.uuid = uuid;
-                System.out.println("Forcing position update to all clients for player " + uuid);
-                server.sendToAllTCP(pu);
-            } else {
-                UpdatePlayerTransform pu = new UpdatePlayerTransform();
-                Vector3 pos = p.getPos();
-                Quaternion rot = p.getRotation();
-                pu.tx = pos.x;
-                pu.ty = pos.y;
-                pu.tz = pos.z;
-                pu.rx = rot.x;
-                pu.ry = rot.y;
-                pu.rz = rot.z;
-                pu.rw = rot.w;
-                pu.uuid = uuid;
-                System.out.println("Sending position update to all clients for player " + uuid);
-                server.sendToAllTCP(pu);
-            }
-        }
-    }
-
-    public void stop() {
-        for (MazePlayerRemote p : remotePlayers.values())
-            if (!p.isDisposed())
-                p.dispose();
-        remotePlayers.clear();
-        if (serverRunning) {
-            main.client.stop();
-            server.stop();
-            serverRunning = false;
-        }
-    }
-
-    public boolean isRunning() {
-        return serverRunning;
-    }
-
-    UpdateSettings s = new UpdateSettings();
-
-    // Send updates about settings to the clients
-    public void updateSettingForAll() {
-        if (isRunning())
-            for (int i = 0; i < MazeSettings.settings.size(); i++) {
-                s.index = i;
-                s.value = MazeSettings.settings.get(i).getOptionString();
-                server.sendToAllTCP(s);
-            }
-    }
-
-    public void updateSettingForClient(Connection c) {
-        if (isRunning())
-            for (int i = 0; i < MazeSettings.settings.size(); i++) {
-                s.index = i;
-                s.value = MazeSettings.settings.get(i).getOptionString();
-                c.sendTCP(s);
-            }
-    }
-
-}
-
-class ConnectionPlayer extends Connection {
-    public String uuid;
 }

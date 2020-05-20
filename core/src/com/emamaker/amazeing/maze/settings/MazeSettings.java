@@ -1,8 +1,8 @@
 package com.emamaker.amazeing.maze.settings;
 
-import java.util.ArrayList;
-
 import com.emamaker.amazeing.AMazeIng;
+
+import java.util.ArrayList;
 
 public class MazeSettings {
 

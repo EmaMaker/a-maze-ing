@@ -1,8 +1,8 @@
 package com.emamaker.amazeing.player;
 
-import java.util.Random;
-
 import com.emamaker.amazeing.AMazeIng;
+
+import java.util.Random;
 
 public class MazePlayerRemote extends MazePlayer{
 

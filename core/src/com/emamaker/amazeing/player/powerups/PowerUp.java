@@ -13,15 +13,16 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.MazePlayer;
 
-public class PowerUp {
+public class PowerUp implements Disposable {
 
 	public String name;
 	Texture texture;
 
-	public boolean beingUsed, continousEffect;
+	public boolean beingUsed, continousEffect, built;
 
 	ModelBuilder modelBuilder = new ModelBuilder();
 	ModelInstance instance;
@@ -48,9 +49,7 @@ public class PowerUp {
 		blendingAttribute.destFunction = GL20.GL_ONE_MINUS_SRC_ALPHA;
 
 		beingUsed = false;
-
-		spawnQuad();
-		setPosition(0, 3, 0);
+		built = false;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -72,11 +71,15 @@ public class PowerUp {
 	}
 
 	public void render(ModelBatch b, Environment e) {
+		if (!built) {
+			spawnQuad();
+			built = true;
+		}
 		b.render(instance, e);
 	}
 
 	public void setPosition(float x, float y, float z) {
-		instance.transform.set(x, y, z, 0, 0, 0, 0);
+		if(built) instance.transform.set(x, y, z, 0, 0, 0, 0);
 	}
 
 	public void setPosition(Vector3 v) {
@@ -84,13 +87,18 @@ public class PowerUp {
 	}
 
 	public Vector3 getPosition() {
-		return instance.transform.getTranslation(new Vector3());
+		return built ? instance.transform.getTranslation(new Vector3()) : Vector3.Zero;
 	}
 
 	// Return true if the effect has been resolved
 	public boolean usePowerUp(MazePlayer player) {
 //		System.out.println(this.name + "!");
 		return true;
+	}
+
+	@Override
+	public void dispose() {
+		quadModel.dispose();
 	}
 }
 
@@ -99,17 +107,15 @@ class PowerUpTemporized extends PowerUp {
 	long time = 0, startTime = 0;
 	boolean used = false;
 
-
 	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_) {
 		this(name_, texture_, cont, secs_, 1, 1);
 	}
 
 	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_, float scaleX, float scaleZ) {
 		super(name_, texture_, cont, scaleX, scaleZ);
-		this.time = (long) (secs_*1000);
+		this.time = (long) (secs_ * 1000);
 		startTime = 0;
 	}
-	
 
 	@Override
 	public boolean usePowerUp(MazePlayer player) {
@@ -129,13 +135,13 @@ class PowerUpTemporized extends PowerUp {
 			return true;
 		}
 	}
-	
+
 	public void temporizedEffect(MazePlayer player) {
-		
+		beingUsed = true;
 	}
-	
+
 	public void temporizedEffectExpired(MazePlayer player) {
-		
+		beingUsed = false;
 	}
 
 }

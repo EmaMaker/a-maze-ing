@@ -122,7 +122,7 @@ public class PreGameScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				buildTable();
-				AMazeIng.getMain().client.setUpdateMobilePlayers();
+//				AMazeIng.getMain().client.setUpdateMobilePlayers();
 
 				return true;
 			}
@@ -213,7 +213,7 @@ public class PreGameScreen extends MyScreen {
 		instLab.setText(type.toString() + ": Waiting for players to join...");
 		// Constantly update player labels, comparing with the remote players present on
 		// server
-		nPlayers = type == GameType.SERVER ? uiManager.main.server.remotePlayers.values().size()
+		nPlayers = type == GameType.SERVER ? uiManager.main.server.players.size()
 				: uiManager.main.client.players.size();
 
 		if(AMazeIng.isMobile()) nPlayers -= MazeSettings.MAXPLAYERS_MOBILE;

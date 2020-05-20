@@ -1,8 +1,5 @@
 package com.emamaker.amazeing.ui.screens;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -19,6 +16,9 @@ import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.PlayerUtils;
 import com.emamaker.amazeing.ui.UIManager;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 public class PlayerChooseScreen extends MyScreen {
 

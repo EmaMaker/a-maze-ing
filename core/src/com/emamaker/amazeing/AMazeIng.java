@@ -1,20 +1,20 @@
 package com.emamaker.amazeing;
 
-import java.util.Random;
-
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.emamaker.amazeing.manager.GameManager;
-import com.emamaker.amazeing.manager.GameType;
+import com.emamaker.amazeing.manager.managers.GameManager;
+import com.emamaker.amazeing.manager.managers.GameManagerLocal;
 import com.emamaker.amazeing.manager.network.GameClient;
 import com.emamaker.amazeing.manager.network.GameServer;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.emamaker.amazeing.ui.UIManager;
 import com.emamaker.voxelengine.VoxelWorld;
+
+import java.util.Random;
 
 public class AMazeIng extends Game {
 
@@ -25,7 +25,8 @@ public class AMazeIng extends Game {
 	Random rand = new Random();
 
 	public UIManager uiManager;
-	public GameManager gameManager, currentGameManager;
+	public GameManager currentGameManager;
+	public GameManagerLocal gameManager;
 	public MazeSettings settings;
 	public InputMultiplexer multiplexer = new InputMultiplexer();
 
@@ -34,9 +35,9 @@ public class AMazeIng extends Game {
 	public GameClient client;
 
 	static AMazeIng game;
-	
+
 	public static Platform PLATFORM;
-	
+
 	public AMazeIng(Platform p) {
 		PLATFORM = p;
 	}
@@ -49,7 +50,7 @@ public class AMazeIng extends Game {
 		Bullet.init();
 
 		// Set windowed resolution
-		Gdx.graphics.setWindowedMode(1280, 720);
+		Gdx.graphics.setWindowedMode(640, 480);
 
 		// Enable on-screen keyboard for mobile devices
 		// Gdx.input.setOnscreenKeyboardVisible(true);
@@ -77,12 +78,12 @@ public class AMazeIng extends Game {
 
 	public void setupGameManager() {
 		System.out.println("Setup Game Managers");
-		gameManager = new GameManager(this, GameType.LOCAL);
+		gameManager = new GameManagerLocal();
 
-		server = new GameServer(this);
-		client = new GameClient(this);
+		server = new GameServer();
+		client = new GameClient();
 	}
-	
+
 	public void setupPowerUps() {
 		System.out.println("Setting up PowerUps");
 		new PowerUps();
@@ -93,8 +94,7 @@ public class AMazeIng extends Game {
 		super.render();
 		server.update();
 		client.update();
-		if (gameManager != null)
-			gameManager.update();
+		gameManager.update();
 	}
 
 	@Override
@@ -126,13 +126,15 @@ public class AMazeIng extends Game {
 		return game;
 	}
 
-	public static boolean isDesktop(){
+	public static boolean isDesktop() {
 		return PLATFORM == Platform.DESKTOP;
 	}
-	public static boolean isMobile(){
+
+	public static boolean isMobile() {
 		return PLATFORM == Platform.ANDROID || PLATFORM == Platform.IOS;
 	}
-	public static boolean isIOS(){
+
+	public static boolean isIOS() {
 		return PLATFORM == Platform.IOS;
 	}
 

@@ -1,13 +1,13 @@
 package com.emamaker.amazeing.player;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.controllers.Controller;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PlayerUtils {
 

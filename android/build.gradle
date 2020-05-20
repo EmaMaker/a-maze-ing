@@ -89,8 +89,6 @@ task run(type: Exec) {
     commandLine "$adb", 'shell', 'am', 'start', '-n', 'com.emamaker.amazeing/com.emamaker.amazeing.AndroidLauncher'
 }
 
-dependencies {
-    implementation files('/srv/nfs/home/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
-}
+
 
 eclipse.project.name = appName + "-android"
