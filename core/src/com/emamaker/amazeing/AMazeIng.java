@@ -1,5 +1,7 @@
 package com.emamaker.amazeing;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -12,9 +14,8 @@ import com.emamaker.amazeing.manager.network.GameServer;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.emamaker.amazeing.ui.UIManager;
+import com.emamaker.amazeing.utils.TextureLoader;
 import com.emamaker.voxelengine.VoxelWorld;
-
-import java.util.Random;
 
 public class AMazeIng extends Game {
 
@@ -70,7 +71,8 @@ public class AMazeIng extends Game {
 	}
 
 	public void setupGUI() {
-		System.out.println("Setup UI Manager");
+		System.out.println("Setup UI Manager and TextureLoader");
+		new TextureLoader();
 		uiManager = new UIManager(this);
 		settings = new MazeSettings();
 		uiManager.setupScreens();

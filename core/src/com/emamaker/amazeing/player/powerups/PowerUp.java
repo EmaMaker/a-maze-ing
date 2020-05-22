@@ -22,7 +22,8 @@ public class PowerUp implements Disposable {
 	public String name;
 	Texture texture;
 
-	public boolean beingUsed, continousEffect, built;
+	public boolean beingUsed, continousEffect;
+	private boolean built, toUpdatePos;
 
 	ModelBuilder modelBuilder = new ModelBuilder();
 	ModelInstance instance;
@@ -32,6 +33,8 @@ public class PowerUp implements Disposable {
 	BlendingAttribute blendingAttribute = new BlendingAttribute();
 
 	float scaleX, scaleZ;
+
+	Vector3 pos = new Vector3();
 
 	public PowerUp(String name_, Texture texture_, boolean cont) {
 		this(name_, texture_, cont, 1, 1);
@@ -50,6 +53,7 @@ public class PowerUp implements Disposable {
 
 		beingUsed = false;
 		built = false;
+		toUpdatePos = false;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -74,12 +78,15 @@ public class PowerUp implements Disposable {
 		if (!built) {
 			spawnQuad();
 			built = true;
+		} else {
+			updateFromTmpPos();
+			b.render(instance, e);
 		}
-		b.render(instance, e);
 	}
 
 	public void setPosition(float x, float y, float z) {
-		if(built) instance.transform.set(x, y, z, 0, 0, 0, 0);
+		pos.set(x, y, z);
+		toUpdatePos = true;
 	}
 
 	public void setPosition(Vector3 v) {
@@ -87,7 +94,14 @@ public class PowerUp implements Disposable {
 	}
 
 	public Vector3 getPosition() {
-		return built ? instance.transform.getTranslation(new Vector3()) : Vector3.Zero;
+		return pos;
+	}
+
+	protected void updateFromTmpPos() {
+		if (toUpdatePos && built) {
+			instance.transform.set(pos.x, pos.y, pos.z, 0, 0, 0, 0);
+			toUpdatePos = false;
+		}
 	}
 
 	// Return true if the effect has been resolved
@@ -98,7 +112,8 @@ public class PowerUp implements Disposable {
 
 	@Override
 	public void dispose() {
-		quadModel.dispose();
+		if (quadModel != null)
+			quadModel.dispose();
 	}
 }
 

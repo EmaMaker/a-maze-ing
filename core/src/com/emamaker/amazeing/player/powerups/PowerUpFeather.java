@@ -1,13 +1,12 @@
 package com.emamaker.amazeing.player.powerups;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.utils.TextureLoader;
 
 public class PowerUpFeather extends PowerUpTemporized {
 
 	public PowerUpFeather() {
-		super("FEATHER", new Texture(Gdx.files.internal("data/powerups/feather.png")), true, 10,
+		super("FEATHER", TextureLoader.textureFeather, true, 10,
 				1f, 1f);
 	}
 

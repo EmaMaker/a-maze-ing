@@ -15,9 +15,9 @@ public class MazeGenerator {
 	Cell currentCell;
 	Cell[][] cellsGrid;
 	ArrayList<Cell> stack = new ArrayList<Cell>();
-	public static int[][] todraw;
+	public int[][] todraw;
 
-	public static int w, h, W, H;
+	public int w, h, W, H;
 	public int WINX = Integer.MAX_VALUE, WINZ = Integer.MAX_VALUE;
 	public int OLDMAZEX, OLDMAZEZ;
 
@@ -156,7 +156,6 @@ public class MazeGenerator {
 			}
 			s += "-";
 		}
-		System.out.println(s);
 		return s;
 	}
 
@@ -260,7 +259,7 @@ public class MazeGenerator {
 		}
 	}
 	
-	public static int[][] changeMap(int[][] tmp, int x, int z, int type) {
+	public int[][] changeMap(int[][] tmp, int x, int z, int type) {
 		if(x > 0 && x < w - 1 && z > 0 && z < h - 1 && todraw[x][z] != 2) tmp[x][z] = type;
 		return tmp;
 	}

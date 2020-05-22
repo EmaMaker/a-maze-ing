@@ -1,15 +1,12 @@
 package com.emamaker.amazeing.player.powerups;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.utils.TextureLoader;
 
 public class PowerUpBallAndChain extends PowerUpTemporized {
 
 	public PowerUpBallAndChain() {
-		super("BALL AND CHAIN",
-				new Texture(Gdx.files.internal("data/powerups/ball_and_chain.png")), true,
-				10, 1f, 1f);
+		super("BALL AND CHAIN", TextureLoader.textureBallAndChain, true, 10, 1f, 1f);
 	}
 
 	@Override
@@ -27,7 +24,7 @@ class PowerUpGiveBallAndChain extends PowerUpGiver {
 
 	public PowerUpGiveBallAndChain() {
 		super(new PowerUpBallAndChain(), "BALL AND CHAIN GIVER",
-				new Texture(Gdx.files.internal("data/powerups/ball_and_chain.png")), false,
+				TextureLoader.textureBallAndChain, false,
 				1f, 1f);
 	}
 

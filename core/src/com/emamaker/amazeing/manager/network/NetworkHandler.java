@@ -7,12 +7,17 @@ import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.managers.GameManager;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.AddPowerUp;
+import com.emamaker.amazeing.manager.network.NetworkCommon.AssignPowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.ConnectionRefused;
 import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
+import com.emamaker.amazeing.manager.network.NetworkCommon.EndUsingPowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
+import com.emamaker.amazeing.manager.network.NetworkCommon.StartUsingPowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransformServer;
@@ -101,6 +106,17 @@ public abstract class NetworkHandler {
 			onAddNewPlayer(c);
 		else if (object instanceof RemovePlayer)
 			onRemovePlayer(c);
+		else if (object instanceof AddPowerUp)
+			onAddPowerUp(c);
+		else if (object instanceof RemovePowerUp)
+			onRemovePowerUp(c);
+		else if (object instanceof AssignPowerUp)
+			onAssignPowerUp(c);
+		else if (object instanceof StartUsingPowerUp)
+			onStartUsingPowerUp(c);
+		else if (object instanceof EndUsingPowerUp)
+			onEndUsingPowerUp(c);
+		
 	}
 
 	Listener connectionListener = new Listener() {

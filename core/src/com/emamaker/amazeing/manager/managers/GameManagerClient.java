@@ -5,7 +5,6 @@ import java.util.Set;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.player.MazePlayer;
-import com.emamaker.amazeing.ui.screens.PreGameScreen;
 
 public class GameManagerClient  extends GameManager {
 

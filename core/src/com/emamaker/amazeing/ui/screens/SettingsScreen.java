@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.maze.settings.MazeSetting;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.ui.UIManager;

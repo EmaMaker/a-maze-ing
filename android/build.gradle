@@ -67,6 +67,7 @@ tasks.whenTaskAdded { packageTask ->
     }
 }
 
+
 task run(type: Exec) {
     def path
     def localProperties = project.file("../local.properties")
@@ -88,7 +89,5 @@ task run(type: Exec) {
     def adb = path + "/platform-tools/adb"
     commandLine "$adb", 'shell', 'am', 'start', '-n', 'com.emamaker.amazeing/com.emamaker.amazeing.AndroidLauncher'
 }
-
-
 
 eclipse.project.name = appName + "-android"

@@ -1,21 +1,25 @@
 package com.emamaker.amazeing.manager.network;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
+import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.manager.managers.GameManagerServer;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.AddPowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerRemote;
+import com.emamaker.amazeing.player.powerups.PowerUp;
+import com.emamaker.amazeing.utils.MathUtils;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 
@@ -46,7 +50,7 @@ public class GameServer extends NetworkHandler {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void onLoginAO(Connection c) {
 		if (players.size() < MazeSettings.MAXPLAYERS) {
@@ -92,13 +96,23 @@ public class GameServer extends NetworkHandler {
 		}
 	}
 
+	Vector3 newPos = Vector3.Zero;
+
 	@Override
 	public void onUpdateTransform(Connection c) {
 		String uuid = ((UpdatePlayerTransform) message).uuid;
-		if(players.containsKey(uuid)) {
-			players.get(uuid).setPos(((UpdatePlayerTransform) message).tx, ((UpdatePlayerTransform) message).ty, ((UpdatePlayerTransform) message).tz);
-			server.sendToAllUDP(message);
-		}		
+		if (players.containsKey(uuid)) {
+			// Check if the position is in a possible one, or if the player has teleported
+			// from one spot to another
+			newPos.set(((UpdatePlayerTransform) message).tx, ((UpdatePlayerTransform) message).ty,
+					((UpdatePlayerTransform) message).tz);
+			if (MathUtils.vectorDistance(players.get(uuid).getPos(), newPos) < 10) {
+				players.get(uuid).setPos(newPos);
+				server.sendToAllUDP(message);
+			} else {
+				server.sendToAllUDP(updatePlayer(uuid, players.get(uuid), true));
+			}
+		}
 	}
 
 	@Override
@@ -165,17 +179,19 @@ public class GameServer extends NetworkHandler {
 
 	@Override
 	public boolean startGame() {
-		if(!players.isEmpty()) {
+		if (!players.isEmpty()) {
 			this.gameManager.generateMaze(new HashSet<MazePlayer>(players.values()));
 			StartGame response = new StartGame();
 			response.map = this.gameManager.mazeGen.runLenghtEncode();
 			server.sendToAllTCP(response);
-			
-			for(String s : players.keySet()) {
+
+			for (String s : players.keySet()) {
 				Object pu = updatePlayer(s, players.get(s), true);
 				server.sendToAllTCP(pu);
 			}
-			
+
+			periodicGameUpdate();
+
 			return true;
 		}
 		return false;
@@ -184,17 +200,35 @@ public class GameServer extends NetworkHandler {
 	@Override
 	public void update() {
 		super.update();
-		if(gameManager != null) {
-			if(gameManager.anyoneWon) server.sendToAllUDP(new EndGame());
+		if (gameManager != null) {
+			if (gameManager.anyoneWon)
+				server.sendToAllUDP(new EndGame());
 		}
 	}
-	
-	
+
 	@Override
 	public void periodicGameUpdate() {
 		UpdateMap response = new UpdateMap();
 		response.map = gameManager.mazeGen.runLenghtEncode();
 		server.sendToAllUDP(response);
+		
+		for (PowerUp p : gameManager.powerups) {
+			AddPowerUp response1 = new AddPowerUp();
+			response1.name = p.name;
+			response1.x = p.getPosition().x;
+			response1.z = p.getPosition().z;
+			
+			server.sendToAllUDP(response1);
+		}
+	}
+
+	public void removePowerUp(PowerUp pup) {
+		if(pup != null) {
+			RemovePowerUp response = new RemovePowerUp();
+			response.x =  pup.getPosition().z;
+			response.z = pup.getPosition().z;
+			server.sendToAllUDP(response);
+		}
 	}
 
 }

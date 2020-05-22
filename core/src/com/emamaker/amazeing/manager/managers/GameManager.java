@@ -160,7 +160,7 @@ public class GameManager {
 				assignPowerUp(p);
 	}
 
-	public void assignPowerUp(MazePlayer p) {
+	public PowerUp assignPowerUp(MazePlayer p) {
 		PowerUp pup = null;
 		for (PowerUp p1 : powerups) {
 			if (checkPowerUp(p, p1)) {
@@ -171,6 +171,8 @@ public class GameManager {
 		}
 		if (pup != null)
 			powerups.remove(pup);
+
+		return pup;
 	}
 
 	public void checkWin() {
@@ -213,8 +215,8 @@ public class GameManager {
 		for (MazePlayer p : players) {
 			int x = 1, z = 1;
 			do {
-				x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
-				z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
+				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
+				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
 			System.out.println(p.getPos().x + ",  " + p.getPos().z);
@@ -222,25 +224,33 @@ public class GameManager {
 	}
 
 	public void spawnPowerUps() {
-
 		for (int i = 0; i < MazeSettings.START_POWERUPS; i++) {
-			PowerUp p = PowerUps.pickRandomPU();
 			int x = 1, z = 1;
 			do {
-				x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
-				z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
+				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
+				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z) || thereIsPowerUpInPos(x, z));
-			p.setPosition(x + 0.5f, 1.25f, z + 0.5f);
-			powerups.add(p);
 			System.out.println("Spawning power-up in " + x + ", " + z);
+			spawnPowerUp(x + .5f, z + .5f);
 		}
+	}
 
+	public void spawnPowerUp(float x, float z) {
+		PowerUp p = PowerUps.pickRandomPU();
+		p.setPosition(x, 1.25f, z);
+		powerups.add(p);
 	}
 
 	public void clearPowerUps() {
 		for (PowerUp p : powerups)
-			p.dispose();
+			if (p != null)
+				p.dispose();
 		powerups.clear();
+	}
+
+	public void removePowerUp(PowerUp p) {
+		if (p != null)
+			powerups.remove(p);
 	}
 
 	public String getPowerUpNameByPos(int x, int z) {
@@ -262,8 +272,8 @@ public class GameManager {
 	Player generateNewPlayer(int kup, int kdown, int ksx, int kdx, String name) {
 		int x, z;
 		do {
-			x = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.w));
-			z = (Math.abs(rand.nextInt() - 1) % (MazeGenerator.h));
+			x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
+			z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
 		} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 		if (name.equalsIgnoreCase(""))
 			return new Player(kup, kdown, ksx, kdx, x + 0.5f, 4f, z + 0.5f);

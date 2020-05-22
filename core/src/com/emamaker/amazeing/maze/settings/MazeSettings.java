@@ -13,7 +13,7 @@ public class MazeSettings {
 	public static int MAXPLAYERS = 8;
 	public static int MAXPLAYERS_MOBILE = 1;
 	public static int EPDIST = 5;
-	public static int START_POWERUPS = 3;
+	public static int START_POWERUPS = 0;
 
 	public static ArrayList<MazeSetting> settings = new ArrayList<MazeSetting>();
 	public static MazeSetting setDim;
@@ -36,7 +36,7 @@ public class MazeSettings {
 				AMazeIng.getMain().uiManager);
 
 		setStartPowerups = new MazeSettingStartPowerUps("POWERUPS AT START : ",
-				new String[] { "1", "2", "3", "4", "5", "8", "10", "15" }, 3, AMazeIng.getMain().uiManager);
+				new String[] { "1", "2", "3", "4", "5", "8", "10", "15" }, 6, AMazeIng.getMain().uiManager);
 
 		setEpDist = new MazeSettingEPDIST("END POINT DISTANCE:", new String[] { "1", "2", "5", "10", "20" }, 2,
 				AMazeIng.getMain().uiManager);

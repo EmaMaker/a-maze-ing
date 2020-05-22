@@ -3,8 +3,8 @@ apply plugin: "java"
 sourceCompatibility = 1.7
 
 dependencies {
-    implementation files('/srv/nfs/home/github/amazeing/gdx/lib/voxel_engine_lib.jar')
-    implementation files('/srv/nfs/home/github/amazeing/gdx/lib/kryonet-2.21-all.jar')
+    compile files("lib/voxel_engine_lib.jar")
+    implementation files("lib/kryonet-2.21-all.jar")
 }
 
 

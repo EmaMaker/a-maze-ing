@@ -20,7 +20,7 @@ public class GameManagerServer extends GameManager {
 
 		spreadPlayers();
 		mazeGen.setupEndPoint();
-		powerups.clear();
+		clearPowerUps();
 		spawnPowerUps();
 
 		if (todraw != null && getShowGame())
@@ -32,18 +32,8 @@ public class GameManagerServer extends GameManager {
 	@Override
 	public void inGameUpdate() {
 		super.inGameUpdate();
-
+		
 		assignPowerUps();
-		
-		renderWorld();
-		hudUpdate();
-		
-		main.world.modelBatch.begin(main.world.cam);
-
-		renderPlayers();
-		renderPowerUps();
-
-		main.world.modelBatch.end();
 
 		if (getFinished()) {
 			((PreGameScreen) main.uiManager.preGameScreen).setGameType(GameType.SERVER);
@@ -51,9 +41,12 @@ public class GameManagerServer extends GameManager {
 		}
 	}
 	
-	//Protecting against myself since this feature doesn't exist yet
 	@Override
 	public void assignPowerUps() {
+		if (players != null && !players.isEmpty())
+			for (MazePlayer p : players) {
+				main.server.removePowerUp(assignPowerUp(p));
+			}
 	}
 
 }

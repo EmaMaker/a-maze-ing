@@ -10,9 +10,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.managers.GameManagerClient;
 import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.AddPowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
 import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
 import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
+import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePowerUp;
 import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransformServer;
@@ -21,6 +23,8 @@ import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.MazePlayerRemote;
 import com.emamaker.amazeing.player.PlayerUtils;
+import com.emamaker.amazeing.player.powerups.PowerUp;
+import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 
@@ -137,7 +141,6 @@ public class GameClient extends NetworkHandler {
 		String uuid = ((UpdatePlayerTransform) message).uuid;
 		if (players.containsKey(uuid) && !localPlayers.contains(uuid)) {
 
-			System.out.println("Updating player with uuid " + uuid);
 			players.get(uuid).setPos(((UpdatePlayerTransform) message).tx, ((UpdatePlayerTransform) message).ty,
 					((UpdatePlayerTransform) message).tz);
 		}
@@ -267,14 +270,19 @@ public class GameClient extends NetworkHandler {
 
 	@Override
 	public void onAddPowerUp(Connection c) {
-		// TODO Auto-generated method stub
-
+		PowerUp pu = PowerUps.pickByName(((AddPowerUp) message).name);
+		if (pu != null) {
+			if (!gameManager.thereIsPowerUpInPos((int) ((AddPowerUp) message).x, (int) ((AddPowerUp) message).z)) {
+				gameManager.spawnPowerUp(((AddPowerUp) message).x, ((AddPowerUp) message).z);
+			}
+		}
 	}
 
 	@Override
 	public void onRemovePowerUp(Connection c) {
-		// TODO Auto-generated method stub
-
+		System.out.println("Remove power-up received");
+		gameManager.removePowerUp(
+				gameManager.getPowerUpByPos((int) ((RemovePowerUp) message).x, (int) ((RemovePowerUp) message).z));
 	}
 
 	@Override
