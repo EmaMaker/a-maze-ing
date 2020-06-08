@@ -24,7 +24,7 @@ public class NACUpdatePlayersPos extends NetworkAction {
 
 		if (parent.gameManager.gameStarted)
 			for (String s : client().localPlayers) {
-				if (parent.players.containsKey(s) && ((MazePlayerLocal) parent.players.get(s)).pressed) {
+				if (parent.players.containsKey(s) && ((MazePlayerLocal) parent.players.get(s)).getPressed()) {
 					responsePacket = parent.updatePlayer(s, parent.players.get(s), false);
 					client().client.sendUDP(responsePacket);
 				}

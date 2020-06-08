@@ -44,17 +44,19 @@ public abstract class NetworkHandler {
 	 */
 
 	public void update() {
-		updatePending();
+		if (isRunning()) {
+			updatePending();
 
-		if (gameManager != null)
-			gameManager.update();
+			if (gameManager != null)
+				gameManager.update();
 
-		if (gameManager != null && System.currentTimeMillis() - time > UPDATE_PERIOD) {
-			if (gameManager.gameStarted)
-				periodicGameUpdate();
-			else
-				periodicNonGameUpdate();
-			time = System.currentTimeMillis();
+			if (gameManager != null && System.currentTimeMillis() - time > UPDATE_PERIOD) {
+				if (gameManager.gameStarted)
+					periodicGameUpdate();
+				else
+					periodicNonGameUpdate();
+				time = System.currentTimeMillis();
+			}
 		}
 	}
 

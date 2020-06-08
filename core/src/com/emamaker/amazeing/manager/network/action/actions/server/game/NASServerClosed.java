@@ -20,7 +20,7 @@ public class NASServerClosed extends NetworkAction {
 	public void resolveAction() {
 		super.resolveAction();
 		System.out.println("Server stopped?");
-		server().server.sendToAllTCP(responsePacket);
+		server().server.sendToAllUDP(responsePacket);
 	}
 
 	@Override

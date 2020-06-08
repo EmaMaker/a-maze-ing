@@ -22,7 +22,6 @@ public class MazePlayerLocal extends MazePlayer {
 
 	/*
 	 * Player controlled on local machine with mouse and kbd, touch or controller
-	 * (in a remote future=
 	 */
 
 	btConvexShape ghostShape;
@@ -197,7 +196,7 @@ public class MazePlayerLocal extends MazePlayer {
 		((btDiscreteDynamicsWorld) (main.world.dynamicsWorld)).addAction(characterController);
 	}
 
-	public boolean pressed = false;
+	boolean pressed = false;
 
 	public void inputs() {
 		pressed = false;
@@ -242,10 +241,8 @@ public class MazePlayerLocal extends MazePlayer {
 			characterController.setWalkDirection(walkDirection);
 		}
 
-		if (Gdx.input.isKeyJustPressed(kpup)) {
-			pressed = true;
+		if (Gdx.input.isKeyJustPressed(kpup))
 			usePowerUp();
-		}
 	}
 
 	public void inputTouchscreen() {
@@ -282,15 +279,13 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void update() {
 		super.update();
-		if (initedPhysics)
-			inputs();
+		if(initedPhysics && !isDisposed()) inputs();
 	}
 
 	@Override
 	protected void updateFromTmpPos() {
 		super.updateFromTmpPos();
-		if (initedPhysics)
-			pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
+		if(initedPhysics && !isDisposed()) pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
 	}
 
 //	@Override
@@ -306,16 +301,17 @@ public class MazePlayerLocal extends MazePlayer {
 
 	@Override
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposed && initedPhysics) {
+		if (!isDisposed() && initedPhysics) {
 			characterTransform.set(x, y, z, i, j, k, l);
 			ghostObject.setWorldTransform(characterTransform);
+			System.out.println(characterTransform.getTranslation(new Vector3()).toString());
 		}
 	}
 
 	@Override
 	public void dispose() {
+		super.dispose();
 		if (!isDisposed()) {
-			mazePlayerModel.dispose();
 			main.world.dynamicsWorld.removeAction(characterController);
 			main.world.dynamicsWorld.removeCollisionObject(ghostObject);
 			characterController.dispose();
@@ -323,6 +319,10 @@ public class MazePlayerLocal extends MazePlayer {
 			ghostShape.dispose();
 			disposed = true;
 		}
+	}
+	
+	public boolean getPressed() {
+		return pressed;
 	}
 
 }

@@ -20,7 +20,7 @@ import com.esotericsoftware.kryonet.Server;
 public class GameServer extends NetworkHandler {
 
 	public Server server;
-	
+
 	public ConcurrentHashMap<String, Boolean> positionUpdate = new ConcurrentHashMap<String, Boolean>();
 
 	// Returns true if the server started successfully
@@ -84,8 +84,8 @@ public class GameServer extends NetworkHandler {
 			this.gameManager.generateMaze(new HashSet<MazePlayer>(players.values()));
 
 			for (String s : players.keySet()) {
-				((NASUpdatePlayerPosForced) getActionByClass(NASUpdatePlayerPosForced.class))
-						.startAction(null, null, s);
+				((NASUpdatePlayerPosForced) getActionByClass(NASUpdatePlayerPosForced.class)).startAction(null, null,
+						s);
 			}
 
 			return true;
@@ -95,23 +95,26 @@ public class GameServer extends NetworkHandler {
 
 	@Override
 	public void stop() {
-		for (MazePlayer p : players.values())
-			p.dispose();
-		players.clear();
 		if (isRunning()) {
-			getActionByClass(NASServerClosed.class).startAction(null, null);
-			server.stop();
-			running = false;
+			for (MazePlayer p : players.values()) {
+				p.dispose();
+				players.clear();
+				getActionByClass(NASServerClosed.class).startAction(null, null);
+				server.stop();
+				running = false;
+			}
 		}
 	}
-	
+
 	public boolean canUpdatePos(String u) {
 		return positionUpdate.containsKey(u) && positionUpdate.get(u);
 	}
-	
+
 	public void setUpdatePos(String uuid, boolean b) {
-		if(positionUpdate.containsKey(uuid)) positionUpdate.replace(uuid, b);
-		else positionUpdate.put(uuid, b);
+		if (positionUpdate.containsKey(uuid))
+			positionUpdate.replace(uuid, b);
+		else
+			positionUpdate.put(uuid, b);
 	}
 
 }

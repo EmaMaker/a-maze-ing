@@ -219,7 +219,6 @@ public class GameManager {
 				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
 			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			p.setPos(x + 0.5f, 2f, z + 0.5f);
-			System.out.println(p.getPos().x + ",  " + p.getPos().z);
 		}
 	}
 

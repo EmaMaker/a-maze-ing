@@ -101,10 +101,10 @@ public class AMazeIng extends Game {
 
 	@Override
 	public void dispose() {
-		world.dispose();
 		gameManager.dispose();
 		client.stop();
 		server.stop();
+		world.dispose();
 	}
 
 	@Override

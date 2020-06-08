@@ -76,14 +76,14 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	public void setPos(float x, float y, float z) {
-		if (!disposed) {
+		if (!isDisposed()) {
 			pos.set(x, y, z);
 			toUpdatePos = true;
 		}
 	}
 
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
-		if (!disposed) {
+		if (!isDisposed()) {
 			pos.set(x, y, z);
 			rot.set(i, j, k, l);
 			if (show)
@@ -92,7 +92,7 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	protected void updateFromTmpPos() {
-		if (toUpdatePos && initedPhysics) {
+		if (!isDisposed() && toUpdatePos && initedPhysics) {
 			setTransform(pos.x, pos.y, pos.z, 0, 0, 0, 0);
 			toUpdatePos = false;
 		}
@@ -118,6 +118,7 @@ public abstract class MazePlayer implements Disposable {
 
 	public void initPhysics() {
 		initedPhysics = true;
+		disposed = false;
 	}
 
 	public void update() {

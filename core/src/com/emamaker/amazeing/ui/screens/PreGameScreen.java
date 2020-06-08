@@ -83,12 +83,13 @@ public class PreGameScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				if (type == GameType.SERVER) {
-					uiManager.main.server.stop();
-					uiManager.main.setScreen(uiManager.srvLaunchScreen);
-				} else if (type == GameType.CLIENT) {
+				if (uiManager.main.client.isRunning()) {
 					uiManager.main.client.stop();
 					uiManager.main.setScreen(uiManager.srvJoinScreen);
+				}
+				if (uiManager.main.server.isRunning()) {
+					uiManager.main.server.stop();
+					uiManager.main.setScreen(uiManager.srvLaunchScreen);
 				}
 				return true;
 			}
@@ -225,7 +226,6 @@ public class PreGameScreen extends MyScreen {
 			}
 		}
 	}
-
 
 	public void setGameType(GameType t) {
 		type = t;

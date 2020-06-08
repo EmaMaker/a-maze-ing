@@ -17,11 +17,11 @@ public class GameManagerLocal extends GameManager {
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		super.generateMaze(pl, todraw);
 
+		addTouchScreenInput();
 		spreadPlayers();
 		mazeGen.setupEndPoint();
 		clearPowerUps();
 		spawnPowerUps();
-		addTouchScreenInput();
 
 		if (todraw != null && getShowGame())
 			mazeGen.show(todraw);

@@ -84,10 +84,12 @@ public class GameClient extends NetworkHandler {
 	public void update() {
 		super.update();
 
-		if (gameManager != null) {
-			if (gameManager.gameStarted) {
-			} else {
-				checkForNewPlayers();
+		if (isRunning()) {
+			if (gameManager != null) {
+				if (gameManager.gameStarted) {
+				} else {
+					checkForNewPlayers();
+				}
 			}
 		}
 	}
@@ -104,7 +106,7 @@ public class GameClient extends NetworkHandler {
 
 	@Override
 	public void stop() {
-		if (running) {
+		if (isRunning()) {
 			for (String s : localPlayers) {
 				((NACRemovePlayer) getActionByClass(NACRemovePlayer.class)).startAction(null, null, s);
 			}
