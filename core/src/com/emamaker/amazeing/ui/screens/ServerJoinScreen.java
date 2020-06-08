@@ -14,14 +14,14 @@ import com.emamaker.amazeing.ui.UIManager;
 
 public class ServerJoinScreen extends MyScreen {
 
-	Label instLab, srvIpL, helpDlgText, failDlgText;
-	TextButton backBtn, connectBtn, helpBtn, helpDlgOkBtn, failDlgOkBtn;
+	Label instLab, srvIpL, helpDlgText, failDlgText, errorDlgText;
+	TextButton backBtn, connectBtn, helpBtn, helpDlgOkBtn, failDlgOkBtn, errorDlgOkBtn;
 	TextArea srvIp;
 
 	Container<Table> firstRowContainer;
 	Table firstRowTable;
 	
-	Dialog helpDlg, failDlg;
+	Dialog helpDlg, failDlg, errorDlg;
 	
 	public ServerJoinScreen(UIManager uiManager_) {
 		super(uiManager_);
@@ -60,7 +60,7 @@ public class ServerJoinScreen extends MyScreen {
 			}
 		});
 
-		failDlg = new Dialog("Server start-up failed", uiManager.skin);
+		failDlg = new Dialog("Server connection failed", uiManager.skin);
 		/* HELP DIALOG */
 		failDlgText = new Label("Connection to the server failed. Check your internet connection and address/port combination.\n"
 				+ "Or Pheraps there's no server running there?", uiManager.skin);
@@ -75,12 +75,26 @@ public class ServerJoinScreen extends MyScreen {
 			}
 		});
 
+		/* ERROR DIALOG */
+		errorDlg = new Dialog("Error in communicating with server", uiManager.skin);
+		errorDlgText = new Label("", uiManager.skin);
+		errorDlg.text(helpDlgText);
+		errorDlgOkBtn = new TextButton("OK", uiManager.skin);
+		errorDlg.button(helpDlgOkBtn);
+		errorDlg.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				errorDlg.hide();
+				return true;
+			}
+		});
+		
 		// Add actions to the buttons
 		backBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				uiManager.main.client.stop();
+//				uiManager.main.client.stop();
 				uiManager.main.setScreen(uiManager.titleScreen);
 				return true;
 			}
@@ -165,6 +179,24 @@ public class ServerJoinScreen extends MyScreen {
 		table.row().colspan(4);
 //		table.add(connectBtn).fillX().width(buttonDim*3f).height(buttonDim);
 		table.add(connectBtn).fillX().expandX().height(buttonDim);
+	}
+	
+
+	public void showErrorDlg(int errorType) {
+		switch (errorType) {
+		case 0:
+			errorDlgText.setText("Server closed");
+			break;
+		case 1:
+			errorDlgText.setText("Timed out");
+			break;
+		default:
+			errorDlgText.setText("An unknown error with the server occurred\n"
+					+ "Maybe check your internet connection?");
+			break;
+		}
+		uiManager.main.setScreen(this);
+		errorDlg.show(stage);
 	}
 
 }

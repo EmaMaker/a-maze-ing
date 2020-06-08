@@ -49,11 +49,11 @@ public class MazePlayerLocal extends MazePlayer {
 	}
 
 	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, int pup_) {
-		this(up_, down_, sx_, dx_, pup_, 0, 0, 0);
+		this(up_, down_, sx_, dx_, pup_, 8, 8, 8);
 	}
 
 	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, int pup_, String name) {
-		this(up_, down_, sx_, dx_, pup_, 0, 0, 0, name);
+		this(up_, down_, sx_, dx_, pup_, 8, 8, 8, name);
 	}
 
 	public MazePlayerLocal(int up_, int down_, int sx_, int dx_, int pup_, float startx, float starty, float startz) {
@@ -197,7 +197,7 @@ public class MazePlayerLocal extends MazePlayer {
 		((btDiscreteDynamicsWorld) (main.world.dynamicsWorld)).addAction(characterController);
 	}
 
-	boolean pressed = false;
+	public boolean pressed = false;
 
 	public void inputs() {
 		pressed = false;
@@ -242,8 +242,10 @@ public class MazePlayerLocal extends MazePlayer {
 			characterController.setWalkDirection(walkDirection);
 		}
 
-		if (Gdx.input.isKeyJustPressed(kpup))
+		if (Gdx.input.isKeyJustPressed(kpup)) {
+			pressed = true;
 			usePowerUp();
+		}
 	}
 
 	public void inputTouchscreen() {
@@ -280,13 +282,15 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void update() {
 		super.update();
-		if(initedPhysics) inputs();
+		if (initedPhysics)
+			inputs();
 	}
 
 	@Override
 	protected void updateFromTmpPos() {
 		super.updateFromTmpPos();
-		if(initedPhysics) pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
+		if (initedPhysics)
+			pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
 	}
 
 //	@Override
@@ -310,8 +314,8 @@ public class MazePlayerLocal extends MazePlayer {
 
 	@Override
 	public void dispose() {
-		super.dispose();
 		if (!isDisposed()) {
+			mazePlayerModel.dispose();
 			main.world.dynamicsWorld.removeAction(characterController);
 			main.world.dynamicsWorld.removeCollisionObject(ghostObject);
 			characterController.dispose();

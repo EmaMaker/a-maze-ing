@@ -122,7 +122,7 @@ public class PreGameScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				buildTable();
-//				AMazeIng.getMain().client.setUpdateMobilePlayers();
+				AMazeIng.getMain().client.setUpdateMobilePlayers();
 
 				return true;
 			}
@@ -138,20 +138,19 @@ public class PreGameScreen extends MyScreen {
 		super.buildTable();
 
 		firstRowTable.clear();
-		
+
 		float d = containerDiagonal();
 		float labScale = d * .00090f;
 		float buttonDim = d * 0.05f;
 
-
-		if(AMazeIng.PLATFORM == AMazeIng.Platform.DESKTOP) {
+		if (AMazeIng.PLATFORM == AMazeIng.Platform.DESKTOP) {
 			labels = new Label[MazeSettings.MAXPLAYERS];
 
 			// Labels to know if players joined
 			for (int i = 0; i < labels.length; i++) {
 				labels[i] = new Label("-- empty slot --", uiManager.skin);
 			}
-		}else{
+		} else {
 			labels = new Label[MazeSettings.MAXPLAYERS - MazeSettings.MAXPLAYERS_MOBILE];
 
 			// Labels to know if players joined
@@ -186,7 +185,7 @@ public class PreGameScreen extends MyScreen {
 		table.row().colspan(4);
 		table.add(firstRowContainer);
 
-		if(AMazeIng.PLATFORM != AMazeIng.Platform.DESKTOP){
+		if (AMazeIng.PLATFORM != AMazeIng.Platform.DESKTOP) {
 			table.row().expandY().fillY().colspan(6);
 			table.add(MazeSettings.setPlayers_Mobile.getTable());
 			table.add(mobileSetBtn).width(buttonDim).height(buttonDim).expandX();
@@ -216,7 +215,8 @@ public class PreGameScreen extends MyScreen {
 		nPlayers = type == GameType.SERVER ? uiManager.main.server.players.size()
 				: uiManager.main.client.players.size();
 
-		if(AMazeIng.isMobile()) nPlayers -= MazeSettings.MAXPLAYERS_MOBILE;
+		if (AMazeIng.isMobile())
+			nPlayers -= MazeSettings.MAXPLAYERS_MOBILE;
 
 		if (labels.length > 0) {
 			// Update Labels
@@ -225,6 +225,7 @@ public class PreGameScreen extends MyScreen {
 			}
 		}
 	}
+
 
 	public void setGameType(GameType t) {
 		type = t;

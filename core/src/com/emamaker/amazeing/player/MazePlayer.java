@@ -147,12 +147,16 @@ public abstract class MazePlayer implements Disposable {
 	public void usePowerUp() {
 		if (currentPowerUp != null && !currentPowerUp.beingUsed)
 			if (currentPowerUp.usePowerUp(this))
-				currentPowerUp = null;
+				disablePowerUp();
+	}
+
+	public void disablePowerUp() {
+		currentPowerUp = null;
 	}
 
 	@Override
 	public void dispose() {
-		if (!disposed) {
+		if (!isDisposed()) {
 			if (show && built)
 				mazePlayerModel.dispose();
 		}

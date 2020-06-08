@@ -1,4 +1,8 @@
-package com.emamaker.amazeing.manager.managers;
+package com.emamaker.amazeing.manager;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Set;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.math.Vector3;
@@ -6,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.AMazeIng.Platform;
-import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.maze.MazeGenerator;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
@@ -16,13 +19,9 @@ import com.emamaker.amazeing.player.powerups.PowerUps;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Set;
-
 public class GameManager {
 
-	AMazeIng main;
+	protected AMazeIng main;
 	public MazeGenerator mazeGen;
 
 	public boolean gameStarted = false;
@@ -71,8 +70,6 @@ public class GameManager {
 					if (!players.contains(p))
 						players.add(p);
 
-				// Finally delete players. A separated step is needed to remove the risk of a
-				// ConcurrentModificationException
 				for (MazePlayer p : toDelete) {
 					p.dispose();
 					players.remove(p);
@@ -102,20 +99,19 @@ public class GameManager {
 	}
 
 	public void addTouchScreenInput() {
-		if (getShowGame()) {
-			stage.clear();
-			if (AMazeIng.PLATFORM == Platform.ANDROID)
-				for (MazePlayer p : players) {
-					if (p instanceof MazePlayerLocal)
-						stage.addActor(((MazePlayerLocal) p).tctrl);
+		if (getShowGame() && AMazeIng.isMobile()) {
+			for (MazePlayer p : players) {
+				if (p instanceof MazePlayerLocal) {
+					stage.addActor(((MazePlayerLocal) p).tctrl);
 					stage.addActor(((MazePlayerLocal) p).touchpadPowerUp);
 				}
+			}
 		}
 	}
 
 	public void hudUpdate() {
 		resetCamera();
-		setCamera(new Vector3(MazeSettings.MAZEX / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
+		setCamera(new Vector3((MazeSettings.MAZEX + 1) / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
 				MazeSettings.MAZEZ / 2 - 1), new Vector3(0, -90, 0));
 
 		stage.act();
@@ -184,6 +180,10 @@ public class GameManager {
 	public void setFinished() {
 		anyoneWon = true;
 		gameStarted = false;
+
+		for (MazePlayer p : players)
+			p.disablePowerUp();
+
 	}
 
 	public boolean getFinished() {

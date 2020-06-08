@@ -14,14 +14,25 @@ public class PlayerUtils {
 	public static int[] WASDKEYS = {Keys.W, Keys.S, Keys.A, Keys.D, Keys.SPACE};
 	public static int[] ARROWKEYS = {Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT, Keys.SHIFT_RIGHT};
 	
-	public static boolean wasdPressed() {
+	public static boolean wasdJustPressed() {
 		for(int i : WASDKEYS) 
 			if(Gdx.input.isKeyJustPressed(i)) return true;
 		return false;
 	}
-	public static boolean arrowsPressed() {
+	public static boolean arrowsJustPressed() {
 		for(int i : ARROWKEYS) 
 			if(Gdx.input.isKeyJustPressed(i)) return true;
+		return false;
+	}
+
+	public static boolean wasdPressed() {
+		for(int i : WASDKEYS) 
+			if(Gdx.input.isKeyPressed(i)) return true;
+		return false;
+	}
+	public static boolean arrowsPressed() {
+		for(int i : ARROWKEYS) 
+			if(Gdx.input.isKeyPressed(i)) return true;
 		return false;
 	}
 	

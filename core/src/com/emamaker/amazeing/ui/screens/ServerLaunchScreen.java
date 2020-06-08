@@ -81,7 +81,7 @@ public class ServerLaunchScreen extends MyScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
-				uiManager.main.server.stop();
+//				uiManager.main.server.stop();
 				uiManager.main.setScreen(uiManager.titleScreen);
 				return true;
 			}

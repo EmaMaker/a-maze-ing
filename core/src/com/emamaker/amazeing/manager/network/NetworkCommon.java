@@ -5,104 +5,81 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.EndPoint;
 
 public class NetworkCommon {
-
-
 	// This registers objects that are going to be sent over the network.
 	public static void register(EndPoint endPoint) {
 		Kryo kryo = endPoint.getKryo();
-		kryo.register(JustConnected.class);
-		kryo.register(LoginAO.class);
-		kryo.register(LoginAO2.class);
-		kryo.register(ConnectionRefused.class);
-		kryo.register(AddNewPlayer.class);
+		kryo.register(ClientLoginAO.class);
+		kryo.register(ServerLoginUUID.class);
+		kryo.register(ClientLoginAO2.class);
+		kryo.register(ServerLoginAO2.class);
+
 		kryo.register(RemovePlayer.class);
-		kryo.register(UpdatePlayerTransform.class);
-		kryo.register(UpdatePlayerTransformServer.class);
-		kryo.register(StartGame.class);
-		kryo.register(EndGame.class);
-		kryo.register(UpdateMap.class);
-		kryo.register(UpdateSettings.class);
-		kryo.register(Present.class);
-		kryo.register(AddPowerUp.class);
-		kryo.register(RemovePowerUp.class);
-		kryo.register(AssignPowerUp.class);
-		kryo.register(StartUsingPowerUp.class);
-		kryo.register(EndUsingPowerUp.class);
-	}
-
-	//Login stuff
-	public static class JustConnected {
-	}
-	public static class LoginAO {
-	}
-	public static class LoginAO2 {
-		String uuid;
-	}
-	public static class ConnectionRefused {
-		String uuid;
-	}
-
-	//Player stuff
-	public static class AddNewPlayer {
-		String uuid;
-	}
-	public static class RemovePlayer {
-		String uuid;
-	}
-	public static class UpdatePlayerTransform {
-		String uuid;
-		float tx, ty, tz, rx, ry, rz, rw;
-	}
-	public static class UpdatePlayerTransformServer {
-		String uuid;
-		float tx, ty, tz, rx, ry, rz, rw;
-	}
-
-	//PowerUp stuff
-	public static class AddPowerUp {
-		String name;
-		float x,z;
-	}
-	public static class RemovePowerUp {
-		String uuid;
-		float x,z;
-	}
-	public static class AssignPowerUp {
-		String name, uuid;
-	}
-	public static class StartUsingPowerUp {
-		String name, uuid;
-	}
-	public static class EndUsingPowerUp {
-		String name, uuid;
-	}
-	
-	//Game
-	public static class StartGame{
-		//Use this to notify clients of a newly started game
-		//A Run-lenght-encoded representation of the map can be appended, this can be avoided but it's not recommended
-		String map;
-	}
-	public static class EndGame{
-		//Use this to notify clients when a game ends
-	}
-	public static class UpdateMap{
-		//Use this to notify clients of a modification of the map
-		//Run-lenght-encoded representation of the map
-		String map;
-	}
-	
-	public static class UpdateSettings {
-		int index;
-		String value;
-	}
-	
-	public static class Present{
+		kryo.register(PlayerRemoved.class);
 		
+		kryo.register(GameStatusUpdate.class);
+		kryo.register(String[].class);
+		kryo.register(UpdateMap.class);
+		
+		kryo.register(UpdatePlayerPosition.class);
+		kryo.register(UpdateForcedPlayerPosition.class);
+		kryo.register(UpdateForcedPlayerPositionOk.class);
+		
+		kryo.register(ServerClosed.class);
+	}
+
+	public static class ClientLoginAO {
+	}
+
+	public static class ServerLoginUUID {
+		public String uuid;
+	}
+
+	public static class ClientLoginAO2 {
+		public String uuid;
+	}
+
+	public static class ServerLoginAO2 {
+		public String uuid;
+	}
+
+	public static class RemovePlayer{
+		public String uuid;
 	}
 	
+	public static class PlayerRemoved{
+		public String uuid;
+	}
+	
+	//Game Status is used to broadcast to clients infos about the game and players
+	public static class GameStatusUpdate{
+		public boolean gameStarted;
+		public boolean anyoneWon;
+		public String[] playersUUIDs;
+	}
+	
+	//Run-lenght encoding of the map
+	public static class UpdateMap{
+		public String map;
+	}
+	
+	
+	public static class UpdatePlayerPosition{
+		public String uuid;
+		public float px, py, pz;
+	}
+	
+	public static class UpdateForcedPlayerPosition{
+		public String uuid;
+		public float px, py, pz;
+	}
+	
+	public static class UpdateForcedPlayerPositionOk{
+		public String uuid;
+	}
+	
+	public static class ServerClosed{ }
 }
 
 class ConnectionPlayer extends Connection {
-    public String uuid;
+	public String uuid;
 }

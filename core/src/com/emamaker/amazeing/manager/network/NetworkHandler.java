@@ -1,136 +1,52 @@
 package com.emamaker.amazeing.manager.network;
 
-import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
-import com.emamaker.amazeing.manager.managers.GameManager;
-import com.emamaker.amazeing.manager.network.NetworkCommon.AddNewPlayer;
-import com.emamaker.amazeing.manager.network.NetworkCommon.AddPowerUp;
-import com.emamaker.amazeing.manager.network.NetworkCommon.AssignPowerUp;
-import com.emamaker.amazeing.manager.network.NetworkCommon.ConnectionRefused;
-import com.emamaker.amazeing.manager.network.NetworkCommon.EndGame;
-import com.emamaker.amazeing.manager.network.NetworkCommon.EndUsingPowerUp;
-import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO;
-import com.emamaker.amazeing.manager.network.NetworkCommon.LoginAO2;
-import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePlayer;
-import com.emamaker.amazeing.manager.network.NetworkCommon.RemovePowerUp;
-import com.emamaker.amazeing.manager.network.NetworkCommon.StartGame;
-import com.emamaker.amazeing.manager.network.NetworkCommon.StartUsingPowerUp;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateMap;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransform;
-import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerTransformServer;
+import com.emamaker.amazeing.manager.GameManager;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateForcedPlayerPosition;
+import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerPosition;
+import com.emamaker.amazeing.manager.network.action.NetworkAction;
 import com.emamaker.amazeing.player.MazePlayer;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 
 public abstract class NetworkHandler {
 
-	public Hashtable<String, MazePlayer> players = new Hashtable<String, MazePlayer>();
+	public ConcurrentHashMap<String, MazePlayer> players = new ConcurrentHashMap<String, MazePlayer>();
 	public GameManager gameManager;
 	public AMazeIng main = AMazeIng.getMain();
+
+	// A List of all actions that can be done by the handler
+	public CopyOnWriteArrayList<NetworkAction> actions = new CopyOnWriteArrayList<>();
+	// A list of the actions that are currently in resolution and are waiting for a
+	// response
+	public CopyOnWriteArrayList<NetworkAction> pendingActions = new CopyOnWriteArrayList<>();
+	// Some actions (such as the first step of login) cannot be done in multiple
+	// instances at the same time
+	// Actions of this type have to be stored here
+	public ConcurrentLinkedQueue<NetworkAction> todoActions = new ConcurrentLinkedQueue<>();
+	CopyOnWriteArrayList<NetworkAction> deletePending = new CopyOnWriteArrayList<>();
 
 	int port;
 	boolean running = false;
 
 	long time = 0;
-	int UPDATE_PERIOD = 2000;
+	int UPDATE_PERIOD = 750;
 
 	/*
-	 * Since Kryonet defaults the use of a TCP port: Login UUID negotation, game
-	 * starting and ending, player adding and removal settings update are done using
-	 * TCP since we can't afford to lose packets on them, and they're done in a
-	 * phase of the game when there's few UPD traffic if not at all Player Transform
-	 * Updates and map updates will be done in UDP, since there can be a lot in a
-	 * short period of time and they're not essential to the game (meaning some
-	 * updates can be skipped)
+	 * Everything is done with the use of UDP and actions. Basically an Action will
+	 * send a specific UDP package to one end to another and repeat the same action
+	 * until a response is received, look in the NetworkAction class for more info A
+	 * NetworkHandler provides functionality to the NetworkActions: it updates and
+	 * manages the adding and removal of NetworkActions
 	 */
 
-	public abstract void onLoginAO(Connection c);
-
-	public abstract void onLoginAO2(Connection c);
-
-	public abstract void onConnectionRefused(Connection c);
-
-	public abstract void onAddNewPlayer(Connection c);
-
-	public abstract void onRemovePlayer(Connection c);
-
-	public abstract void onUpdateTransform(Connection c);
-
-	public abstract void onUpdateTransformServer(Connection c);
-
-	public abstract void onStartGame(Connection c);
-
-	public abstract void onEndGame(Connection c);
-
-	public abstract void onUpdateMap(Connection c);
-
-	public abstract void onUpdateSettings(Connection c);
-
-	public abstract void onConnected(Connection c);
-
-	public abstract void onAddPowerUp(Connection c);
-
-	public abstract void onRemovePowerUp(Connection c);
-
-	public abstract void onAssignPowerUp(Connection c);
-
-	public abstract void onStartUsingPowerUp(Connection c);
-
-	public abstract void onEndUsingPowerUp(Connection c);
-
-	Object message;
-
-	public void onReceived(Connection c, Object object) {
-		message = object;
-
-		if (object instanceof LoginAO)
-			onLoginAO(c);
-		else if (object instanceof LoginAO2)
-			onLoginAO2(c);
-		else if (object instanceof ConnectionRefused)
-			onConnectionRefused(c);
-		else if (object instanceof UpdatePlayerTransform)
-			onUpdateTransform(c);
-		else if (object instanceof UpdatePlayerTransformServer)
-			onUpdateTransformServer(c);
-		else if (object instanceof StartGame)
-			onStartGame(c);
-		else if (object instanceof EndGame)
-			onEndGame(c);
-		else if (object instanceof UpdateMap)
-			onUpdateMap(c);
-		else if (object instanceof AddNewPlayer)
-			onAddNewPlayer(c);
-		else if (object instanceof RemovePlayer)
-			onRemovePlayer(c);
-		else if (object instanceof AddPowerUp)
-			onAddPowerUp(c);
-		else if (object instanceof RemovePowerUp)
-			onRemovePowerUp(c);
-		else if (object instanceof AssignPowerUp)
-			onAssignPowerUp(c);
-		else if (object instanceof StartUsingPowerUp)
-			onStartUsingPowerUp(c);
-		else if (object instanceof EndUsingPowerUp)
-			onEndUsingPowerUp(c);
-		
-	}
-
-	Listener connectionListener = new Listener() {
-		public void received(com.esotericsoftware.kryonet.Connection arg0, Object arg1) {
-			onReceived(arg0, arg1);
-		};
-
-		public void connected(com.esotericsoftware.kryonet.Connection arg0) {
-			onConnected(arg0);
-		};
-	};
-
 	public void update() {
-		if (gameManager != null && gameManager.gameStarted)
+		updatePending();
+
+		if (gameManager != null)
 			gameManager.update();
 
 		if (gameManager != null && System.currentTimeMillis() - time > UPDATE_PERIOD) {
@@ -142,48 +58,90 @@ public abstract class NetworkHandler {
 		}
 	}
 
+	public void updatePending() {
+		if (!todoActions.isEmpty()) {
+			if (!alreadyPending(todoActions.peek()))
+				todoActions.peek().startAction(null, null);
+			addToPending(todoActions.remove());
+		}
+
+		for (NetworkAction n : pendingActions)
+			n.update();
+	}
+
+	/*
+	 * Unluckily, we can't check if a specific action is already pending. But we can
+	 * check if there's another type of the same action running. NetworkActions can
+	 * override the startAction method to be started even if there's another one
+	 * already running (e.g. PositionUpdates)
+	 */
+	public boolean alreadyPending(NetworkAction act) {
+		for (NetworkAction a : pendingActions) {
+			if (a.getClass().isAssignableFrom(act.getClass())) {
+//				System.out.println("Already pending " + act);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Actions can be removed from pending by instance
+	public void removeFromPending(NetworkAction act) {
+		pendingActions.remove(act);
+//		System.out.println("Delete from pending " + act);
+	}
+
+	public void addToPending(NetworkAction a) {
+		pendingActions.add(a);
+	}
+
 	public void periodicGameUpdate() {
 	}
 
 	public void periodicNonGameUpdate() {
 	}
 
-	public boolean isRunning() {
-		return running;
+	public void registerActions() {
 	}
 
 	public abstract boolean startGame();
 
 	public abstract void stop();
 
+	public boolean isRunning() {
+		return running;
+	}
+
+	public NetworkAction getActionByClass(Class<?> clas) {
+		for (NetworkAction a : actions) {
+			if (a.getClass() == clas) {
+				return a;
+			}
+		}
+		return null;
+	}
+
+	public void startDefaultActions() {
+	}
+
 	public Object updatePlayer(String uuid, MazePlayer p, boolean force) {
 		if (force) {
-			NetworkCommon.UpdatePlayerTransformServer pu = new NetworkCommon.UpdatePlayerTransformServer();
+			UpdateForcedPlayerPosition pu = new UpdateForcedPlayerPosition();
 			Vector3 pos = p.getPos();
-			Quaternion rot = p.getRotation();
-			pu.tx = pos.x;
-			pu.ty = pos.y;
-			pu.tz = pos.z;
-			pu.rx = rot.x;
-			pu.ry = rot.y;
-			pu.rz = rot.z;
-			pu.rw = rot.w;
+			pu.px = pos.x;
+			pu.py = pos.y;
+			pu.pz = pos.z;
 			pu.uuid = uuid;
-			System.out.println("Forcing position update to all clients for player " + uuid);
+//			System.out.println("Forcing position update to all clients for player " + uuid + " in pos " + pos.toString());
 			return pu;
 		} else {
-			UpdatePlayerTransform pu = new UpdatePlayerTransform();
+			UpdatePlayerPosition pu = new UpdatePlayerPosition();
 			Vector3 pos = p.getPos();
-			Quaternion rot = p.getRotation();
-			pu.tx = pos.x;
-			pu.ty = pos.y;
-			pu.tz = pos.z;
-			pu.rx = rot.x;
-			pu.ry = rot.y;
-			pu.rz = rot.z;
-			pu.rw = rot.w;
+			pu.px = pos.x;
+			pu.py = pos.y;
+			pu.pz = pos.z;
 			pu.uuid = uuid;
-			System.out.println("Sending position update to all clients for player " + uuid);
+//			System.out.println("Sending position update to all clients for player " + uuid + " in pos " + pos.toString());
 			return pu;
 		}
 	}

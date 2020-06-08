@@ -7,7 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.emamaker.amazeing.manager.managers.GameManager;
+import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.managers.GameManagerLocal;
 import com.emamaker.amazeing.manager.network.GameClient;
 import com.emamaker.amazeing.manager.network.GameServer;
@@ -51,7 +51,7 @@ public class AMazeIng extends Game {
 		Bullet.init();
 
 		// Set windowed resolution
-		Gdx.graphics.setWindowedMode(640, 480);
+		Gdx.graphics.setWindowedMode(1280, 720);
 
 		// Enable on-screen keyboard for mobile devices
 		// Gdx.input.setOnscreenKeyboardVisible(true);

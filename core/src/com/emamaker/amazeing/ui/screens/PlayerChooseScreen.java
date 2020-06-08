@@ -208,9 +208,9 @@ public class PlayerChooseScreen extends MyScreen {
     public void update() {
         // Consantly search for new players to be added
         // First search for keyboard players (WASD and ARROWS)
-        if (PlayerUtils.wasdPressed())
+        if (PlayerUtils.wasdJustPressed())
             PlayerUtils.togglePlayerWithKeys(players, PlayerUtils.WASDKEYS);
-        if (PlayerUtils.arrowsPressed())
+        if (PlayerUtils.arrowsJustPressed())
             PlayerUtils.togglePlayerWithKeys(players, PlayerUtils.ARROWKEYS);
 
 //		for (Controller c : Controllers.getControllers()) {
