@@ -11,7 +11,7 @@ public class NACLoginAO extends NetworkAction {
 			boolean oneTime) {
 		super(parent, c, incomingMsg_, responsePacket_, endPacket_, oneTime);
 	}
-	
+
 	public NACLoginAO(NetworkHandler parent_) {
 		super(parent_, null, new NetworkCommon.ClientLoginAO(), new NetworkCommon.ServerLoginUUID(), false);
 	}

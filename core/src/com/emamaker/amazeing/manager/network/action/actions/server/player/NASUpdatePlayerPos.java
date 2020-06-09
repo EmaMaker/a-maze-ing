@@ -27,6 +27,7 @@ public class NASUpdatePlayerPos extends NetworkAction {
 		float pz = ((UpdatePlayerPosition) incomingMsg).pz;
 		if (parent.players.containsKey(uuid) && server().canUpdatePos(uuid) && parent.gameManager.gameStarted) {
 			parent.players.get(uuid).setPos(px, py, pz);
+			parent.players.get(uuid).LAST_NETWORK_TIME = System.currentTimeMillis();
 			server().server.sendToAllUDP(incomingMsg);
 		}
 	}

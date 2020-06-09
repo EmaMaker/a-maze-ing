@@ -1,9 +1,5 @@
 package com.emamaker.amazeing.manager.network;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
@@ -11,6 +7,10 @@ import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateForcedPlayerPos
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerPosition;
 import com.emamaker.amazeing.manager.network.action.NetworkAction;
 import com.emamaker.amazeing.player.MazePlayer;
+
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class NetworkHandler {
 
@@ -26,7 +26,7 @@ public abstract class NetworkHandler {
 	// Some actions (such as the first step of login) cannot be done in multiple
 	// instances at the same time
 	// Actions of this type have to be stored here
-	public ConcurrentLinkedQueue<NetworkAction> todoActions = new ConcurrentLinkedQueue<>();
+	public CopyOnWriteArrayList<NetworkAction> todoActions = new CopyOnWriteArrayList<>();
 	CopyOnWriteArrayList<NetworkAction> deletePending = new CopyOnWriteArrayList<>();
 
 	int port;
@@ -61,11 +61,23 @@ public abstract class NetworkHandler {
 	}
 
 	public void updatePending() {
-		if (!todoActions.isEmpty()) {
-			if (!alreadyPending(todoActions.peek()))
-				todoActions.peek().startAction(null, null);
-			addToPending(todoActions.remove());
+	    //System.out.println(Arrays.toString(todoActions.toArray()));
+		for(NetworkAction a : todoActions) {
+			if(!alreadyPending(a)) {
+			    System.out.println(a);
+				addToPending(a);
+				todoActions.remove(a);
+			}
 		}
+		
+		//		if (!todoActions.isEmpty()) {
+//			System.out.println("Actions queue: " + Arrays.toString(todoActions.toArray()));
+//			if (!alreadyPending(todoActions.peek())) {
+//				todoActions.peek().startAction(null, null);
+//				System.out.println("Getting action from queue: " + todoActions.peek());
+//				addToPending(todoActions.remove());
+//			}
+//		}
 
 		for (NetworkAction n : pendingActions)
 			n.update();
@@ -75,7 +87,7 @@ public abstract class NetworkHandler {
 	 * Unluckily, we can't check if a specific action is already pending. But we can
 	 * check if there's another type of the same action running. NetworkActions can
 	 * override the startAction method to be started even if there's another one
-	 * already running (e.g. PositionUpdates)
+	 * already running (e.g. Player Removal)
 	 */
 	public boolean alreadyPending(NetworkAction act) {
 		for (NetworkAction a : pendingActions) {
@@ -83,6 +95,10 @@ public abstract class NetworkHandler {
 //				System.out.println("Already pending " + act);
 				return true;
 			}
+			/*for(int i = 0; i < act.maskActions.length; i++){
+			    if(a.getClass().isAssignableFrom(a.maskActions[i].getClass())) return true;
+            }*/
+
 		}
 		return false;
 	}
@@ -94,6 +110,7 @@ public abstract class NetworkHandler {
 	}
 
 	public void addToPending(NetworkAction a) {
+	    a.registerEndListener();
 		pendingActions.add(a);
 	}
 

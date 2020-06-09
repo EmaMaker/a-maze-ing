@@ -10,7 +10,6 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.managers.GameManagerClient;
 import com.emamaker.amazeing.manager.network.action.NetworkAction;
 import com.emamaker.amazeing.manager.network.action.actions.client.game.NACGameStatusUpdate;
-import com.emamaker.amazeing.manager.network.action.actions.client.game.NACServerClosed;
 import com.emamaker.amazeing.manager.network.action.actions.client.game.NACUpdateMap;
 import com.emamaker.amazeing.manager.network.action.actions.client.login.NACLoginAO;
 import com.emamaker.amazeing.manager.network.action.actions.client.login.NACLoginAO2;
@@ -22,6 +21,7 @@ import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.PlayerUtils;
+import com.emamaker.amazeing.utils.MathUtils.Constants;
 import com.esotericsoftware.kryonet.Client;
 
 public class GameClient extends NetworkHandler {
@@ -29,7 +29,7 @@ public class GameClient extends NetworkHandler {
 	public Client client;
 	String addr;
 
-	boolean updateMobilePlayers = false;
+	boolean updateMobilePlayers = true;
 
 	public CopyOnWriteArrayList<String> localPlayers = new CopyOnWriteArrayList<String>();
 
@@ -72,7 +72,6 @@ public class GameClient extends NetworkHandler {
 		actions.add(new NACUpdatePlayerPosForced(this));
 		actions.add(new NACUpdatePlayersPos(this));
 		actions.add(new NACUpdateOtherPlayerPos(this));
-		actions.add(new NACServerClosed(this));
 	}
 
 	@Override
@@ -83,8 +82,14 @@ public class GameClient extends NetworkHandler {
 	@Override
 	public void update() {
 		super.update();
-
+		
 		if (isRunning()) {
+			//Check if the server disconnected or it's timing out
+			if(!client.isConnected() || ((NACGameStatusUpdate.gotMessage && System.currentTimeMillis() - NACGameStatusUpdate.lastMsgTime > Constants.COMMUNICATION_TIMEOUT_MILLIS))) {
+				stop(true);
+				main.uiManager.srvJoinScreen.showErrorDlg(1);
+			}
+			//Normal client update
 			if (gameManager != null) {
 				if (gameManager.gameStarted) {
 				} else {
@@ -106,26 +111,39 @@ public class GameClient extends NetworkHandler {
 
 	@Override
 	public void stop() {
+		stop(false);
+	}
+
+	public void stop(boolean fromserver) {
 		if (isRunning()) {
-			for (String s : localPlayers) {
-				((NACRemovePlayer) getActionByClass(NACRemovePlayer.class)).startAction(null, null, s);
+			if (!fromserver) {
+				for (String s : localPlayers) {
+					((NACRemovePlayer) getActionByClass(NACRemovePlayer.class)).startAction(null, null, s);
+				}
 			}
 
 			for (MazePlayer p : players.values())
 				p.dispose();
 			players.clear();
 
-			for (NetworkAction n : pendingActions)
-				n.onParentClosing();
 
-			while (!pendingActions.isEmpty())
-				update();
+			if (!fromserver) {
+				for (NetworkAction n : pendingActions)
+					n.onParentClosing();
+				
+				while (!pendingActions.isEmpty())
+					update();
+			}
+
+			pendingActions.clear();
+			todoActions.clear();
+			actions.clear();
 
 			client.stop();
 			running = false;
-//			}
 
 		}
+
 	}
 
 	/* CHECKING FOR NEW PLAYERS */

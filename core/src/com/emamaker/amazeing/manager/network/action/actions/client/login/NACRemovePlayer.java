@@ -43,7 +43,7 @@ public class NACRemovePlayer extends NetworkAction {
 	@Override
 	public void resolveAction() {
 		super.resolveAction();
-		System.out.println("Asking the server to remove player " + uuid);
+//		System.out.println("Asking the server to remove player " + uuid);
 		((RemovePlayer) responsePacket).uuid = uuid;
 		client().client.sendUDP(responsePacket);
 	}
@@ -63,7 +63,7 @@ public class NACRemovePlayer extends NetworkAction {
 			}
 			detachFromParent();
 		}
-//		System.out.println("Response received for " + this);
+		System.out.println("Response received for " + this);
 	}
 
 	@Override

@@ -1,8 +1,12 @@
 package com.emamaker.amazeing.player.powerups;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool.PooledEffect;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -16,6 +20,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.utils.MathUtils;
 
 public class PowerUp implements Disposable {
 
@@ -36,11 +41,15 @@ public class PowerUp implements Disposable {
 
 	Vector3 pos = new Vector3();
 
-	public PowerUp(String name_, Texture texture_, boolean cont) {
-		this(name_, texture_, cont, 1, 1);
+	ParticleEffect effect;
+	ParticleEffectPool effectPool;
+
+	public PowerUp(String name_, Texture texture_, boolean cont, FileHandle effectFile, FileHandle imageSrc) {
+		this(name_, texture_, cont, 1, 1, effectFile, imageSrc);
 	}
 
-	public PowerUp(String name_, Texture texture_, boolean cont, float scaleX, float scaleZ) {
+	public PowerUp(String name_, Texture texture_, boolean cont, float scaleX, float scaleZ, FileHandle effectFile,
+			FileHandle imageSrc) {
 		this.name = name_;
 		this.texture = texture_;
 		this.scaleX = scaleX;
@@ -54,6 +63,12 @@ public class PowerUp implements Disposable {
 		beingUsed = false;
 		built = false;
 		toUpdatePos = false;
+
+		if (effectFile != null && imageSrc != null) {
+			effect = new ParticleEffect();
+			effect.load(effectFile, imageSrc);
+			effectPool = new ParticleEffectPool(effect, 1, 2);
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -106,7 +121,15 @@ public class PowerUp implements Disposable {
 
 	// Return true if the effect has been resolved
 	public boolean usePowerUp(MazePlayer player) {
-//		System.out.println(this.name + "!");
+		System.out.println(this.name + " ! ");
+
+		if (effect != null) {
+			PooledEffect e = effectPool.obtain();
+			Vector3 pos = MathUtils.toScreenCoords(player.getPos());
+			e.setPosition(pos.x, pos.y);
+
+			AMazeIng.getMain().effects.add(e);
+		}
 		return true;
 	}
 
@@ -122,36 +145,47 @@ class PowerUpTemporized extends PowerUp {
 	long time = 0, startTime = 0;
 	boolean used = false;
 
-	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_) {
-		this(name_, texture_, cont, secs_, 1, 1);
+	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_, FileHandle effectFile,
+			FileHandle imageSrc) {
+		this(name_, texture_, cont, secs_, 1, 1, effectFile, imageSrc);
 	}
 
-	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_, float scaleX, float scaleZ) {
-		super(name_, texture_, cont, scaleX, scaleZ);
+	public PowerUpTemporized(String name_, Texture texture_, boolean cont, float secs_, float scaleX, float scaleZ,
+			FileHandle effectFile, FileHandle imageSrc) {
+		super(name_, texture_, cont, scaleX, scaleZ, effectFile, imageSrc);
 		this.time = (long) (secs_ * 1000);
 		startTime = 0;
 	}
 
+	PooledEffect e;
+
 	@Override
 	public boolean usePowerUp(MazePlayer player) {
-		super.usePowerUp(player);
-
 		if (!used) {
 			startTime = System.currentTimeMillis();
 			used = true;
+
+			e = effectPool.obtain();
+			AMazeIng.getMain().effects.add(e);
 		}
 
-		if (System.currentTimeMillis() - startTime < time) {
+		if (System.currentTimeMillis() - startTime <= time) {
 			temporizedEffect(player);
+			System.out.println("starting " + name);
 			return false;
 		} else {
 			used = false;
+			System.out.println("finishing " + name);
+			e = null;
 			temporizedEffectExpired(player);
 			return true;
 		}
 	}
 
 	public void temporizedEffect(MazePlayer player) {
+		Vector3 p = MathUtils.toScreenCoords(player.getPos());
+		e.setPosition(p.x, p.y);
+
 		beingUsed = true;
 	}
 
@@ -166,24 +200,26 @@ class PowerUpGiver extends PowerUp {
 	PowerUp powerup;
 	MazePlayer p;
 
-	public PowerUpGiver(PowerUp p, String name, Texture texture, boolean continuos) {
-		this(p, name, texture, continuos, 1f, 1f);
+	public PowerUpGiver(PowerUp p, String name, Texture texture, boolean continuos, FileHandle effectFile,
+			FileHandle imageSrc) {
+		this(p, name, texture, continuos, 1f, 1f, effectFile, imageSrc);
 	}
 
-	public PowerUpGiver(PowerUp p, String name, Texture texture, boolean continuos, float scaleX, float scaleZ) {
-		super(name, texture, continuos, scaleX, scaleZ);
+	public PowerUpGiver(PowerUp p, String name, Texture texture, boolean continuos, float scaleX, float scaleZ,
+			FileHandle effectFile, FileHandle imageSrc) {
+		super(name, texture, continuos, scaleX, scaleZ, effectFile, imageSrc);
 		this.powerup = p;
 	}
 
 	@Override
 	public boolean usePowerUp(MazePlayer player) {
-		super.usePowerUp(player);
+//		super.usePowerUp(player);
 
 		p = null;
 		if (AMazeIng.getMain().currentGameManager.players.size() > 1) {
 			while (p == player || p == null)
 				p = AMazeIng.getMain().currentGameManager.getRandomPlayer();
-			p.currentPowerUp = new PowerUpBallAndChain();
+			p.currentPowerUp = powerup;
 			p.usePowerUp();
 		}
 

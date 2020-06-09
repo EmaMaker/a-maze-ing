@@ -6,7 +6,10 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.FPSLogger;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool.PooledEffect;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.utils.Array;
 import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.managers.GameManagerLocal;
 import com.emamaker.amazeing.manager.network.GameClient;
@@ -39,6 +42,12 @@ public class AMazeIng extends Game {
 
 	public static Platform PLATFORM;
 
+	public float delta = 0;
+
+	public SpriteBatch spriteBatch;
+	public Array<PooledEffect> effects = new Array<PooledEffect>();
+
+	
 	public AMazeIng(Platform p) {
 		PLATFORM = p;
 	}
@@ -68,6 +77,8 @@ public class AMazeIng extends Game {
 		setupGUI();
 		setupGameManager();
 		setupPowerUps();
+		
+		spriteBatch = new SpriteBatch();
 	}
 
 	public void setupGUI() {
@@ -94,19 +105,45 @@ public class AMazeIng extends Game {
 	@Override
 	public void render() {
 		super.render();
+		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
+
 		server.update();
 		client.update();
 		gameManager.update();
+		
+		spriteBatch.begin();
+		// Update and draw effects:
+		for (int i = effects.size - 1; i >= 0; i--) {
+			PooledEffect effect = effects.get(i);
+			effect.draw(spriteBatch, delta);
+			if (effect.isComplete()) {
+				effect.free();
+				effects.removeIndex(i);
+			}
+		}
+		spriteBatch.end();
+
 	}
 
 	@Override
 	public void dispose() {
 		gameManager.dispose();
-		client.stop();
+		if (server.isRunning())
+			client.stop(true);
+		else
+			client.stop();
 		server.stop();
 		world.dispose();
+		clearEffects();		
 	}
 
+	public void clearEffects() {
+		// Reset all effects:
+		for (int i = effects.size - 1; i >= 0; i--)
+		    effects.get(i).free(); //free all the effects back to the pool
+		effects.clear(); //clear the current effects array
+	}
+	
 	@Override
 	public void resize(int width, int height) {
 		world.resize(width, height);

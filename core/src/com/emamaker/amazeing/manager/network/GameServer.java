@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.emamaker.amazeing.manager.managers.GameManagerServer;
 import com.emamaker.amazeing.manager.network.action.actions.server.game.NASGameStatusUpdate;
-import com.emamaker.amazeing.manager.network.action.actions.server.game.NASServerClosed;
 import com.emamaker.amazeing.manager.network.action.actions.server.game.NASUpdateMap;
 import com.emamaker.amazeing.manager.network.action.actions.server.login.NASLoginAO2;
 import com.emamaker.amazeing.manager.network.action.actions.server.login.NASLoginUUID;
@@ -15,6 +14,7 @@ import com.emamaker.amazeing.manager.network.action.actions.server.login.NASRemo
 import com.emamaker.amazeing.manager.network.action.actions.server.player.NASUpdatePlayerPos;
 import com.emamaker.amazeing.manager.network.action.actions.server.player.NASUpdatePlayerPosForced;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.utils.MathUtils.Constants;
 import com.esotericsoftware.kryonet.Server;
 
 public class GameServer extends NetworkHandler {
@@ -26,7 +26,6 @@ public class GameServer extends NetworkHandler {
 	// Returns true if the server started successfully
 	public boolean start(int port_) {
 		port = port_;
-		running = true;
 		try {
 			server = new Server();
 			// For consistency, the classes to be sent over the network are
@@ -41,6 +40,8 @@ public class GameServer extends NetworkHandler {
 			startDefaultActions();
 
 			System.out.println("Server registered and running on port " + port);
+
+			running = true;
 			return true;
 
 		} catch (IOException e) {
@@ -59,7 +60,6 @@ public class GameServer extends NetworkHandler {
 		actions.add(new NASUpdateMap(this));
 		actions.add(new NASUpdatePlayerPosForced(this));
 		actions.add(new NASUpdatePlayerPos(this));
-		actions.add(new NASServerClosed(this));
 	}
 
 	@Override
@@ -68,6 +68,22 @@ public class GameServer extends NetworkHandler {
 //		getActionByClass(NAServerUpdatePlayers.class).startAction(null, null);
 	}
 
+	@Override
+	public void update() {
+		super.update();
+		
+		if(isRunning()) {
+			//Check if there's some player not responding that needs to be removed
+			for(String s: players.keySet()) {
+				if(System.currentTimeMillis() - players.get(s).LAST_NETWORK_TIME > Constants.COMMUNICATION_TIMEOUT_MILLIS) {
+					players.get(s).dispose();
+					players.remove(s);
+				}
+                System.out.println(Arrays.toString(players.values().toArray()));
+			}
+		}
+	}
+	
 	@Override
 	public void periodicNonGameUpdate() {
 	}
@@ -99,9 +115,12 @@ public class GameServer extends NetworkHandler {
 			for (MazePlayer p : players.values()) {
 				p.dispose();
 				players.clear();
-				getActionByClass(NASServerClosed.class).startAction(null, null);
 				server.stop();
 				running = false;
+
+				pendingActions.clear();
+				todoActions.clear();
+				actions.clear();
 			}
 		}
 	}

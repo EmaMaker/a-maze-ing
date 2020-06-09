@@ -173,8 +173,10 @@ public class GameManager {
 
 	public void checkWin() {
 		for (MazePlayer p : players)
-			if (checkWin(p))
+			if (checkWin(p)) {
 				setFinished();
+				return;
+			}
 	}
 
 	public void setFinished() {
@@ -183,7 +185,7 @@ public class GameManager {
 
 		for (MazePlayer p : players)
 			p.disablePowerUp();
-
+		main.clearEffects();
 	}
 
 	public boolean getFinished() {
@@ -321,7 +323,7 @@ public class GameManager {
 	}
 
 	public void requestChangeToMap(int[][] todraw) {
-		mazeGen.requestChangeToMap(todraw);
+		mazeGen.show(todraw);
 	}
 
 	public void resetCamera() {

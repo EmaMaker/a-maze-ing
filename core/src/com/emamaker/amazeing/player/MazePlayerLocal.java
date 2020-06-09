@@ -304,7 +304,6 @@ public class MazePlayerLocal extends MazePlayer {
 		if (!isDisposed() && initedPhysics) {
 			characterTransform.set(x, y, z, i, j, k, l);
 			ghostObject.setWorldTransform(characterTransform);
-			System.out.println(characterTransform.getTranslation(new Vector3()).toString());
 		}
 	}
 

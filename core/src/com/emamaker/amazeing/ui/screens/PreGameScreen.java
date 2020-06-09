@@ -84,7 +84,7 @@ public class PreGameScreen extends MyScreen {
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				hide();
 				if (uiManager.main.client.isRunning()) {
-					uiManager.main.client.stop();
+					uiManager.main.client.stop(true);
 					uiManager.main.setScreen(uiManager.srvJoinScreen);
 				}
 				if (uiManager.main.server.isRunning()) {

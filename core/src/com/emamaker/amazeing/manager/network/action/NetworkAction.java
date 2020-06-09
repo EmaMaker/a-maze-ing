@@ -4,6 +4,7 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.network.GameClient;
 import com.emamaker.amazeing.manager.network.GameServer;
 import com.emamaker.amazeing.manager.network.NetworkHandler;
+import com.emamaker.amazeing.utils.MathUtils.Constants;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
@@ -36,12 +37,14 @@ public abstract class NetworkAction {
 	protected NetworkHandler parent;
 	protected boolean oneTime;
 
-	protected long TIMEOUT_TIME = 5000;
 	protected long startTime;
 	boolean tookTimeout = false;
 	boolean usingTimeout = true;
 	boolean oneAtTheTime = true;
-
+	
+	//A list of actions that prevent the action to be started inside alreadyPending method
+	//(e.g NACLoginAO cannot be started if there's still a NACLoginAO2 running)
+	
 	public AMazeIng main = AMazeIng.getMain();
 
 	Listener startListener = new Listener() {
@@ -74,13 +77,9 @@ public abstract class NetworkAction {
 		this.parent = parent_;
 		this.oneTime = oneTime;
 
-		if (client() != null)
-			client().client.addListener(endListener);
-		if (server() != null)
-			server().server.addListener(endListener);
-
 		tookTimeout = false;
 		usingTimeout = true;
+//		setMaskActions(maskActions);
 //		update();
 	}
 
@@ -96,6 +95,8 @@ public abstract class NetworkAction {
 			client().client.addListener(startListener);
 		if (server() != null)
 			server().server.addListener(startListener);
+		
+//		setMaskActions(maskActions_);
 	}
 
 	public void startAction() {
@@ -110,6 +111,8 @@ public abstract class NetworkAction {
 		if (oneAtTheTime) {
 			if (!parent.alreadyPending(this))
 				parent.addToPending(newInstance());
+//			else
+//				addToQueue();
 		} else {
 			parent.addToPending(newInstance());
 		}
@@ -123,7 +126,7 @@ public abstract class NetworkAction {
 		resolveAction();
 		if (oneTime)
 			responseReceived(null, null);
-		if (System.currentTimeMillis() - startTime > TIMEOUT_TIME && usingTimeout)
+		if (System.currentTimeMillis() - startTime > Constants.NETWORK_ACTION_TIMEOUT_MILLIS && usingTimeout)
 			detachFromParent();
 	}
 
@@ -182,5 +185,13 @@ public abstract class NetworkAction {
 	public void addToQueue() {
 		parent.todoActions.add(newInstance());
 	}
+	
+	public void registerEndListener() {
+		if (client() != null)
+			client().client.addListener(endListener);
+		if (server() != null)
+			server().server.addListener(endListener);
+	}
+	
 
 }

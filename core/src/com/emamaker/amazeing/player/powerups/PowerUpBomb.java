@@ -1,5 +1,7 @@
 package com.emamaker.amazeing.player.powerups;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.MazePlayer;
@@ -12,11 +14,11 @@ public class PowerUpBomb extends PowerUp {
 	AMazeIng main = AMazeIng.getMain();
 	
 	public PowerUpBomb() {
-		this("BOMB", TextureLoader.textureBomb, false, 1f, 1f);
+		this("BOMB", TextureLoader.textureBomb, false, 1f, 1f, Gdx.files.internal("data/particles/explosion_small.particle"), Gdx.files.internal("data/particles"));
 	}
 	
-	public PowerUpBomb(String name, Texture texture, boolean cont, float sx, float sz) {
-		super(name, texture, cont, sx, sz);
+	public PowerUpBomb(String name, Texture texture, boolean cont, float sx, float sz, FileHandle effectFile, FileHandle imageSrc) {
+		super(name, texture, cont, sx, sz, effectFile, imageSrc);
 	}
 
 	@Override
@@ -25,6 +27,8 @@ public class PowerUpBomb extends PowerUp {
 		
 		int px = (int) player.getPos().x;
 		int pz = (int) player.getPos().z;
+		
+		System.out.println("Player in " + player.getPos());
 
 		int tmptodraw[][] = new int[main.currentGameManager.mazeGen.w][main.currentGameManager.mazeGen.h];
 
@@ -47,7 +51,7 @@ public class PowerUpBomb extends PowerUp {
 class PowerUpBigBomb extends PowerUpBomb{
 	
 	public PowerUpBigBomb() {
-		super("BIG BOMB", TextureLoader.textureBomb, false, 1.5f, 1.5f);
+		super("BIG BOMB", TextureLoader.textureBomb, false, 1.5f, 1.5f, Gdx.files.internal("data/particles/explosion.particle"), Gdx.files.internal("data/particles"));
 		radius = 2;
 	}
 	

@@ -48,6 +48,8 @@ public abstract class MazePlayer implements Disposable {
 	public float speed;
 	public float turnSpeed;
 
+	public long LAST_NETWORK_TIME = 0;
+	
 	Vector3 pos = new Vector3();
 	Quaternion rot = new Quaternion();
 
@@ -146,7 +148,7 @@ public abstract class MazePlayer implements Disposable {
 	}
 
 	public void usePowerUp() {
-		if (currentPowerUp != null && !currentPowerUp.beingUsed)
+		if (currentPowerUp != null)
 			if (currentPowerUp.usePowerUp(this))
 				disablePowerUp();
 	}

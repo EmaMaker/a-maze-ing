@@ -78,9 +78,9 @@ public class ServerJoinScreen extends MyScreen {
 		/* ERROR DIALOG */
 		errorDlg = new Dialog("Error in communicating with server", uiManager.skin);
 		errorDlgText = new Label("", uiManager.skin);
-		errorDlg.text(helpDlgText);
+		errorDlg.text(errorDlgText);
 		errorDlgOkBtn = new TextButton("OK", uiManager.skin);
-		errorDlg.button(helpDlgOkBtn);
+		errorDlg.button(errorDlgOkBtn);
 		errorDlg.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -159,6 +159,11 @@ public class ServerJoinScreen extends MyScreen {
 		failDlg.setPosition((sw-failDlg.getWidth())/2, (sh-failDlg.getHeight())/2);
 		failDlgText.setFontScale(labScale*0.9f);
 		failDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
+		
+		errorDlg.setSize(cw*0.7f, ch*0.2f);
+		errorDlg.setPosition((sw-failDlg.getWidth())/2, (sh-failDlg.getHeight())/2);
+		errorDlgText.setFontScale(labScale*0.9f);
+		errorDlgOkBtn.getLabel().setFontScale(labScale*0.9f);
 		
 		instLab.setFontScale(labScale);
 		srvIpL.setFontScale(labScale);

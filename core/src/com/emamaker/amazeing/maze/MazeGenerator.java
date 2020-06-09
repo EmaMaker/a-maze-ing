@@ -242,9 +242,12 @@ public class MazeGenerator {
 		OLDMAZEX = MazeSettings.MAZEX;
 		OLDMAZEZ = MazeSettings.MAZEZ;
 
+		todraw = new int[w][h];
+
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				todraw[i][j] = todraw_[i][j];
+
 				main.world.worldManager.setCell(i, 0, j, CellId.ID_GRASS);
 
 				if (todraw[i][j] == 1)
@@ -258,18 +261,16 @@ public class MazeGenerator {
 			}
 		}
 	}
-	
+
 	public int[][] changeMap(int[][] tmp, int x, int z, int type) {
-		if(x > 0 && x < w - 1 && z > 0 && z < h - 1 && todraw[x][z] != 2) tmp[x][z] = type;
+		if (x > 0 && x < w - 1 && z > 0 && z < h - 1 && todraw[x][z] != 2) {
+			tmp[x][z] = type;
+		}
 		return tmp;
 	}
 
 	public void requestChangeToMap(int[][] todraw_) {
-		if(AMazeIng.getMain().client.isRunning()) {
-//			AMazeIng.getMain().client.requestUpdateMap(todraw_);
-		}else {
-			show(todraw_);
-		}
+		show(todraw_);
 	}
 
 	boolean allCellsVisited() {

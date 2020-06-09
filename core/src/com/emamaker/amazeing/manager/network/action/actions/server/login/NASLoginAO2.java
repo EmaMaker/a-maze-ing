@@ -30,6 +30,8 @@ public class NASLoginAO2 extends NetworkAction {
 			System.out.println("Client accepted uuid " + uuid);
 			MazePlayerRemote player = new MazePlayerRemote(uuid);
 			server().players.put(uuid, player);
+			server().players.get(uuid).LAST_NETWORK_TIME = System.currentTimeMillis();
+			
 			server().setUpdatePos(uuid, false);
 		}
 		((ServerLoginAO2)responsePacket).uuid = uuid;

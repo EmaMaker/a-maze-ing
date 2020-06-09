@@ -12,6 +12,9 @@ import com.esotericsoftware.kryonet.Connection;
 
 public class NACGameStatusUpdate extends NetworkAction {
 
+	public static boolean gotMessage = false;
+	public static long lastMsgTime = 0;
+	
 	protected NACGameStatusUpdate(NetworkHandler parent, Connection c, Object incomingMsg_, Object responsePacket_,
 			Object endPacket_, boolean oneTime) {
 		super(parent, c, incomingMsg_, responsePacket_, endPacket_, oneTime);
@@ -51,6 +54,9 @@ public class NACGameStatusUpdate extends NetworkAction {
 		client().gameManager.gameStarted = ((GameStatusUpdate) incomingMsg).gameStarted;
 		client().gameManager.anyoneWon = ((GameStatusUpdate) incomingMsg).anyoneWon;
 
+		gotMessage = true;
+		lastMsgTime = System.currentTimeMillis();
+		
 	}
 
 	@Override

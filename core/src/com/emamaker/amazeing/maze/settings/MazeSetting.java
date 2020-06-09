@@ -141,5 +141,18 @@ public class MazeSetting {
 	public String getOptionString() {
 		return options[currentOption];
 	}
+	
+	public String getValueAt(int i) {
+		if(i < options.length) return options[i];
+		return "";
+	}
+	
+	public String getFirstValue() {
+		return getValueAt(0);
+	}
+	
+	public String getLastValue() {
+		return getValueAt(options.length-1);
+	}
 
 }
