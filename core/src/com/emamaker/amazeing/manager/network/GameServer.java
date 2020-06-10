@@ -79,7 +79,7 @@ public class GameServer extends NetworkHandler {
 					players.get(s).dispose();
 					players.remove(s);
 				}
-                System.out.println(Arrays.toString(players.values().toArray()));
+//                System.out.println(Arrays.toString(players.values().toArray()));
 			}
 		}
 	}

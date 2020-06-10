@@ -12,6 +12,7 @@ public class GameManagerClient extends GameManager {
 
 	public GameManagerClient() {
 		super(AMazeIng.getMain(), GameType.CLIENT);
+		setupHud();
 	}
 
 	@Override
@@ -26,7 +27,6 @@ public class GameManagerClient extends GameManager {
 		super.inGameUpdate();
 
 		renderWorld();
-		hudUpdate();
 
 		main.world.modelBatch.begin(main.world.cam);
 
@@ -34,6 +34,8 @@ public class GameManagerClient extends GameManager {
 		renderPowerUps();
 
 		main.world.modelBatch.end();
+
+		hudUpdate();
 	}
 
 	boolean showed = false;
@@ -62,4 +64,13 @@ public class GameManagerClient extends GameManager {
 	public void checkWin() {
 	}
 
+	@Override
+	public void quitGameByBtn() {
+		super.quitGameByBtn();
+		main.server.stop();
+		main.client.stop();
+		main.setScreen(main.uiManager.titleScreen);
+	}
+
 }
+

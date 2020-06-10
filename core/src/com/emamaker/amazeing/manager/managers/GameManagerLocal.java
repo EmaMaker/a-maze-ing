@@ -11,6 +11,7 @@ public class GameManagerLocal extends GameManager {
 
 	public GameManagerLocal() {
 		super(AMazeIng.getMain(), GameType.LOCAL);
+		setupHud();
 	}
 
 	@Override
@@ -35,7 +36,6 @@ public class GameManagerLocal extends GameManager {
 		assignPowerUps();
 
 		renderWorld();
-		hudUpdate();
 
 		main.world.modelBatch.begin(main.world.cam);
 
@@ -43,6 +43,8 @@ public class GameManagerLocal extends GameManager {
 		renderPowerUps();
 
 		main.world.modelBatch.end();
+
+		hudUpdate();
 
 	}
 
@@ -55,4 +57,5 @@ public class GameManagerLocal extends GameManager {
 			showed = true;
 		}
 	}
+	
 }

@@ -1,5 +1,9 @@
 package com.emamaker.amazeing.player;
 
+import java.util.Random;
+import java.util.UUID;
+
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -7,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -15,9 +20,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.player.powerups.PowerUp;
+import com.emamaker.amazeing.utils.MathUtils;
 import com.emamaker.voxelengine.physics.GameObject;
-
-import java.util.Random;
 
 public abstract class MazePlayer implements Disposable {
 
@@ -39,7 +43,7 @@ public abstract class MazePlayer implements Disposable {
 	boolean initedPhysics = false;
 	boolean toUpdatePos = false;
 
-	public String uuid;
+	public String uuid = UUID.randomUUID().toString();;
 	public PowerUp currentPowerUp;
 
 	public float baseSpeed = 3f;
@@ -49,9 +53,11 @@ public abstract class MazePlayer implements Disposable {
 	public float turnSpeed;
 
 	public long LAST_NETWORK_TIME = 0;
-	
+
 	Vector3 pos = new Vector3();
 	Quaternion rot = new Quaternion();
+	
+	protected Color color = new Color(1f, 1f, 1f, 1f);
 
 	MazePlayer(boolean s) {
 		this(String.valueOf((char) (65 + rand.nextInt(26))), s);
@@ -113,7 +119,11 @@ public abstract class MazePlayer implements Disposable {
 		modelBuilder.begin();
 		Node n = modelBuilder.node();
 		n.id = "MazePlayer";
-		modelBuilder.part("MazePlayer", GL20.GL_TRIANGLES, meshAttr, new Material()).box(0.6f, 0.6f, 0.6f);
+		color = setColorByUUID();
+		modelBuilder
+				.part("MazePlayer", GL20.GL_TRIANGLES, meshAttr,
+						new Material(ColorAttribute.createDiffuse(color)))
+				.box(0.6f, 0.6f, 0.6f);
 		mazePlayerModel = modelBuilder.end();
 		instance = new ModelInstance(mazePlayerModel);
 	}
@@ -169,4 +179,18 @@ public abstract class MazePlayer implements Disposable {
 	public boolean isDisposed() {
 		return disposed;
 	}
+	
+	public Color setColorByUUID() {
+		return setColor(MathUtils.getRandomColor(uuid));
+	}
+	
+	public Color setColor(Color c) {
+		color.set(c);
+		return color;
+	}
+	
+	public Color getColor() {
+		return color;
+	}
+
 }

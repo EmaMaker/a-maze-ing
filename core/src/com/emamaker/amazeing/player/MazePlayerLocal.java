@@ -71,7 +71,6 @@ public class MazePlayerLocal extends MazePlayer {
 		this.startx = startx;
 		this.starty = starty;
 		this.startz = startz;
-
 	}
 
 	public MazePlayerLocal(Controller ctrl_) {
@@ -93,7 +92,6 @@ public class MazePlayerLocal extends MazePlayer {
 		this.startx = startx;
 		this.starty = starty;
 		this.startz = startz;
-
 	}
 
 	public MazePlayerLocal(Touchpad ctrl_, int p) {
@@ -279,13 +277,15 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void update() {
 		super.update();
-		if(initedPhysics && !isDisposed()) inputs();
+		if (initedPhysics && !isDisposed())
+			inputs();
 	}
 
 	@Override
 	protected void updateFromTmpPos() {
 		super.updateFromTmpPos();
-		if(initedPhysics && !isDisposed()) pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
+		if (initedPhysics && !isDisposed())
+			pos.set(ghostObject.getWorldTransform().getTranslation(new Vector3()));
 	}
 
 //	@Override
@@ -319,7 +319,7 @@ public class MazePlayerLocal extends MazePlayer {
 			disposed = true;
 		}
 	}
-	
+
 	public boolean getPressed() {
 		return pressed;
 	}

@@ -5,8 +5,14 @@ import java.util.Random;
 import java.util.Set;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.AMazeIng.Platform;
@@ -16,6 +22,7 @@ import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
 import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.amazeing.player.powerups.PowerUps;
+import com.emamaker.amazeing.utils.MathUtils;
 import com.emamaker.voxelengine.block.CellId;
 import com.emamaker.voxelengine.player.Player;
 
@@ -40,6 +47,12 @@ public class GameManager {
 
 	PowerUp pup;
 
+	TextButton pauseBtn;
+	Dialog pauseDlg;
+	Label pauseDlgText;
+	TextButton pauseDlgResumeBtn, pauseDlgQuitBtn;
+	boolean showingDialog = false;
+
 	public GameManager(Game main_, GameType t) {
 		main = (AMazeIng) main_;
 		gameStarted = false;
@@ -54,7 +67,6 @@ public class GameManager {
 	public void generateMaze(Set<MazePlayer> pl, int todraw[][]) {
 		main.setScreen(null);
 
-		AMazeIng.getMain().multiplexer.removeProcessor(stage);
 		AMazeIng.getMain().multiplexer.addProcessor(stage);
 
 		anyoneWon = false;
@@ -96,6 +108,8 @@ public class GameManager {
 		resetCamera();
 		gameStarted = true;
 
+		showingDialog = false;
+
 	}
 
 	public void addTouchScreenInput() {
@@ -109,10 +123,69 @@ public class GameManager {
 		}
 	}
 
+	public void setupHud() {
+		pauseBtn = new TextButton("Pause", main.uiManager.skin);
+//		pauseBtn.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("data/pause.png"))));
+//		pauseBtn.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("data/pause.png"))));
+
+		pauseDlg = new Dialog("Pause", main.uiManager.skin);
+		
+		pauseDlgText = new Label("What do you want to do?", main.uiManager.skin);
+
+		pauseDlgResumeBtn = new TextButton("Resume", main.uiManager.skin);
+		pauseDlgQuitBtn = new TextButton("Quit", main.uiManager.skin);
+
+		pauseDlg.text(pauseDlgText);
+		pauseDlg.button(pauseDlgQuitBtn);
+		pauseDlg.button(pauseDlgResumeBtn);
+		
+		pauseBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				pauseDlg.show(stage);
+				return true;
+			}
+		});
+
+		pauseDlgResumeBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				pauseDlg.hide();
+				return true;
+			}
+		});
+		pauseDlgQuitBtn.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				quitGameByBtn();
+				return true;
+			}
+		});
+
+		stage.addActor(pauseBtn);
+	}
+
+	
+	float cw, ch, d, labScale, buttonDim;
 	public void hudUpdate() {
 		resetCamera();
-		setCamera(new Vector3((MazeSettings.MAZEX + 1) / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.45f,
+		setCamera(new Vector3((MazeSettings.MAZEX + 1) / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.48f,
 				MazeSettings.MAZEZ / 2 - 1), new Vector3(0, -90, 0));
+
+		cw = Gdx.graphics.getWidth();
+		ch = Gdx.graphics.getHeight();
+		d = MathUtils.pythagoreanTheorem(cw, ch);
+		labScale = d * .00090f;
+		buttonDim = d * 0.04f;
+		pauseBtn.setSize(buttonDim, buttonDim);
+		pauseBtn.setPosition((cw - pauseBtn.getWidth()) / 2, ch - pauseBtn.getHeight());
+		pauseBtn.getLabel().setFontScale(labScale*0.9f);
+
+		pauseDlg.setSize(cw*0.2f, ch*0.15f);
+		pauseDlg.setPosition((cw-pauseDlg.getWidth())/2, (ch-pauseDlg.getHeight())/2);
+		pauseDlgResumeBtn.getLabel().setFontScale(labScale*0.9f);
+		pauseDlgQuitBtn.getLabel().setFontScale(labScale*0.9f);
+		pauseDlgText.setFontScale(labScale*0.9f);
 
 		stage.act();
 		stage.draw();
@@ -182,10 +255,18 @@ public class GameManager {
 	public void setFinished() {
 		anyoneWon = true;
 		gameStarted = false;
-
+		
+		AMazeIng.getMain().multiplexer.removeProcessor(stage);
 		for (MazePlayer p : players)
 			p.disablePowerUp();
 		main.clearEffects();
+	}
+	
+	public void quitGameByBtn() {
+		setFinished();
+		if (pauseDlg != null) {
+			pauseDlg.hide();
+		}
 	}
 
 	public boolean getFinished() {
@@ -230,7 +311,7 @@ public class GameManager {
 			do {
 				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
 				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z) || thereIsPowerUpInPos(x, z));
+			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
 			System.out.println("Spawning power-up in " + x + ", " + z);
 			spawnPowerUp(x + .5f, z + .5f);
 		}
@@ -370,4 +451,5 @@ public class GameManager {
 				p.dispose();
 		players.clear();
 	}
+
 }

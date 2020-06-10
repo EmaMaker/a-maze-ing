@@ -171,11 +171,11 @@ class PowerUpTemporized extends PowerUp {
 
 		if (System.currentTimeMillis() - startTime <= time) {
 			temporizedEffect(player);
-			System.out.println("starting " + name);
+//			System.out.println("starting " + name);
 			return false;
 		} else {
 			used = false;
-			System.out.println("finishing " + name);
+//			System.out.println("finishing " + name);
 			e = null;
 			temporizedEffectExpired(player);
 			return true;
