@@ -5,10 +5,13 @@ import java.util.Set;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.GameType;
+import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 
 public class GameManagerLocal extends GameManager {
 
+	long lastPowerUpTime = 0;
+	
 	public GameManagerLocal() {
 		super(AMazeIng.getMain(), GameType.LOCAL);
 		setupHud();
@@ -33,6 +36,12 @@ public class GameManagerLocal extends GameManager {
 	@Override
 	public void inGameUpdate() {
 		super.inGameUpdate();
+
+		if(System.currentTimeMillis() - lastPowerUpTime > MazeSettings.POWERUP_SPAWN_FREQUENCY) {
+			lastPowerUpTime = System.currentTimeMillis();
+			spawnRandomPowerUp();
+		}
+		
 		assignPowerUps();
 
 		renderWorld();

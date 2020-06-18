@@ -7,7 +7,7 @@ import com.emamaker.amazeing.utils.TextureLoader;
 public class PowerUpBallAndChain extends PowerUpTemporized {
 
 	public PowerUpBallAndChain() {
-		super("BALL AND CHAIN", TextureLoader.textureBallAndChain, true, 10, 1f, 1f,
+		super("BALL_AND_CHAIN", TextureLoader.textureBallAndChain, true, 10, 1f, 1f,
 				Gdx.files.internal("data/particles/ball_and_chain.particle"), Gdx.files.internal("data/powerups"));
 	}
 
@@ -27,7 +27,7 @@ public class PowerUpBallAndChain extends PowerUpTemporized {
 class PowerUpGiveBallAndChain extends PowerUpGiver {
 
 	public PowerUpGiveBallAndChain() {
-		super(new PowerUpBallAndChain(), "BALL AND CHAIN GIVER", TextureLoader.textureBallAndChain, false, null, null);
+		super(new PowerUpBallAndChain(), "BALL_AND_CHAIN_GIVER", TextureLoader.textureBallAndChain, false, null, null);
 	}
 
 }

@@ -6,6 +6,7 @@ import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
 import com.emamaker.amazeing.manager.GameType;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.amazeing.ui.screens.PreGameScreen;
 
 public class GameManagerClient extends GameManager {
@@ -55,14 +56,29 @@ public class GameManagerClient extends GameManager {
 		}
 	}
 
-	// Protecting against myself since this feature doesn't exist yet
+	@Override
+	public void usePowerUp(MazePlayer p) {
+//		System.out.println("using powerup for " + p + " " + p.currentPowerUp);
+		main.client.requestUsePowerUp(p);
+	}
+
+	// These features don't exist in clients
 	@Override
 	public void assignPowerUps() {
 	}
-
 	@Override
-	public void checkWin() {
+	public void assignPowerUp(MazePlayer p, PowerUp p1) {
 	}
+	@Override
+	public void assignPowerUp(MazePlayer p, PowerUp p1, boolean b) {
+	}
+	@Override
+	public void requestChangeToMap(int[][] todraw) {
+	}
+	@Override
+	public void revokePowerUp(MazePlayer p) {
+	}
+	
 
 	@Override
 	public void quitGameByBtn() {
@@ -71,6 +87,5 @@ public class GameManagerClient extends GameManager {
 		main.client.stop();
 		main.setScreen(main.uiManager.titleScreen);
 	}
-
+	
 }
-

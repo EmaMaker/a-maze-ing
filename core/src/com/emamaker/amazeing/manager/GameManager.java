@@ -43,9 +43,10 @@ public class GameManager {
 
 	public ArrayList<MazePlayer> players = new ArrayList<MazePlayer>();
 	public ArrayList<PowerUp> powerups = new ArrayList<PowerUp>();
-	ArrayList<MazePlayer> toDelete = new ArrayList<MazePlayer>();
+	protected ArrayList<MazePlayer> toDeletePlayer = new ArrayList<MazePlayer>();
+	protected ArrayList<PowerUp> toDeletePowerUps = new ArrayList<PowerUp>();
 
-	PowerUp pup;
+	protected PowerUp pup;
 
 	TextButton pauseBtn;
 	Dialog pauseDlg;
@@ -75,18 +76,18 @@ public class GameManager {
 			if (pl != null) {
 				for (MazePlayer p : players)
 					if (!pl.contains(p))
-						toDelete.add(p);
+						toDeletePlayer.add(p);
 
 				// Check if new players have to be added
 				for (MazePlayer p : pl)
 					if (!players.contains(p))
 						players.add(p);
 
-				for (MazePlayer p : toDelete) {
+				for (MazePlayer p : toDeletePlayer) {
 					p.dispose();
 					players.remove(p);
 				}
-				toDelete.clear();
+				toDeletePlayer.clear();
 			}
 		} else {
 			for (MazePlayer p : players)
@@ -129,7 +130,7 @@ public class GameManager {
 //		pauseBtn.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("data/pause.png"))));
 
 		pauseDlg = new Dialog("Pause", main.uiManager.skin);
-		
+
 		pauseDlgText = new Label("What do you want to do?", main.uiManager.skin);
 
 		pauseDlgResumeBtn = new TextButton("Resume", main.uiManager.skin);
@@ -138,7 +139,7 @@ public class GameManager {
 		pauseDlg.text(pauseDlgText);
 		pauseDlg.button(pauseDlgQuitBtn);
 		pauseDlg.button(pauseDlgResumeBtn);
-		
+
 		pauseBtn.addListener(new InputListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -165,12 +166,12 @@ public class GameManager {
 		stage.addActor(pauseBtn);
 	}
 
-	
 	float cw, ch, d, labScale, buttonDim;
+
 	public void hudUpdate() {
 		resetCamera();
 		setCamera(new Vector3((MazeSettings.MAZEX + 1) / 2, (MazeSettings.MAZEX + MazeSettings.MAZEZ) * 0.48f,
-				MazeSettings.MAZEZ / 2 - 1), new Vector3(0, -90, 0));
+				MazeSettings.MAZEZ / 2 - 1.75f), new Vector3(0, -90, 0));
 
 		cw = Gdx.graphics.getWidth();
 		ch = Gdx.graphics.getHeight();
@@ -179,13 +180,13 @@ public class GameManager {
 		buttonDim = d * 0.04f;
 		pauseBtn.setSize(buttonDim, buttonDim);
 		pauseBtn.setPosition((cw - pauseBtn.getWidth()) / 2, ch - pauseBtn.getHeight());
-		pauseBtn.getLabel().setFontScale(labScale*0.9f);
+		pauseBtn.getLabel().setFontScale(labScale * 0.9f);
 
-		pauseDlg.setSize(cw*0.2f, ch*0.15f);
-		pauseDlg.setPosition((cw-pauseDlg.getWidth())/2, (ch-pauseDlg.getHeight())/2);
-		pauseDlgResumeBtn.getLabel().setFontScale(labScale*0.9f);
-		pauseDlgQuitBtn.getLabel().setFontScale(labScale*0.9f);
-		pauseDlgText.setFontScale(labScale*0.9f);
+		pauseDlg.setSize(cw * 0.2f, ch * 0.15f);
+		pauseDlg.setPosition((cw - pauseDlg.getWidth()) / 2, (ch - pauseDlg.getHeight()) / 2);
+		pauseDlgResumeBtn.getLabel().setFontScale(labScale * 0.9f);
+		pauseDlgQuitBtn.getLabel().setFontScale(labScale * 0.9f);
+		pauseDlgText.setFontScale(labScale * 0.9f);
 
 		stage.act();
 		stage.draw();
@@ -210,6 +211,13 @@ public class GameManager {
 			updatePlayer(p);
 	}
 
+	public void updatePowerUps() {
+		for (PowerUp p : toDeletePowerUps) {
+			powerups.remove(p);
+		}
+		toDeletePowerUps.clear();
+	}
+
 	public void renderPlayer(MazePlayer p) {
 		if (getShowGame())
 			p.render(main.world.modelBatch, main.world.environment);
@@ -224,24 +232,36 @@ public class GameManager {
 	}
 
 	public void assignPowerUps() {
-		if (players != null && !players.isEmpty())
-			for (MazePlayer p : players)
-				assignPowerUp(p);
-	}
-
-	public PowerUp assignPowerUp(MazePlayer p) {
-		PowerUp pup = null;
-		for (PowerUp p1 : powerups) {
-			if (checkPowerUp(p, p1)) {
-				pup = p1;
-				p.currentPowerUp = pup;
-				break;
+		if (players != null && !players.isEmpty()) {
+			for (MazePlayer p : players) {
+				for (PowerUp p1 : powerups) {
+					if (checkPowerUp(p, p1)) {
+						assignPowerUp(p, p1);
+					}
+				}
 			}
 		}
-		if (pup != null)
-			powerups.remove(pup);
+	}
 
-		return pup;
+	public void revokePowerUp(MazePlayer p) {
+		p.disablePowerUp();
+	}
+
+	public void assignPowerUp(MazePlayer p, PowerUp p1, boolean immediateUse) {
+		if (p.currentPowerUp == null) {
+			toDeletePowerUps.add(p1);
+			p.currentPowerUp = p1;
+			if (immediateUse)
+				p.usePowerUp();
+		}
+	}
+
+	public void assignPowerUp(MazePlayer p, PowerUp p1) {
+		this.assignPowerUp(p, p1, false);
+	}
+
+	public void usePowerUp(MazePlayer p) {
+		p.usePowerUp();
 	}
 
 	public void checkWin() {
@@ -255,13 +275,13 @@ public class GameManager {
 	public void setFinished() {
 		anyoneWon = true;
 		gameStarted = false;
-		
+
 		AMazeIng.getMain().multiplexer.removeProcessor(stage);
 		for (MazePlayer p : players)
 			p.disablePowerUp();
 		main.clearEffects();
 	}
-	
+
 	public void quitGameByBtn() {
 		setFinished();
 		if (pauseDlg != null) {
@@ -290,6 +310,7 @@ public class GameManager {
 	public void inGameUpdate() {
 		if (players != null) {
 			updatePlayers();
+			updatePowerUps();
 		}
 
 	}
@@ -306,12 +327,20 @@ public class GameManager {
 	}
 
 	public void spawnPowerUps() {
-		for (int i = 0; i < MazeSettings.START_POWERUPS; i++) {
-			int x = 1, z = 1;
-			do {
-				x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
-				z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
-			} while (thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z));
+		for (int i = 0; i < MazeSettings.START_POWERUPS; i++)
+			spawnRandomPowerUp();
+	}
+
+	public void spawnRandomPowerUp() {
+		int x = 1, z = 1, tries = 0;
+		int maxtries = MazeSettings.MAZEX * MazeSettings.MAZEZ + 2;
+		do {
+			x = (Math.abs(rand.nextInt() - 1) % (mazeGen.w));
+			z = (Math.abs(rand.nextInt() - 1) % (mazeGen.h));
+			tries++;
+		} while ((thereIsPlayerInPos(x, z) || mazeGen.occupiedSpot(x, z) || thereIsPowerUpInPos(x, z))
+				&& tries < maxtries);
+		if (tries < maxtries) {
 			System.out.println("Spawning power-up in " + x + ", " + z);
 			spawnPowerUp(x + .5f, z + .5f);
 		}
@@ -323,16 +352,22 @@ public class GameManager {
 		powerups.add(p);
 	}
 
+	public void spawnPowerUpByName(String name, float x, float z) {
+		PowerUp p = PowerUps.pickByName(name);
+		p.setPosition(x, 1.25f, z);
+		powerups.add(p);
+	}
+
 	public void clearPowerUps() {
 		for (PowerUp p : powerups)
 			if (p != null)
 				p.dispose();
 		powerups.clear();
+		toDeletePowerUps.clear();
 	}
 
 	public void removePowerUp(PowerUp p) {
-		if (p != null)
-			powerups.remove(p);
+		toDeletePowerUps.add(p);
 	}
 
 	public String getPowerUpNameByPos(int x, int z) {
@@ -404,7 +439,8 @@ public class GameManager {
 	}
 
 	public void requestChangeToMap(int[][] todraw) {
-		mazeGen.show(todraw);
+		if (gameStarted)
+			mazeGen.show(todraw);
 	}
 
 	public void resetCamera() {

@@ -240,7 +240,7 @@ public class MazePlayerLocal extends MazePlayer {
 		}
 
 		if (Gdx.input.isKeyJustPressed(kpup))
-			usePowerUp();
+			main.currentGameManager.usePowerUp(this);
 	}
 
 	public void inputTouchscreen() {
@@ -302,6 +302,9 @@ public class MazePlayerLocal extends MazePlayer {
 	@Override
 	public void setTransform(float x, float y, float z, float i, float j, float k, float l) {
 		if (!isDisposed() && initedPhysics) {
+			//Just a little hack to avoid players disappearing in the void due to some strange things happening with physics when updating map and remote players 
+			if(y < 1) y = 1.25f;
+			
 			characterTransform.set(x, y, z, i, j, k, l);
 			ghostObject.setWorldTransform(characterTransform);
 		}

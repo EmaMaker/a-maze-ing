@@ -28,7 +28,7 @@ public class PowerUpSlug extends PowerUpTemporized {
 class PowerUpGiveSlug extends PowerUpGiver {
 
 	public PowerUpGiveSlug() {
-		super(new PowerUpSlug(), "SLUG GIVER", TextureLoader.textureSlug, false, 1f, 1f, null, null);
+		super(new PowerUpSlug(), "SLUG_GIVER", TextureLoader.textureSlug, false, 1f, 1f, null, null);
 	}
 
 }

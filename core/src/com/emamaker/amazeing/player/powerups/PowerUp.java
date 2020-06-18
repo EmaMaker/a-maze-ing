@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 import com.emamaker.amazeing.AMazeIng;
+import com.emamaker.amazeing.manager.managers.GameManagerServer;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.utils.MathUtils;
 
@@ -121,15 +122,16 @@ public class PowerUp implements Disposable {
 
 	// Return true if the effect has been resolved
 	public boolean usePowerUp(MazePlayer player) {
-		System.out.println(this.name + " ! ");
+		System.out.println(AMazeIng.getMain().currentGameManager + " " + this.name + " ! ");
 
-		if (effect != null) {
+		if (effect != null && !(AMazeIng.getMain().currentGameManager instanceof GameManagerServer)) {
 			PooledEffect e = effectPool.obtain();
 			Vector3 pos = MathUtils.toScreenCoords(player.getPos());
 			e.setPosition(pos.x, pos.y);
 
 			AMazeIng.getMain().effects.add(e);
 		}
+		AMazeIng.getMain().currentGameManager.revokePowerUp(player);
 		return true;
 	}
 
@@ -165,8 +167,10 @@ class PowerUpTemporized extends PowerUp {
 			startTime = System.currentTimeMillis();
 			used = true;
 
-			e = effectPool.obtain();
-			AMazeIng.getMain().effects.add(e);
+			if (!(AMazeIng.getMain().currentGameManager instanceof GameManagerServer)) {
+				e = effectPool.obtain();
+				AMazeIng.getMain().effects.add(e);
+			}
 		}
 
 		if (System.currentTimeMillis() - startTime <= time) {
@@ -175,16 +179,19 @@ class PowerUpTemporized extends PowerUp {
 			return false;
 		} else {
 			used = false;
-//			System.out.println("finishing " + name);
 			e = null;
 			temporizedEffectExpired(player);
+			AMazeIng.getMain().currentGameManager.revokePowerUp(player);
+			System.out.println("finishing " + name);
 			return true;
 		}
 	}
 
 	public void temporizedEffect(MazePlayer player) {
-		Vector3 p = MathUtils.toScreenCoords(player.getPos());
-		e.setPosition(p.x, p.y);
+		if (e != null && !(AMazeIng.getMain().currentGameManager instanceof GameManagerServer)) {
+			Vector3 p = MathUtils.toScreenCoords(player.getPos());
+			e.setPosition(p.x, p.y);
+		}
 
 		beingUsed = true;
 	}
@@ -219,8 +226,8 @@ class PowerUpGiver extends PowerUp {
 		if (AMazeIng.getMain().currentGameManager.players.size() > 1) {
 			while (p == player || p == null)
 				p = AMazeIng.getMain().currentGameManager.getRandomPlayer();
-			p.currentPowerUp = powerup;
-			p.usePowerUp();
+			AMazeIng.getMain().currentGameManager.assignPowerUp(p, powerup, true);
+			AMazeIng.getMain().currentGameManager.revokePowerUp(player);
 		}
 
 		return true;

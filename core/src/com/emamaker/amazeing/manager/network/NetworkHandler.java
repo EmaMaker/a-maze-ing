@@ -1,5 +1,8 @@
 package com.emamaker.amazeing.manager.network;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import com.badlogic.gdx.math.Vector3;
 import com.emamaker.amazeing.AMazeIng;
 import com.emamaker.amazeing.manager.GameManager;
@@ -7,10 +10,6 @@ import com.emamaker.amazeing.manager.network.NetworkCommon.UpdateForcedPlayerPos
 import com.emamaker.amazeing.manager.network.NetworkCommon.UpdatePlayerPosition;
 import com.emamaker.amazeing.manager.network.action.NetworkAction;
 import com.emamaker.amazeing.player.MazePlayer;
-
-import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class NetworkHandler {
 

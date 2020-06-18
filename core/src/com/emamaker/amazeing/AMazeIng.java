@@ -101,6 +101,11 @@ public class AMazeIng extends Game {
 		System.out.println("Setting up PowerUps");
 		new PowerUps();
 	}
+	
+	public void requestChangeToMap(int[][] todraw) {
+		if(server.isRunning()) server.gameManager.requestChangeToMap(todraw);
+		else if(!client.isRunning()) server.gameManager.requestChangeToMap(todraw);
+	}
 
 	@Override
 	public void render() {

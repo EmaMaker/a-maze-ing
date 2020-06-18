@@ -8,6 +8,8 @@ import com.esotericsoftware.kryonet.Connection;
 
 public class NASUpdateMap extends NetworkAction {
 
+	static String map = "", oldMap = "";
+
 	protected NASUpdateMap(NetworkHandler parent, Connection c, Object incomingMsg_, Object responsePacket_,
 			Object endPacket_, boolean oneTime) {
 		super(parent, c, incomingMsg_, responsePacket_, endPacket_, oneTime);
@@ -20,8 +22,12 @@ public class NASUpdateMap extends NetworkAction {
 	@Override
 	public void resolveAction() {
 		super.resolveAction();
-		((UpdateMap) responsePacket).map = server().gameManager.mazeGen.runLenghtEncode();
-		server().server.sendToAllUDP(responsePacket);
+		map = server().gameManager.mazeGen.runLenghtEncode();
+		if (!map.equals(oldMap)) {
+			((UpdateMap)responsePacket).map = map;
+			server().server.sendToAllUDP(responsePacket);
+			oldMap = map;
+		}
 	}
 
 	@Override

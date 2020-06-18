@@ -264,6 +264,7 @@ public class MazeGenerator {
 
 	public int[][] changeMap(int[][] tmp, int x, int z, int type) {
 		if (x > 0 && x < w - 1 && z > 0 && z < h - 1 && todraw[x][z] != 2) {
+			System.out.println("changing " + x + ", " + z + " to " + type);
 			tmp[x][z] = type;
 		}
 		return tmp;

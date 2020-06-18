@@ -9,7 +9,7 @@ import com.emamaker.amazeing.utils.TextureLoader;
 
 public class PowerUpBomb extends PowerUp {
 
-	int radius = 1;
+	int radius = 2;
 
 	AMazeIng main = AMazeIng.getMain();
 	
@@ -36,13 +36,13 @@ public class PowerUpBomb extends PowerUp {
 			for (int k = 0; k < main.currentGameManager.mazeGen.h; k++)
 				tmptodraw[i][k] = main.currentGameManager.mazeGen.todraw[i][k];
 
-		for (int i = px - radius; i < px + radius + 1; i++) {
-			for (int k = pz - radius; k < pz + radius + 1; k++) {
-				tmptodraw = main.currentGameManager.mazeGen.changeMap(tmptodraw, i, k, 0);
+		for (int i = px - radius - 1; i < px + radius + 2; i++) {
+			for (int k = pz - radius - 1; k < pz + radius + 2; k++) {
+				if(player.getPos().dst(i, 1, k) <= radius) tmptodraw = main.currentGameManager.mazeGen.changeMap(tmptodraw, i, k, 0);
 			}
 		}
-		
-		AMazeIng.getMain().currentGameManager.requestChangeToMap(tmptodraw);
+
+		AMazeIng.getMain().requestChangeToMap(tmptodraw);
 		
 		return true;
 	}
@@ -52,7 +52,7 @@ class PowerUpBigBomb extends PowerUpBomb{
 	
 	public PowerUpBigBomb() {
 		super("BIG BOMB", TextureLoader.textureBomb, false, 1.5f, 1.5f, Gdx.files.internal("data/particles/explosion.particle"), Gdx.files.internal("data/particles"));
-		radius = 2;
+		radius = 3;
 	}
 	
 }

@@ -17,6 +17,10 @@ import com.emamaker.amazeing.manager.network.action.actions.client.login.NACRemo
 import com.emamaker.amazeing.manager.network.action.actions.client.player.NACUpdateOtherPlayerPos;
 import com.emamaker.amazeing.manager.network.action.actions.client.player.NACUpdatePlayerPosForced;
 import com.emamaker.amazeing.manager.network.action.actions.client.player.NACUpdatePlayersPos;
+import com.emamaker.amazeing.manager.network.action.actions.client.powerup.NACPowerUpAssignRequestOk;
+import com.emamaker.amazeing.manager.network.action.actions.client.powerup.NACPowerUpRevokeRequestOk;
+import com.emamaker.amazeing.manager.network.action.actions.client.powerup.NACPowerUpUseRequest;
+import com.emamaker.amazeing.manager.network.action.actions.client.powerup.NACUpdatePowerUps;
 import com.emamaker.amazeing.maze.settings.MazeSettings;
 import com.emamaker.amazeing.player.MazePlayer;
 import com.emamaker.amazeing.player.MazePlayerLocal;
@@ -69,9 +73,13 @@ public class GameClient extends NetworkHandler {
 		actions.add(new NACRemovePlayer(this));
 		actions.add(new NACGameStatusUpdate(this));
 		actions.add(new NACUpdateMap(this));
+		actions.add(new NACUpdatePowerUps(this));
 		actions.add(new NACUpdatePlayerPosForced(this));
 		actions.add(new NACUpdatePlayersPos(this));
 		actions.add(new NACUpdateOtherPlayerPos(this));
+		actions.add(new NACPowerUpRevokeRequestOk(this));
+		actions.add(new NACPowerUpAssignRequestOk(this));
+		actions.add(new NACPowerUpUseRequest(this));
 	}
 
 	@Override
@@ -82,14 +90,15 @@ public class GameClient extends NetworkHandler {
 	@Override
 	public void update() {
 		super.update();
-		
+
 		if (isRunning()) {
-			//Check if the server disconnected or it's timing out
-			if(!client.isConnected() || ((NACGameStatusUpdate.gotMessage && System.currentTimeMillis() - NACGameStatusUpdate.lastMsgTime > Constants.COMMUNICATION_TIMEOUT_MILLIS))) {
+			// Check if the server disconnected or it's timing out
+			if (!client.isConnected() || ((NACGameStatusUpdate.gotMessage && System.currentTimeMillis()
+					- NACGameStatusUpdate.lastMsgTime > Constants.COMMUNICATION_TIMEOUT_MILLIS))) {
 				stop(true);
 				main.uiManager.srvJoinScreen.showErrorDlg(1);
 			}
-			//Normal client update
+			// Normal client update
 			if (gameManager != null) {
 				if (gameManager.gameStarted) {
 				} else {
@@ -126,11 +135,10 @@ public class GameClient extends NetworkHandler {
 				p.dispose();
 			players.clear();
 
-
 			if (!fromserver) {
 				for (NetworkAction n : pendingActions)
 					n.onParentClosing();
-				
+
 				while (!pendingActions.isEmpty())
 					update();
 			}
@@ -208,6 +216,12 @@ public class GameClient extends NetworkHandler {
 
 	public void setUpdateMobilePlayers() {
 		updateMobilePlayers = true;
+	}
+
+	public void requestUsePowerUp(MazePlayer p) {
+		if (p.currentPowerUp != null)
+			((NACPowerUpUseRequest) getActionByClass(NACPowerUpUseRequest.class)).startAction(null, null, p.uuid,
+					p.currentPowerUp.name);
 	}
 
 }

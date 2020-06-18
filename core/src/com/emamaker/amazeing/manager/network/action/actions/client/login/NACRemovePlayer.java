@@ -23,9 +23,8 @@ public class NACRemovePlayer extends NetworkAction {
 
 	/*
 	 * Here startAction needs to be overrided to allow for the uuid argument to be
-	 * passed from one instance to another and to remove the alreadyPending
-	 * limitation. Here we need to be able to call multiple instances of this at the
-	 * same time
+	 * passed from one instance to another. This also removes the alreadyPending statement instead of setting 
+	 * the oneAtTheTie flag.
 	 */
 	public void startAction(String s_) {
 		this.startAction(incomingConnection, incomingMsg, s_);

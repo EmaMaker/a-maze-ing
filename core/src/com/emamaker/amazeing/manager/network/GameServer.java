@@ -13,7 +13,12 @@ import com.emamaker.amazeing.manager.network.action.actions.server.login.NASLogi
 import com.emamaker.amazeing.manager.network.action.actions.server.login.NASRemovePlayer;
 import com.emamaker.amazeing.manager.network.action.actions.server.player.NASUpdatePlayerPos;
 import com.emamaker.amazeing.manager.network.action.actions.server.player.NASUpdatePlayerPosForced;
+import com.emamaker.amazeing.manager.network.action.actions.server.powerup.NASPowerUpAssignRequest;
+import com.emamaker.amazeing.manager.network.action.actions.server.powerup.NASPowerUpRevokeRequest;
+import com.emamaker.amazeing.manager.network.action.actions.server.powerup.NASPowerUpUseRequestOk;
+import com.emamaker.amazeing.manager.network.action.actions.server.powerup.NASUpdatePowerUps;
 import com.emamaker.amazeing.player.MazePlayer;
+import com.emamaker.amazeing.player.powerups.PowerUp;
 import com.emamaker.amazeing.utils.MathUtils.Constants;
 import com.esotericsoftware.kryonet.Server;
 
@@ -58,24 +63,30 @@ public class GameServer extends NetworkHandler {
 		actions.add(new NASRemovePlayer(this));
 		actions.add(new NASGameStatusUpdate(this));
 		actions.add(new NASUpdateMap(this));
+		actions.add(new NASUpdatePowerUps(this));
 		actions.add(new NASUpdatePlayerPosForced(this));
-		actions.add(new NASUpdatePlayerPos(this));
+		actions.add(new NASUpdatePlayerPos(this));;
+		actions.add(new NASPowerUpAssignRequest(this));
+		actions.add(new NASPowerUpRevokeRequest(this));
+		actions.add(new NASPowerUpUseRequestOk(this));
 	}
 
 	@Override
 	public void startDefaultActions() {
 		getActionByClass(NASGameStatusUpdate.class).startAction(null, null);
+		getActionByClass(NASUpdatePowerUps.class).startAction(null, null);
 //		getActionByClass(NAServerUpdatePlayers.class).startAction(null, null);
 	}
 
 	@Override
 	public void update() {
 		super.update();
-		
-		if(isRunning()) {
-			//Check if there's some player not responding that needs to be removed
-			for(String s: players.keySet()) {
-				if(System.currentTimeMillis() - players.get(s).LAST_NETWORK_TIME > Constants.COMMUNICATION_TIMEOUT_MILLIS) {
+
+		if (isRunning()) {
+			// Check if there's some player not responding that needs to be removed
+			for (String s : players.keySet()) {
+				if (System.currentTimeMillis()
+						- players.get(s).LAST_NETWORK_TIME > Constants.COMMUNICATION_TIMEOUT_MILLIS) {
 					players.get(s).dispose();
 					players.remove(s);
 				}
@@ -83,7 +94,7 @@ public class GameServer extends NetworkHandler {
 			}
 		}
 	}
-	
+
 	@Override
 	public void periodicNonGameUpdate() {
 	}
@@ -134,6 +145,15 @@ public class GameServer extends NetworkHandler {
 			positionUpdate.replace(uuid, b);
 		else
 			positionUpdate.put(uuid, b);
+	}
+
+	public void assignPowerUpRequest(MazePlayer p, PowerUp p1, boolean immediateUse) {
+		((NASPowerUpAssignRequest) getActionByClass(NASPowerUpAssignRequest.class)).startAction(null, null, p.uuid,
+				p1.name, immediateUse);
+	}
+	public void revokePowerUpRequest(MazePlayer p) {
+		System.out.println("Revoking powerup to " + p);
+		((NASPowerUpRevokeRequest) getActionByClass(NASPowerUpRevokeRequest.class)).startAction(null, null, p.uuid);
 	}
 
 }

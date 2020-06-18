@@ -55,8 +55,6 @@ public class MathUtils extends net.dermetfan.gdx.math.MathUtils {
 		float hue = value*maxHue + (1-value)*minHue; 
 		Color c = new Color(java.awt.Color.HSBtoRGB(hue, 1, 1f));
 
-		System.out.println(r + ", " + g + ", " + b);
-		
 		return new Color(c);
 	}
 
